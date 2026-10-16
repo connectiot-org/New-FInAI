@@ -1,16 +1,304 @@
 {
-  "productionRoutes": 46,
-  "publicRoutes": 9,
+  "productionRoutes": 53,
+  "publicRoutes": 16,
   "accountingRoutes": 37,
-  "viewports": [
-    1440,
-    1280,
-    1024,
-    390
-  ],
+  "welcomeChecked": true,
+  "viewports": [1440, 1280, 1024, 390],
   "runtimeErrors": [],
   "externalRequests": [],
   "failedRequests": [],
-  "referenceAccess": "Direct HTTPS: proxy 403. Live Chromium through configured proxy: ERR_TUNNEL_CONNECTION_FAILED. No Rillet visuals observed.",
-  "visualMatch": "Unverified; original fallback implementation."
+  "routeResults": [
+    {
+      "route": "/",
+      "heading": "Zero-Day Closestarts here"
+    },
+    {
+      "route": "/product/automated-general-ledger",
+      "heading": "Your accounting on auto-pilot"
+    },
+    {
+      "route": "/product/accounts-receivable",
+      "heading": "Keep your revenue moving. And your records connected."
+    },
+    {
+      "route": "/product/accounts-payable",
+      "heading": "Less chasing paperwork. More knowing where things stand."
+    },
+    {
+      "route": "/product/financial-reporting",
+      "heading": "A clearer answer to “how are we doing?”"
+    },
+    {
+      "route": "/product/month-end-close",
+      "heading": "A close with fewer loose ends."
+    },
+    {
+      "route": "/product/assistant",
+      "heading": "Get to the answer. Stay close to the evidence."
+    },
+    {
+      "route": "/product/bank-reconciliation",
+      "heading": "Bring the bank and the books together."
+    },
+    {
+      "route": "/product/native-integrations",
+      "heading": "Your finance stack. A connected view."
+    },
+    {
+      "route": "/product/advanced-revenue-recognition",
+      "heading": "Keep the revenue story connected."
+    },
+    {
+      "route": "/product/multi-entity",
+      "heading": "A clear perspective on every entity."
+    },
+    {
+      "route": "/product/security-permissions",
+      "heading": "Clear roles. Reviewable decisions."
+    },
+    {
+      "route": "/product/real-time-reporting",
+      "heading": "Find the story behind the statement."
+    },
+    {
+      "route": "/customers",
+      "heading": "Relationships, with the numbers attached."
+    },
+    {
+      "route": "/resources",
+      "heading": "A few useful pathsthrough the numbers."
+    },
+    {
+      "route": "/about",
+      "heading": "Good accountingmakes space to think."
+    },
+    {
+      "route": "/welcome",
+      "heading": "Your books.A clearer perspective."
+    },
+    {
+      "route": "/overview",
+      "heading": "Overview"
+    },
+    {
+      "route": "/accounting/ledger",
+      "heading": "General ledger"
+    },
+    {
+      "route": "/accounting/journals",
+      "heading": "Journal entries"
+    },
+    {
+      "route": "/accounting/accounts",
+      "heading": "Chart of accounts"
+    },
+    {
+      "route": "/accounting/trial-balance",
+      "heading": "Trial balance"
+    },
+    {
+      "route": "/receivables/invoices",
+      "heading": "Invoices"
+    },
+    {
+      "route": "/receivables/customers",
+      "heading": "Customers"
+    },
+    {
+      "route": "/revenue/contracts",
+      "heading": "Contracts"
+    },
+    {
+      "route": "/revenue/schedules",
+      "heading": "Revenue schedules"
+    },
+    {
+      "route": "/payables/bills",
+      "heading": "Bills"
+    },
+    {
+      "route": "/payables/vendors",
+      "heading": "Vendors"
+    },
+    {
+      "route": "/banking/accounts",
+      "heading": "Bank accounts"
+    },
+    {
+      "route": "/banking/reconciliation",
+      "heading": "Reconciliation"
+    },
+    {
+      "route": "/close",
+      "heading": "Month-end close"
+    },
+    {
+      "route": "/reports",
+      "heading": "Reports"
+    },
+    {
+      "route": "/reports/profit-and-loss",
+      "heading": "Profit & loss"
+    },
+    {
+      "route": "/reports/balance-sheet",
+      "heading": "Balance sheet"
+    },
+    {
+      "route": "/reports/cash-flow",
+      "heading": "Cash flow"
+    },
+    {
+      "route": "/entities",
+      "heading": "Entities"
+    },
+    {
+      "route": "/entities/consolidation",
+      "heading": "Consolidation"
+    },
+    {
+      "route": "/assistant",
+      "heading": "FinAI Assistant"
+    },
+    {
+      "route": "/automations",
+      "heading": "Automations"
+    },
+    {
+      "route": "/integrations",
+      "heading": "Integrations"
+    },
+    {
+      "route": "/audit-log",
+      "heading": "Audit log"
+    },
+    {
+      "route": "/settings/workspace",
+      "heading": "Settings"
+    },
+    {
+      "route": "/settings/members",
+      "heading": "Settings"
+    },
+    {
+      "route": "/settings/approvals",
+      "heading": "Settings"
+    },
+    {
+      "route": "/settings/dimensions",
+      "heading": "Settings"
+    },
+    {
+      "route": "/settings/notifications",
+      "heading": "Settings"
+    },
+    {
+      "route": "/settings/preferences",
+      "heading": "Settings"
+    },
+    {
+      "route": "/accounting/journals/J-INV-1001",
+      "heading": "J-INV-1001"
+    },
+    {
+      "route": "/receivables/invoices/INV-1001",
+      "heading": "INV-1001"
+    },
+    {
+      "route": "/receivables/customers/cus-1",
+      "heading": "Acorn Labs"
+    },
+    {
+      "route": "/revenue/contracts/CON-301",
+      "heading": "Acorn Labs · annual platform"
+    },
+    {
+      "route": "/payables/bills/BILL-2041",
+      "heading": "BILL-2041"
+    },
+    {
+      "route": "/payables/vendors/ven-1",
+      "heading": "Nimbus Cloud"
+    },
+    {
+      "route": "/automations/auto-1",
+      "heading": "Review high-value invoices"
+    }
+  ],
+  "heroMeasurements": [
+    {
+      "viewport": 1440,
+      "headline": {
+        "x": 51.6875,
+        "y": 182.671875,
+        "width": 481.171875,
+        "height": 129.21875
+      },
+      "art": {
+        "x": 51.6875,
+        "y": 370.953125,
+        "width": 1336.609375,
+        "height": 703.71875
+      },
+      "font": "\"Space Grotesk\", sans-serif",
+      "fontSize": "59.0769px",
+      "horizontalOverflow": false
+    },
+    {
+      "viewport": 1280,
+      "headline": {
+        "x": 45.953125,
+        "y": 183.078125,
+        "width": 427.703125,
+        "height": 114.875
+      },
+      "art": {
+        "x": 45.953125,
+        "y": 350.453125,
+        "width": 1188.09375,
+        "height": 625.53125
+      },
+      "font": "\"Space Grotesk\", sans-serif",
+      "fontSize": "52.5128px",
+      "horizontalOverflow": false
+    },
+    {
+      "viewport": 1024,
+      "headline": {
+        "x": 36.765625,
+        "y": 175.84375,
+        "width": 342.15625,
+        "height": 91.90625
+      },
+      "art": {
+        "x": 36.765625,
+        "y": 309.75,
+        "width": 950.46875,
+        "height": 500.40625
+      },
+      "font": "\"Space Grotesk\", sans-serif",
+      "fontSize": "42.0103px",
+      "horizontalOverflow": false
+    },
+    {
+      "viewport": 390,
+      "headline": {
+        "x": 24,
+        "y": 210,
+        "width": 342,
+        "height": 89.59375
+      },
+      "art": {
+        "x": 0,
+        "y": 475.59375,
+        "width": 390,
+        "height": 224
+      },
+      "font": "\"Space Grotesk\", sans-serif",
+      "fontSize": "40px",
+      "horizontalOverflow": false
+    }
+  ],
+  "referenceAccess": "Public HTML, shared CSS, fonts and images retrieved over verified HTTPS; shared CSS integrity verified against the source HTML. Isolated local static reference rendered in Chromium. Direct proxy Chromium still has an untrusted proxy certificate; trust was not changed.",
+  "visualMatch": "Observed public homepage structure, fonts, colors and measured responsive hero geometry reproduced. FinAI branding and synthetic data retained. Private product screens and live animations were not verified; no total pixel-equivalence claim."
 }

@@ -1,0 +1,480 @@
+/* The visible public product preview uses a neutral rail and purple accents. */
+.app {
+  --bg: #fff;
+  --surface: #fff;
+  --sidebar: #f8f8fa;
+  --text: #18181b;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --accent: #582efd;
+  --accent-light: #f0edff;
+  --radius: 5px;
+  font-family: "DM Sans", sans-serif;
+  color: #18181b;
+  background: #fff;
+}
+.app .workspace {
+  background: #fff;
+}
+.app .sidebar {
+  background: #f8f8fa;
+  border-right: 1px solid #ededf1;
+  color: #71717a;
+}
+.app .brand {
+  color: #240257;
+  font-family: "Space Grotesk", sans-serif;
+}
+.app .brand-symbol {
+  background: #582efd;
+  color: #fff;
+}
+.app .brand-dot {
+  background: #582efd;
+}
+.app .workspace-selector {
+  border-color: #e4e4e7;
+}
+.app .workspace-selector strong {
+  color: #3f3f46;
+}
+.app .workspace-selector span:not(.workspace-avatar) {
+  color: #71717a;
+}
+.app .workspace-avatar {
+  background: #ede9fe;
+  color: #582efd;
+}
+.app .nav-group-label {
+  color: #71717a;
+}
+.app .nav-group-label:hover {
+  color: #582efd;
+}
+.app .nav-item {
+  color: #52525b;
+}
+.app .nav-item:hover {
+  background: #f0edff;
+  color: #582efd;
+}
+.app .nav-item.active {
+  background: #ede9fe;
+  color: #582efd;
+}
+.app .new-tag {
+  border-color: #d3c7fb;
+  color: #8d6bea;
+}
+.app .nav-item.active .new-tag {
+  color: #582efd;
+}
+.app .sidebar-footer {
+  border-color: #e4e4e7;
+}
+.app .sidebar-footer button,
+.app .sidebar-footer a {
+  color: #71717a;
+}
+.app .sidebar nav {
+  scrollbar-color: #d4d4d8 transparent;
+}
+.app .topbar {
+  border-color: #ededf0;
+}
+.app .breadcrumbs strong {
+  color: #3f3f46;
+}
+.app .entity-select {
+  color: #52525b;
+}
+.app .contextbar {
+  border-color: #ededf0;
+}
+.app .demo-indicator {
+  color: #71717a;
+}
+.app .assistant-button {
+  background: #f0edff;
+  color: #6d46df;
+}
+.app .avatar {
+  background: #f0edff;
+  color: #6e4be3;
+  border-color: #e3ddfa;
+}
+.app .primary {
+  background: #18181b;
+  border-color: #18181b;
+  color: #fff;
+}
+.app .primary:hover {
+  background: #582efd;
+  border-color: #582efd;
+}
+.app main h1,
+.app main h2 {
+  font-family: "Space Grotesk", sans-serif;
+  color: #18181b;
+}
+.app .page-header h1 {
+  font-size: 27px;
+  letter-spacing: -0.6px;
+}
+.app .page-header p {
+  color: #71717a;
+}
+.app .tabs button {
+  color: #71717a;
+}
+.app .tabs button.active {
+  border-bottom-color: #582efd;
+  color: #582efd;
+}
+.app .table-panel {
+  border-color: #e4e4e7;
+}
+.app th {
+  background: #fafafa;
+  color: #71717a;
+  border-color: #ededf0;
+  font-size: 11px;
+}
+.app td {
+  color: #3f3f46;
+  border-color: #f0f0f3;
+  font-size: 12px;
+}
+.app .row-link {
+  font-size: 12px;
+}
+.app .text-link,
+.app .inline-link,
+.app td a {
+  color: #6d4ad6;
+}
+.app .table-toolbar button,
+.app .table-toolbar select {
+  color: #52525b;
+}
+.app input,
+.app select,
+.app textarea {
+  border-color: #e0dfe7;
+  color: #3f3f46;
+}
+.app input[type="checkbox"] {
+  accent-color: #6d4ad6;
+}
+.app .badge.positive {
+  background: #edf8f1;
+  color: #38815d;
+}
+.app .badge.positive:before {
+  background: #68aa87;
+}
+.app .badge.neutral {
+  background: #f4f4f5;
+  color: #71717a;
+}
+.app .permission {
+  color: #8d869b;
+}
+.app .statement .group-row,
+.app .statement .grand-total {
+  background: #faf9fd;
+}
+.app .statement .grand-total {
+  border-color: #ded9ed;
+}
+.app .notice {
+  background: #f5f3fa;
+  border-color: #e7e1f3;
+  color: #76658d;
+}
+.app .notice.success {
+  background: #f1f8f4;
+  color: #54836a;
+}
+.app .mini-metrics small,
+.app .detail-row > span:first-child {
+  color: #71717a;
+}
+.app .bank-logo,
+.app .integration-logo {
+  background: #f0edff;
+  color: #8d70e8;
+}
+.app .panel {
+  border-color: #e4e4e7;
+}
+.app .activity-item {
+  border-color: #f0f0f3;
+}
+.app .activity-dot {
+  background: #aa9ad6;
+}
+.app .activity-item p {
+  color: #71717a;
+}
+.app .section-heading > .muted {
+  color: #71717a;
+}
+.app .close-summary .progress-track {
+  background: #f2eef8;
+}
+.app .close-summary .progress-track > div {
+  background: #b8a4e1;
+}
+.app .check-circle.done {
+  background: #e0f3e9;
+  border-color: #e0f3e9;
+  color: #5c9e7e;
+}
+.app .assistant-disclaimer {
+  background: #f5f2ff;
+  border-color: #e4dcfc;
+  color: #7b61b0;
+}
+.app .assistant-orb {
+  background: #eee8ff;
+  color: #7e55de;
+}
+.app .assistant-intro p {
+  color: #71717a;
+}
+.app .question-bubble {
+  background: #ede8ff;
+}
+.app .proposal {
+  background: #f5f2ff;
+  border-color: #ded4f5;
+}
+.app .toasts {
+  font-family: "DM Sans", sans-serif;
+}
+.desktop-nav-toggle {
+  display: inline-flex;
+}
+.reference-app-overview .finance-snapshot {
+  padding: 0 2px 8px;
+}
+.reference-app-overview > .page-header {
+  margin-bottom: 2px;
+}
+.reference-app-overview > .activity-panel {
+  margin-top: 26px;
+}
+.reference-app-overview .finance-metric {
+  color: #18181b !important;
+}
+.reference-app-overview .finance-section-label {
+  color: #71717a;
+}
+.reference-app-overview .finance-snapshot h2 {
+  font-family: "DM Sans", sans-serif !important;
+}
+@media (min-width: 851px) {
+  .app:not(.nav-expanded) .sidebar {
+    width: 52px;
+  }
+  .app:not(.nav-expanded) .workspace {
+    margin-left: 52px;
+    width: calc(100% - 52px);
+  }
+  .app:not(.nav-expanded) .sidebar .brand {
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+    font-size: 0;
+  }
+  .app:not(.nav-expanded) .sidebar .brand-symbol {
+    height: 24px;
+    width: 24px;
+    font-size: 20px;
+  }
+  .app:not(.nav-expanded) .sidebar .brand-dot {
+    display: none;
+  }
+  .app:not(.nav-expanded) .sidebar .workspace-selector {
+    margin: 0 8px 12px;
+    padding: 2px 0;
+    justify-content: center;
+    border: 0;
+  }
+  .app:not(.nav-expanded) .sidebar .workspace-selector > div,
+  .app:not(.nav-expanded) .sidebar .workspace-selector > svg {
+    display: none;
+  }
+  .app:not(.nav-expanded) .sidebar .workspace-avatar {
+    width: 25px;
+    height: 25px;
+    font-size: 11px;
+  }
+  .app:not(.nav-expanded) .sidebar nav {
+    padding: 0 7px 10px;
+    scrollbar-width: none;
+  }
+  .app:not(.nav-expanded) .sidebar .nav-group-label {
+    display: none;
+  }
+  .app:not(.nav-expanded) .sidebar .nav-group {
+    margin-bottom: 9px;
+  }
+  .app:not(.nav-expanded) .sidebar .nav-item {
+    font-size: 0;
+    gap: 0;
+    justify-content: center;
+    padding: 8px 0;
+    min-height: 33px;
+    margin: 1px 0;
+  }
+  .app:not(.nav-expanded) .sidebar .nav-item > svg {
+    height: 16px;
+    width: 16px;
+    flex-shrink: 0;
+  }
+  .app:not(.nav-expanded) .sidebar .new-tag {
+    display: none;
+  }
+  .app:not(.nav-expanded) .sidebar-footer {
+    display: grid;
+    place-items: center;
+    padding: 10px 0;
+    gap: 0;
+  }
+  .app:not(.nav-expanded) .sidebar-footer > svg,
+  .app:not(.nav-expanded) .sidebar-footer > a {
+    display: none;
+  }
+  .app:not(.nav-expanded) .sidebar-footer button {
+    font-size: 0;
+    min-height: 28px;
+    width: 30px;
+    padding: 0;
+    border: 1px solid #e4e4e7;
+    border-radius: 50%;
+  }
+  .app:not(.nav-expanded) .sidebar-footer button:before {
+    content: "?";
+    font-size: 15px;
+    color: #71717a;
+  }
+}
+@media (max-width: 850px) {
+  .desktop-nav-toggle {
+    display: none;
+  }
+  .app .mobile-sidebar {
+    background: #f8f8fa;
+    color: #71717a;
+  }
+  .app .mobile-sidebar .nav-group-label {
+    color: #71717a;
+  }
+  .app .mobile-sidebar .brand {
+    color: #240257;
+  }
+  .app .mobile-sidebar .workspace-selector {
+    border-color: #e4e4e7;
+  }
+  .app .mobile-sidebar .workspace-selector strong {
+    color: #52525b;
+  }
+  .app .mobile-sidebar .workspace-selector span:not(.workspace-avatar) {
+    color: #71717a;
+  }
+}
+@media (max-width: 600px) {
+  .app .page-header h1 {
+    font-size: 25px;
+  }
+  .app td {
+    font-size: 11px;
+  }
+  .app .row-link {
+    font-size: 11px;
+  }
+  .reference-app-overview .finance-snapshot {
+    padding: 0;
+  }
+  .reference-app-overview > .page-header {
+    margin-bottom: 10px;
+  }
+}
+:root {
+  --text: #18181b;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --accent: #582efd;
+  --accent-light: #f0edff;
+}
+.dialog {
+  font-family: "DM Sans", sans-serif;
+  color: #27272a;
+}
+.dialog .primary {
+  background: #18181b;
+  border-color: #18181b;
+  color: #fff;
+}
+.dialog .primary:hover {
+  background: #582efd;
+  border-color: #582efd;
+}
+.dialog .field {
+  color: #52525b;
+}
+.dialog input,
+.dialog select,
+.dialog textarea {
+  color: #3f3f46;
+  border-color: #dedce6;
+}
+.toast {
+  background: #211452;
+  border-color: #62478d;
+  color: #fafafa;
+}
+.welcome {
+  font-family: "DM Sans", sans-serif;
+}
+.welcome-story {
+  background: #211452;
+  color: #fafafa;
+}
+.welcome-story .brand-symbol {
+  background: #bfc4ff;
+  color: #211452;
+}
+.welcome-story h1 {
+  font-family: "Space Grotesk", sans-serif;
+  color: #fafafa;
+  letter-spacing: -1.5px;
+}
+.welcome-story .eyebrow,
+.welcome-story > div > p {
+  color: #c2b5ec;
+}
+.welcome-story > p {
+  color: #9788bb;
+}
+.welcome-art > div {
+  background: #30205c;
+  border-color: #57457f;
+  color: #c7b9eb;
+}
+.welcome-art strong {
+  color: #ede7ff;
+}
+.welcome-art svg {
+  color: #c7b9eb;
+}
+.welcome-entry h2 {
+  font-family: "Space Grotesk", sans-serif;
+}
+.welcome-entry .primary {
+  background: #18181b;
+  border-color: #18181b;
+}

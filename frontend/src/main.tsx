@@ -5,6 +5,7 @@ import { store } from "./store";
 import { ToastProvider } from "./components/ui";
 import { AppRouter } from "./app/router";
 import "./styles/global.css";
+import "./styles/workspace-reference.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>

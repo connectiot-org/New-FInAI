@@ -1,39 +1,41 @@
 # FinAI implementation checkpoint
 
-Status: working frontend-only prototype, 2026-10-16. All changes are inside `frontend/`; the repository's original root README is unchanged. No backend, credentials, deployment, or publication.
+Status: working frontend-only public website and accounting prototype, 2026-10-16. All changes remain in `frontend/`; backend and original root README are unchanged. GitHub publication is authorized by the user. No deployment or backend service has been added.
 
-## Phases
+## Completed work
 
-- Phase 0 complete: repository inspection, blocked-reference record, route matrix, implementation plan.
-- Phase 1 complete: standalone React/TypeScript/Vite project, Tailwind tokens, responsive shell, Radix dialogs/dropdowns, shared table/forms/selectors, Redux canonical state and persistence/reset.
-- Phase 2 complete: overview, accounts, ledger, journals, trial balance, audit. Balanced drafts, review/post/reversal and persistence validated.
-- Phase 3 complete for the local demo: invoices/receipts, customer and vendor profiles, contract terms/schedules, bill coding/approval/payment, bank fixtures/matching and an explicit exception.
-- Phase 4 complete for the local demo: monthly close/evidence/review/lock, statements with period comparison/drill-through/CSV/print CSS, entities and explicitly simulated consolidation.
-- Phase 5 complete for the local demo: deterministic assistant/evidence/explicit proposal approval, local automation builder and history, simulated integrations, notifications, demo roles and settings.
-- Phase 6 functional checks complete: type checking, lint, production build, 19 Playwright checks, production route smoke and visual inspection. Reference-based visual comparison remains unavailable because Rillet requests were blocked by the proxy. All design values are inferred; no pixel-accuracy claim.
+- Standalone React/TypeScript/Vite project, Tailwind tokens, Radix dialogs/dropdowns, shared tables/forms, Redux canonical state, persistence/reset and responsive shell.
+- Overview, accounts, ledger, balanced journal drafts, review/post/reversal and audit.
+- Invoices/receipts, customer/vendor profiles, contract terms/schedules, bill coding/approval/payment and bank fixture matching with an explicit exception.
+- Monthly close/evidence/review/lock, statements with period comparison/drill-through/CSV/print styles, entities and explicitly simulated USD consolidation.
+- Deterministic assistant/evidence/explicit proposal approval, local automation builder/history, simulated integrations, notifications, demo roles and settings.
+- Public website with twelve product pages, resources, fictional customer records and about page. Navigation and CTAs link to functional local workflows.
+- Latest reference revision: replaced the original blocked-access fallback with observed Rillet public styling. White/black header, self-hosted DM Sans and Space Grotesk, measured responsive hero and city backdrop, canonical dashboard, eight-card platform grid, deep-purple AI and final CTA, integration tile grid, local workflow carousel, white footer and guide bookmark.
+- Workspace now uses the visible public-preview composition: compact expandable rail, white/gray/purple palette, assistant prompt, canonical snapshot metrics, needs-action list, close progress and pinned reports.
 
-## Final verification evidence
+## Latest verification
 
-- `npm run build`: passed (includes `tsc -b`). Third-party Zod pure-annotation warnings are non-fatal; no build errors. Vendor chunks split; largest JavaScript chunk about 342 kB before gzip.
-- `npm run lint`: passed, zero lint errors.
-- `npm test`: **19 passed**, no failed/skipped tests, final full run 36.5 seconds, system Chromium, two workers. Includes direct-route smoke, journal lifecycle/imbalance/reversal/audit, invoices/receipts, bills/reviewer approval, bank match/unmatch, close reviews, reporting scopes/download, assistant proposal, automation/integration simulation, roles/reset, invalid-storage recovery/error retry, four viewport checks, safe CSV escaping, unsaved browser-back handling, local PDF evidence and period locks.
-- Built app on Vite preview: **37 direct shell routes + welcome loaded**, zero runtime/console errors, zero failed asset requests, zero external requests. Entity/period report control tests cover both entities and every seeded month plus the full range.
-- Production screenshots inspected at 1440, 1280, 1024, and 390 pixels. Overview, ledger, journal detail/editor, invoice detail and balance sheet screenshots retained in `docs/screenshots/`. Wide tables remain contained; mobile navigation Escape/focus return tested.
-- Production journal CSV checked for numeric USD amounts and absence of object stringification. Formula-like account text is escaped and neutralized in the browser suite.
-- Print CSS verified through Chromium print-media emulation. Physical printing and OS print dialogs were not tested.
-- Seed verified: 44 accounts, 24 customers, 16 vendors, 72 invoices, 48 bills, 12 contracts, 203 journals, 408 ledger lines. Posted entries balance; balance-sheet/cash-flow controls equal zero for both entities and every seeded period.
-- `git diff --exit-code`: clean for all original tracked files. All additions are under `frontend/`.
-- Machine-readable production results: `docs/production-validation.json`.
+- `npm run build`: passed, including TypeScript. Largest JavaScript chunk approximately 392 kB before gzip. Third-party Zod annotation warnings are non-fatal.
+- `npm run lint`: passed.
+- `npm test`: **28 passed**, no failed/skipped tests, final full run approximately one minute, system Chromium with two workers. Includes the original 19 accounting checks and 9 public-site checks.
+- Production preview: **53 direct routes** (16 public + 37 accounting), plus welcome. Zero runtime/console errors, failed asset requests or external runtime requests. Results and headings: `homepage-validation.json`.
+- Responsive screenshots at 1440, 1280, 1024 and 390 pixels. No homepage horizontal overflow. Desktop/mobile measured hero positions are within four pixels of the captured public reference; actual desktop headline/stage offsets differ by less than 0.1 pixel.
+- Current homepage/overview/ledger/detail/report screenshots retained in `screenshots/`; attributed public reference top captures and computed styles retained in `reference/`. Public desktop/mobile captures visually inspected.
+- Accounting tests cover journal lifecycle/imbalance/reversal/audit, invoice receipt accounting, bill review/payment, reconciliation, close reviews, statement controls across both entities/every period, real CSV, assistant proposal, automation/integration simulation, roles/reset, invalid storage/error recovery, responsive containment, unsaved browser-back handling, local PDF evidence and period locks.
+- Seed: 44 accounts, 24 customers, 16 vendors, 72 invoices, 48 bills, 12 contracts, 203 journals and 408 ledger lines. Posted entries balance; statement controls reconcile for all seeded periods/entities.
+- Original accounting baseline is retained in `production-validation.json`; the current website evidence supersedes its former visual styling.
 
-## Resume point / known limits
+## Reference access and remaining limits
 
-No unfinished placeholder route is hidden. See the route matrix for exact implemented behavior and test depth. Contact profiles/contract terms are read views; bank reconciliation is a small September sample; automations record local review results; source-linked journals are managed through source workflows rather than independent reversal. Document contents and conversation text remain session-only. Roles are UI permissions only. Browser engines other than Chromium and a dedicated assistive-technology audit have not been run.
+Public Rillet HTML/CSS/fonts/images now download over verified HTTPS. The shared stylesheet integrity matched the source HTML. Chromium rendered an isolated static local reference without third-party scripts. Automatic review rejected persistent proxy certificate trust installation; that action was not performed. No TLS check was disabled. See `reference-map.md` and `reference-assets.md`.
 
-Next useful product step: provide accessible reference screenshots for visual comparison, or choose a specific workflow for deeper product refinement. Continue from this implementation rather than replacing completed screens. No backend integration should be added without a separate request.
+FinAI branding, synthetic records, demo workflow stories and local functionality remain explicit. No Rillet customer endorsement, rating or certification is asserted. Private Rillet screens, live animation behavior and authenticated workflows were not inspected, so total site identity is not claimed.
 
-## Start / refresh
+Contact/contract fixtures remain read views; reconciliation is a September sample; automation runs record local review summaries; file contents and conversation text are session-only; roles are UI demonstrations. Other browser engines, a dedicated assistive-technology audit and physical printing are not tested. Route smoke does not exhaust every control.
 
-Use the existing isolated checkout; do not create a worktree unless explicitly requested.
+## Resume
+
+Continue from this implementation. Do not add a backend without a separate request. Use the existing checkout; no worktree is needed.
 
 ```sh
 cd /workspace/New-FInAI/frontend
@@ -41,21 +43,4 @@ npm ci
 npm run dev -- --port 5173
 ```
 
-The current task leaves the development server on port 5173. Live processes do not survive a new machine; run the command again when needed. No API keys or backend processes are required. Installation, commands, reset, supported demo journeys, adapter boundaries and limitations are in `frontend/README.md`.
-
-## Public homepage follow-up checkpoint
-
-The user expanded the scope to include the public homepage and requested another access method. Both direct HTTPS and **live Chromium through the configured network proxy** were attempted. HTTPS returned proxy 403 and Chromium returned `ERR_TUNNEL_CONNECTION_FAILED`. The saved allowlist remains a draft; public Rillet content was not observed.
-
-Following the user's instruction to continue despite that blocker, added an **original FinAI fallback website**, not a verified Rillet reproduction:
-
-- Root homepage with product navigation, interactive canonical-data preview, walkthrough chooser, product cards, workflow diagrams, FAQ, and functional demo entry.
-- Six product pages, resources/workflow guides, about page, and missing-product recovery.
-- Shared FinAI branding, warm neutral/forest visual system, responsive public navigation, reduced-motion handling, keyboard FAQ behavior, local data labels, and source record links.
-- Existing `/welcome` and accounting routes remain intact. No backend/root repository files changed.
-
-Latest checks: `npm run build` passed (including TypeScript); `npm run lint` passed; **26 Playwright tests passed** (7 public-site checks plus the 19 accounting checks), zero failures or skips, 53.9 seconds. The built app passed **46 direct route checks** (9 public + 37 accounting) with zero runtime/console errors, failed requests, or external requests. Four target widths checked. Homepage screenshots and a mobile product screenshot are retained in `docs/screenshots/`; first-viewport desktop/tablet/mobile images were visually inspected. Exact Rillet fidelity is still unverified and is not claimed.
-
-Machine-readable result: `docs/homepage-validation.json`. Original accounting-only evidence remains in `docs/production-validation.json` and earlier screenshots. Largest production JavaScript chunk is now about 376 kB before gzip. `http://localhost:5173/` opens the public homepage; `/welcome` opens the demo entry directly. Source archive refreshed at `artifacts/FinAI-frontend.zip` (ignored generated artifact).
-
-Next useful reference step is still accessible Rillet screenshots or activated public-site access. Continue from these working pages; replace inferred visual decisions only when evidence is available.
+`/` opens the public website; `/welcome` opens the accounting demo. Current development server uses 5173 and production preview uses 4173. Live processes do not survive machine replacement. Source archive: ignored generated `artifacts/FinAI-frontend.zip`. Detailed workflow behavior is in `route-matrix.md`; setup and limitations are in `../README.md`.

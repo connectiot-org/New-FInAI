@@ -1,0 +1,12 @@
+{
+  "inspected": "2026-10-16",
+  "source": "https://www.rillet.com/",
+  "rendering": "Isolated static local reference, no third-party scripts; verified video poster used.",
+  "sharedCssSha384": "sha384-hQlrdfnGmj1N/SDnq8VmqiXNwr5k2PKQpYDR2i9RvbWIpB3xxVApv1REp8iTdptU",
+  "sharedCssIntegrityMatched": true,
+  "referenceFiles": [
+    "rillet-home-1440-top.png",
+    "rillet-home-390-top.png",
+    "computed-home-1440.json"
+  ]
+}

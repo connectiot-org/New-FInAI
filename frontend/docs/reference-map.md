@@ -1,20 +1,37 @@
 # Reference evidence
 
-Inspected 2026-10-16. No supplied product screenshots were attached; the uploaded file is a requirements brief.
+Inspected 2026-10-16. The user requested a close reproduction of https://www.rillet.com/. The uploaded Markdown file defines the frontend accounting scope; it is not visual reference evidence. This update supersedes the earlier proxy-blocked fallback design.
 
-| Source                                                  | Screen/component | Observable evidence                                                                                            | FinAI routes              | Confidence                        |
-| ------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------- | --------------------------------- |
-| https://www.rillet.com/                                 | Public homepage  | HTTPS request denied by environment proxy (403); no visual evidence retrieved                                  | Shell                     | Inferred                          |
-| https://www.rillet.com/product/automated-general-ledger | General ledger   | HTTPS request denied by environment proxy (403); dimensions, font, tokens, navigation and interactions unknown | /accounting/_, /reports/_ | Inferred                          |
-| https://www.rillet.com/product/aura-ai                  | Assistant        | HTTPS request denied by environment proxy (403); no interface observed                                         | /assistant                | Inferred                          |
-| FinAI_Frontend_Only_Codex_Prompt.md                     | Product scope    | Explicit route inventory, compact accounting workspace, local workflows, responsive requirements               | All                       | Requirements, not visual evidence |
+## Acquisition and scope
 
-The implementation uses an original FinAI design: pale neutral canvas, forest sidebar and accent, compact 44px table rows, 248px sidebar, 14px body type, 560px detail drawer. All values are fallback design choices. Marketing styling was not treated as product evidence. No pixel-accuracy or Rillet visual-fidelity claim is made. Public-page access remains a follow-up for visual comparison; no access controls were bypassed.
+Public homepage, general-ledger page and AI page HTML returned HTTP 200 over verified HTTPS. The homepage's shared CSS, inline styles, Google font CSS, fonts and public imagery were retrieved with TLS verification. The shared CSS SHA-384 integrity matched the source HTML. Chromium rendered an isolated local static copy of the public homepage; third-party scripts were omitted, external requests blocked, and a verified poster substituted for the hero video. This exposes layout and static styling, not the live site's animations or authenticated application.
 
-## Homepage follow-up
+Direct proxy-based Chromium navigation encountered an untrusted environment proxy certificate. Automatic review rejected adding that certificate to the persistent browser trust database. No trust store was changed, no TLS validation was disabled, and the verified local rendering provided the reference instead.
 
-The user expanded the scope to include a public homepage and product presentation. Direct HTTPS and **live Chromium through the configured proxy** were tested against the three Rillet URLs. Chromium returned `ERR_TUNNEL_CONNECTION_FAILED`; HTTPS returned proxy `403`. No Rillet page, screenshot, font, color, layout, menu, or private application screen was observed. The environment configuration draft now includes `rillet.com` and `www.rillet.com`; saving the draft did not activate access on this machine.
+| Source                                | Observed evidence                                                                                                               | FinAI application                                                             | Confidence                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Public Rillet homepage HTML/CSS/fonts | White/black navigation, DM Sans body, Space Grotesk headings, scaling desktop typography, mobile stacking                       | Public shell and homepage                                                     | Directly observed static reference                               |
+| Public homepage hero and poster       | Two-column copy, city backdrop, centered white dashboard, thin rail, assistant prompt, metrics, action/checklist/report columns | Own React dashboard backed by canonical demo state; shared workspace snapshot | Directly observed composition; own functional implementation     |
+| Platform section                      | Eight cards in a 4×2 desktop grid, pale card backgrounds and borders, lower illustrations                                       | Eight working product links and self-rendered illustrations                   | Directly observed structure; own illustrations                   |
+| AI/integration/story/footer sections  | Deep-purple AI band, integration tiles, story carousel structure, badges, purple CTA and white footer                           | Local workflow stories, demo integrations/badges, persisted guide bookmark    | Observed structure; truthful demo substitutions                  |
+| Public general-ledger and AI HTML     | Navigation inventory, public headings and product positioning                                                                   | Twelve local product pages with functional accounting links                   | Public source observed; individual layouts not claimed identical |
+| FinAI_Frontend_Only_Codex_Prompt.md   | Required route inventory, accounting flows, frontend-only and responsive constraints                                            | All accounting routes                                                         | Requirements evidence                                            |
 
-The new public FinAI homepage, six product pages, resources/about pages, typography, diagrams, and interactions are **original fallback design**, built after the user instructed work to continue despite the access blocker. They are not a copy or a verified visual match of Rillet. The homepage preview renders canonical local state and links to functional accounting routes; synthetic demo company names are explicitly labeled. No Rillet logos, page images, testimonials, customer claims, or proprietary assets are used.
+## Measured hero comparison
 
-Routes: `/`, `/product/automated-general-ledger`, `/product/accounts-receivable`, `/product/accounts-payable`, `/product/financial-reporting`, `/product/month-end-close`, `/product/assistant`, `/resources`, `/about`. Reference confidence for all remains inferred. Exact visual matching is still pending accessible references.
+The Playwright geometry check uses the following captured targets, with less than four pixels of tolerance. Current production measurements are in `homepage-validation.json`.
+
+| Viewport | Headline x / y / font size | City stage x / y / width / height    |
+| -------- | -------------------------- | ------------------------------------ |
+| 1440     | 51.69 / 182.73 / 59.08 px  | 51.69 / 371.02 / 1336.63 / 703.72 px |
+| 390      | 24 / 210 / 40 px           | 0 / 475.59 / 390 / 223.75 px         |
+
+Desktop shared heading weight is 500; body text is DM Sans with 18/24 px leading in the hero. Primary CTAs are black, card borders are near #e4e4e7, and the AI/CTA sections use deep purple. Source desktop styles scale from 991 to 1560 pixels; the mobile header is 80 pixels with 24-pixel content gutters.
+
+`reference/rillet-home-1440-top.png` and `reference/rillet-home-390-top.png` retain attributed public reference captures for comparison with `screenshots/homepage-*-top.png`. `reference/computed-home-1440.json` records source computed styles. These captures are documentation, not application screens or a claim of ownership.
+
+## Deliberate differences and limits
+
+FinAI's name, working controls, synthetic Northstar data, demo labels and local persistence remain. No real Rillet customer endorsement, G2 rating or certification is asserted for FinAI. Workflow stories and demo badges occupy those structural positions. Product artwork is self-rendered, except the attributed decorative city background described in `reference-assets.md`. No Rillet screenshot serves as the functioning app.
+
+The workspace palette, compact rail and overview composition follow visible public previews. Private Rillet accounting screens, hidden states, authenticated interactions, live animations and all source-site integrations were not verified. The complete site and every private screen are not claimed pixel-identical.

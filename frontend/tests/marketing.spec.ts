@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("public navigation, six product pages and demo entry work on direct refresh", async ({
+test("public navigation, product pages and demo entry work on direct refresh", async ({
   page,
 }) => {
   const errors: string[] = [],
@@ -16,16 +16,23 @@ test("public navigation, six product pages and demo entry work on direct refresh
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "A clear mind.A connected ledger.",
+    /Zero-Day Close\s*starts here/,
   );
   await page.getByRole("button", { name: "Product", exact: true }).click();
   await expect(page.getByRole("menu")).toBeVisible();
   await page.getByRole("menuitem", { name: /General ledger/ }).click();
   await expect(page).toHaveURL("/product/automated-general-ledger");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Your source of truth",
+    "Your accounting on auto-pilot",
   );
   for (const path of [
+    "/customers",
+    "/product/bank-reconciliation",
+    "/product/native-integrations",
+    "/product/advanced-revenue-recognition",
+    "/product/multi-entity",
+    "/product/security-permissions",
+    "/product/real-time-reporting",
     "/product/accounts-receivable",
     "/product/accounts-payable",
     "/product/financial-reporting",
@@ -49,7 +56,7 @@ test("public navigation, six product pages and demo entry work on direct refresh
 test("interactive homepage preview uses real records and search links", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/resources#interactive-preview");
   await page.getByRole("tab", { name: "General ledger", exact: true }).click();
   const preview = page.getByRole("region", {
     name: "General ledger product preview",
@@ -67,7 +74,7 @@ test("interactive homepage preview uses real records and search links", async ({
   await preview.locator("tbody a").first().click();
   await expect(page).toHaveURL(/\/accounting\/journals\//);
   await expect(page.locator("main h1")).toContainText("INV-1001");
-  await page.goto("/");
+  await page.goto("/resources#interactive-preview");
   await page.getByRole("tab", { name: "Receivables", exact: true }).click();
   await expect(
     page
@@ -85,14 +92,16 @@ test("guided walkthrough, FAQ keyboard behavior and missing product recovery", a
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Take a closer look" }).click();
+  await page
+    .getByRole("button", { name: "Watch the demo", exact: true })
+    .click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page
     .getByRole("button", { name: "Bring a close together", exact: true })
     .click();
   await page.getByRole("link", { name: "Start this walkthrough" }).click();
   await expect(page).toHaveURL("/close");
-  await page.goto("/#questions");
+  await page.goto("/resources#questions");
   const question = page
     .locator("summary")
     .filter({ hasText: "Will this connect to my bank or move real money?" });
@@ -117,7 +126,9 @@ for (const width of [1440, 1280, 1024, 390])
   }) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto("/");
-    await expect(page.locator(".preview-metrics")).toBeVisible();
+    await expect(
+      page.locator(".reference-hero .finance-metrics"),
+    ).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -125,7 +136,7 @@ for (const width of [1440, 1280, 1024, 390])
     ).toBe(true);
     expect(
       await page
-        .locator(".marketing-hero h1")
+        .locator(".reference-hero h1")
         .evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
     ).toBe(true);
     await page.screenshot({
@@ -149,3 +160,78 @@ for (const width of [1440, 1280, 1024, 390])
       ),
     ).toBe(true);
   });
+
+test("measured hero geometry and fonts follow the captured public reference", async ({
+  page,
+}) => {
+  for (const target of [
+    {
+      width: 1440,
+      headline: { x: 51.69, y: 182.73, size: 59.08 },
+      art: { x: 51.69, y: 371.02, width: 1336.63, height: 703.72 },
+    },
+    {
+      width: 390,
+      headline: { x: 24, y: 210, size: 40 },
+      art: { x: 0, y: 475.59, width: 390, height: 223.75 },
+    },
+  ]) {
+    await page.setViewportSize({ width: target.width, height: 1000 });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    const measured = await page.evaluate(() => {
+      const h = document.querySelector(".reference-hero h1")!,
+        art = document.querySelector(".reference-hero-art")!,
+        r = h.getBoundingClientRect(),
+        a = art.getBoundingClientRect(),
+        s = getComputedStyle(h);
+      return {
+        headline: { x: r.x, y: r.y, size: parseFloat(s.fontSize) },
+        art: { x: a.x, y: a.y, width: a.width, height: a.height },
+        font: s.fontFamily,
+        image: (
+          document.querySelector(".reference-hero-art>img") as HTMLImageElement
+        ).naturalWidth,
+      };
+    });
+    expect(measured.font).toContain("Space Grotesk");
+    expect(measured.image).toBeGreaterThan(1000);
+    for (const key of ["x", "y", "size"] as const)
+      expect(
+        Math.abs(measured.headline[key] - target.headline[key]),
+      ).toBeLessThan(4);
+    for (const key of ["x", "y", "width", "height"] as const)
+      expect(Math.abs(measured.art[key] - target.art[key])).toBeLessThan(4);
+  }
+});
+test("public workflow carousel, local guide bookmark and workspace navigation rail work", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const story = page.locator(".reference-story-copy h3");
+  await expect(story).toHaveText("An invoice. A receipt. A clear trail.");
+  await page.getByRole("button", { name: "Next workflow" }).click();
+  await expect(story).toHaveText("A number with a source behind it.");
+  await page.getByRole("button", { name: "Previous workflow" }).click();
+  await expect(story).toHaveText("An invoice. A receipt. A clear trail.");
+  await page.getByRole("button", { name: "Save workflow guide" }).click();
+  await expect(
+    page.getByRole("link", { name: "Workflow guide saved" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("link", { name: "Workflow guide saved" }),
+  ).toBeVisible();
+  await page.goto("/overview");
+  await expect(
+    page.getByRole("button", { name: "Expand navigation" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Expand navigation" }).click();
+  await expect(
+    page.getByRole("button", { name: "Collapse navigation" }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", { name: "Journal entries", exact: true })
+    .click();
+  await expect(page.locator("main h1")).toHaveText("Journal entries");
+});

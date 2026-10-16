@@ -14,6 +14,7 @@ import {
   ProductPage,
   ResourcesPage,
   AboutPage,
+  DemoCustomersPage,
 } from "../features/marketing/Marketing";
 import { useAppDispatch, useDemo, command } from "../store";
 import { Overview } from "../features/Overview";
@@ -152,6 +153,7 @@ const router = createBrowserRouter([
       { path: "product/:product", element: <ProductPage /> },
       { path: "resources", element: <ResourcesPage /> },
       { path: "about", element: <AboutPage /> },
+      { path: "customers", element: <DemoCustomersPage /> },
     ],
   },
   { path: "/welcome", element: <Welcome /> },

@@ -1,15 +1,33 @@
+@font-face {
+  font-family: "DM Sans";
+  src: url("@fontsource-variable/dm-sans/files/dm-sans-latin-wght-normal.woff2")
+    format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2")
+    format("woff2");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
 .marketing-site {
-  --paper: #f5f3ea;
-  --paper-deep: #e9e8dd;
-  --ink: #273d32;
-  --soft-ink: #738174;
-  --olive: #c5d5a2;
-  --line: #d9ded1;
-  background: var(--paper);
+  --ru: 16px;
+  --gutter: 56px;
+  --paper: #fff;
+  --ink: #18181b;
+  --muted: #52525b;
+  --line: #e4e4e7;
+  --purple: #582efd;
+  --title: "Space Grotesk", sans-serif;
+  background: #fff;
   color: var(--ink);
-  font-size: 14px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
   overflow-x: clip;
-  font-family: "Segoe UI", Arial, sans-serif;
 }
 .marketing-site a {
   color: inherit;
@@ -17,400 +35,626 @@
 .marketing-site a:hover {
   text-decoration: none;
 }
-.marketing-site button {
-  font: inherit;
-}
 .marketing-content {
-  max-width: none;
-  margin: 0;
   padding: 0;
-  outline: 0;
+  margin: 0;
+  max-width: none;
+  outline: none;
 }
 .marketing-site h1,
 .marketing-site h2,
 .marketing-site h3 {
+  font-family: var(--title);
+  font-weight: 500;
   color: var(--ink);
+  letter-spacing: -0.75px;
 }
-.marketing-site h1,
-.marketing-site h2 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 400;
-  letter-spacing: -2.7px;
-  line-height: 1.06;
+.marketing-site h1 {
+  font-size: calc(4 * var(--ru));
+  line-height: 1.09375;
 }
 .marketing-site h2 {
-  font-size: 56px;
+  font-size: calc(3.5 * var(--ru));
+  line-height: 1;
 }
-.marketing-site h1 em,
-.marketing-site h2 em {
-  font-weight: 400;
-  color: #7c8c6b;
+.marketing-site h3 {
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+}
+.marketing-site em {
+  font-style: normal;
+  color: inherit;
 }
 .marketing-site p {
-  line-height: 1.75;
-}
-.marketing-announcement {
-  min-height: 33px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  background: #273e32;
-  color: #e4eacb;
-  font-size: 10px;
-  letter-spacing: 0.2px;
-}
-.marketing-announcement a {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #e8edcb;
-  border-bottom: 1px solid #7e9168;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .marketing-header {
-  height: 99px;
-  padding: 0 64px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: calc(5 * var(--ru));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
-  border-bottom: 1px solid var(--line);
-  max-width: 1536px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 30;
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid transparent;
+  background: #fff;
+  width: 100%;
 }
 .marketing-brand {
-  display: flex;
+  font:
+    500 26px/1 "Space Grotesk",
+    monospace;
+  letter-spacing: 2px;
+  color: #240257 !important;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 30px;
-  font-weight: 600;
-  letter-spacing: -1.4px;
-  line-height: 1;
-}
-.marketing-brand > span:first-child {
-  width: 25px;
-  height: 28px;
-  font-size: 24px;
-  font-weight: 800;
-  background: var(--ink);
-  color: var(--paper);
-  display: grid;
-  place-items: center;
-  border-radius: 3px;
-  letter-spacing: -1px;
-}
-.marketing-brand .marketing-brand-dot {
-  font-size: 32px;
-  margin-left: -9px;
-  margin-top: -1px;
-  color: #8e9c70;
 }
 .marketing-header > nav {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 31px;
-  margin-left: 30px;
+  gap: 28px;
 }
 .marketing-header > nav > a,
-.marketing-header > nav > button {
-  font-size: 12px;
-  color: #40503e;
-}
 .marketing-nav-button {
-  background: none;
-  border: 0;
-  padding: 0;
+  font:
+    400 14px/20px "DM Sans",
+    sans-serif !important;
   min-height: 30px;
-  gap: 5px;
-}
-.marketing-nav-button:hover {
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
   background: none;
-}
-.marketing-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-}
-.marketing-login {
-  font-size: 11px;
+  color: #18181b;
   display: flex;
   align-items: center;
   gap: 6px;
 }
+.marketing-nav-button:hover {
+  background: none;
+  color: #582efd;
+}
+.marketing-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.marketing-login {
+  font-size: 12px;
+  line-height: 16px;
+}
 .marketing-button {
   display: inline-flex;
-  justify-content: center;
   align-items: center;
-  gap: 28px;
-  padding: 15px 21px;
-  border: 1px solid transparent;
+  justify-content: center;
+  gap: 12px;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.3;
+  border: 1px solid transparent;
+  padding: 12px 16px;
+  min-height: 40px;
+  font:
+    400 14px/14px "DM Sans",
+    sans-serif;
   white-space: nowrap;
-  min-height: 47px;
-  transition: background 0.15s;
 }
 .marketing-button.dark {
-  background: var(--ink);
-  color: #f4f3e7;
-  border-color: var(--ink);
+  background: #000;
+  color: #fff;
+  border-color: #000;
 }
 .marketing-button.dark:hover {
-  background: #3c5342;
-  color: #fff;
+  background: #582efd;
+  border-color: #582efd;
 }
 .marketing-button.light {
-  background: #f1f0df;
-  color: #2d4333;
-  border-color: #f1f0df;
+  background: #fff;
+  color: #18181b;
+  border-color: #fff;
 }
 .marketing-button.light:hover {
-  background: #dfe7c7;
+  background: #f0edff;
 }
 .marketing-button.small {
-  min-height: 38px;
-  padding: 11px 15px;
-  font-size: 10px;
-  gap: 20px;
+  font-size: 12px;
+  min-height: 32px;
+  padding: 8px 12px;
 }
 .marketing-mobile-toggle {
   display: none;
   border: 0;
   background: none;
-  padding: 5px;
+  padding: 4px;
+  color: #18181b;
+  min-width: 30px;
+  min-height: 30px;
+}
+.marketing-mega {
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 6px;
+  padding: 24px;
+  box-shadow: 0 20px 55px #18181b14;
+  width: 360px;
+  z-index: 50;
+  font-family: "DM Sans", sans-serif;
+}
+.marketing-mega.has-columns {
+  width: 720px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 28px;
+}
+.marketing-menu-title {
+  font:
+    500 13px/1.4 "DM Sans",
+    sans-serif;
+  color: #71717a;
+  margin: 0 0 13px 12px;
+}
+.marketing-mega a {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 4px;
+  color: #18181b;
+  outline: none;
+}
+.marketing-mega a:hover,
+.marketing-mega a[data-highlighted] {
+  background: #f3f2f6;
+  text-decoration: none;
+}
+.marketing-mega a > span {
+  color: #71717a;
+  margin-top: 2px;
+  display: grid;
+  place-items: center;
+}
+.marketing-mega strong {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.marketing-mega small {
+  display: block;
+  font-size: 11px;
+  color: #71717a;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+.marketing-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: "DM Sans", sans-serif;
+}
+.marketing-mobile-nav details {
+  padding: 10px 0;
+  border-bottom: 1px solid #e4e4e7;
+}
+.marketing-mobile-nav summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  list-style: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: #52525b;
+  padding: 6px 0;
+}
+.marketing-mobile-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #27272a;
+}
+.marketing-mobile-nav details a {
+  font-size: 13px;
+  padding: 10px 0;
+}
+.marketing-mobile-nav a > svg:last-child {
+  margin-left: auto;
+}
+.marketing-section {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 80px var(--gutter);
 }
 .marketing-kicker {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: "Segoe UI", Arial, sans-serif;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 1.6px;
-  line-height: 1.6;
-  color: #65775f;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #52525b;
 }
-.marketing-kicker > i,
-.marketing-preview-caption > span > i {
+.marketing-product-hero {
+  max-width: 1000px;
+  text-align: center;
+  padding: 64px 30px 48px;
+  margin: auto;
+}
+.marketing-product-hero > .marketing-kicker {
+  justify-content: center;
+  margin-bottom: 24px;
+}
+.marketing-product-hero > h1 {
+  font-size: calc(4 * var(--ru));
+  line-height: 1.1;
+  letter-spacing: -1.25px;
+}
+.marketing-product-hero > p {
+  font-size: 18px;
+  color: #52525b;
+  line-height: 24px;
+  max-width: 680px;
+  margin: 24px auto;
+}
+.marketing-product-note {
   display: block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #91a674;
+  font-size: 12px;
+  color: #71717a;
+  margin-top: 16px;
 }
-.marketing-hero {
-  max-width: 1536px;
-  margin: 0 auto;
-  padding: 38px 64px 0;
-  position: relative;
-  isolation: isolate;
+.marketing-product-page-preview {
+  max-width: 1440px;
+  padding: 0 var(--gutter) 30px;
+  margin: auto;
 }
-.marketing-hero-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.marketing-edition {
-  font-size: 8px;
-  letter-spacing: 1.2px;
-  color: #9aa28d;
-}
-.marketing-hero-copy {
+.marketing-benefits {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  align-items: end;
-  gap: 60px;
-  margin: 53px 0 70px;
-  position: relative;
-  z-index: 2;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+  padding-top: 64px;
+  padding-bottom: 96px;
 }
-.marketing-hero h1 {
-  font-size: clamp(65px, 6.5vw, 103px);
-  line-height: 1.02;
-  letter-spacing: -4.8px;
-  white-space: nowrap;
+.marketing-benefits > div > span {
+  font-size: 13px;
+  color: #71717a;
 }
-.marketing-hero-description {
-  padding-left: 44px;
-  padding-bottom: 5px;
+.marketing-site .marketing-benefits h2 {
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 22px 0 18px;
+  letter-spacing: -0.5px;
 }
-.marketing-hero-description > p {
+.marketing-benefits p {
+  font-size: 15px;
+  color: #52525b;
+}
+.marketing-final-cta {
+  padding: calc(7.5 * var(--ru)) var(--gutter);
+  text-align: center;
+  background: linear-gradient(180deg, #211452, #392498);
+  color: #fafafa;
+}
+.marketing-site .marketing-final-cta h2 {
+  font-size: calc(2.5 * var(--ru));
+  line-height: 1.1;
+  color: #fafafa;
+  letter-spacing: -0.5px;
+}
+.marketing-final-cta p {
   font-size: 14px;
-  color: #6d7a66;
-  line-height: 1.9;
+  color: #ffffffb3;
+  margin: 18px 0 24px;
 }
-.marketing-hero-description > div {
+.marketing-footer {
+  padding: 0 var(--gutter);
+  max-width: 1560px;
+  margin: auto;
+}
+.marketing-guide-bar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 20px;
-  margin: 27px 0 18px;
-  flex-wrap: wrap;
+  margin: 50px 0 42px;
+  background: #f4f4f5;
+  padding: 22px 24px;
+  border-radius: 4px;
+  font-size: 14px;
 }
-.marketing-text-button {
-  border: 0;
-  background: none;
-  padding: 0;
-  font-size: 11px !important;
-  gap: 7px;
-  color: #556d46;
-  min-height: 30px;
+.marketing-guide-bar strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
 }
-.marketing-text-button:hover {
-  background: none;
-  text-decoration: underline;
+.marketing-guide-bar span {
+  display: block;
+  font-size: 12px;
+  color: #71717a;
+  margin-top: 5px;
 }
-.marketing-hero-description > span {
-  font-size: 9px;
-  color: #9ca38d;
+.marketing-guide-bar a,
+.marketing-guide-bar button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #27272a;
+  padding: 10px 12px;
+  border: 1px solid #d4d4d8;
+  border-radius: 4px;
+  background: #fff;
 }
-.marketing-preview-wrapper {
-  position: relative;
-  z-index: 3;
-  max-width: 1152px;
-  margin: 0 auto;
+.marketing-footer-top {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 0.8fr;
+  gap: 50px;
+  padding-bottom: 60px;
 }
-.marketing-preview-caption {
+.marketing-footer h3 {
+  font:
+    500 12px/18px "DM Sans",
+    sans-serif;
+  letter-spacing: 0;
+  margin: 0 0 20px;
+}
+.marketing-footer-top > div > a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #52525b;
+  margin-bottom: 13px;
+}
+.marketing-footer-top a:hover {
+  color: #582efd;
+}
+.marketing-footer-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 15px;
-  padding: 0 1px;
+  gap: 25px;
+  border-top: 1px solid #e4e4e7;
+  padding: 28px 0;
+  font-size: 11px;
+  color: #71717a;
 }
-.marketing-preview-caption > span {
+.marketing-footer-bottom > span:last-child {
   display: flex;
+  gap: 7px;
   align-items: center;
-  gap: 8px;
-  font-size: 8px;
-  letter-spacing: 1.6px;
-  color: #7a8a6d;
 }
-.marketing-preview-caption > a {
-  width: 28px;
-  height: 28px;
+.marketing-resource-guides {
   display: grid;
-  place-items: center;
-  border: 1px solid #d4dcc9;
-  border-radius: 50%;
-  color: #82966f;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding-top: 12px;
+  padding-bottom: 60px;
 }
-.marketing-flow {
-  position: absolute;
-  width: 590px;
-  height: 260px;
-  right: 0;
-  top: 226px;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0.65;
-}
-.marketing-flow > svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  fill: none;
-  stroke: #c2cfb2;
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-}
-.flow-orbit {
-  position: absolute;
-  width: 280px;
-  height: 280px;
-  border: 1px solid #e2e6d8;
-  border-radius: 50%;
-  right: 70px;
-  top: 3px;
-}
-.orbit-two {
-  width: 390px;
-  height: 390px;
-  right: 14px;
-  top: -54px;
-}
-.flow-label {
-  position: absolute;
-  background: #f5f4eacc;
-  border: 1px solid #dce3cf;
+.marketing-resource-guides > article {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e4e4e7;
+  background: #fafafa;
+  padding: 28px;
   border-radius: 4px;
-  padding: 8px 11px;
+}
+.marketing-resource-guides > article > svg {
+  color: #582efd;
+  margin-bottom: 24px;
+}
+.marketing-site .marketing-resource-guides h2 {
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+}
+.marketing-resource-guides p {
+  font-size: 14px;
+  color: #52525b;
+  margin: 20px 0;
+}
+.marketing-resource-guides ol {
+  font-size: 13px;
+  color: #71717a;
+  list-style: decimal;
+  line-height: 1.8;
+  margin: 0 0 24px;
+  padding-left: 16px;
+}
+.marketing-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: #582efd !important;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.marketing-resource-guides .marketing-text-link {
+  margin-top: auto;
+  align-self: start;
+}
+.marketing-demo-details {
+  background: #f3f2f6;
+  border: 1px solid #e1dced;
+  border-radius: 4px;
+  max-width: calc(1440px - var(--gutter) * 2);
+  margin: 10px auto 60px;
+  padding: 42px;
+}
+.marketing-demo-details > svg {
+  color: #582efd;
+  margin-bottom: 22px;
+}
+.marketing-site .marketing-demo-details h2 {
+  font-size: 36px;
+  line-height: 1.15;
+  margin-bottom: 24px;
+}
+.marketing-demo-details p {
+  font-size: 14px;
+  color: #52525b;
+  max-width: 850px;
+  margin: 14px 0;
+}
+.marketing-demo-details .marketing-text-link {
+  margin-top: 16px;
+}
+.marketing-faq {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 60px;
+  padding-top: 35px;
+  padding-bottom: 80px;
+}
+.marketing-site .marketing-faq h2 {
+  font-size: 40px;
+  line-height: 1.15;
+  margin-top: 20px;
+}
+.marketing-faq details {
+  padding: 22px 0;
+  border-bottom: 1px solid #e4e4e7;
+}
+.marketing-faq details:first-child {
+  border-top: 1px solid #e4e4e7;
+}
+.marketing-faq summary {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 8px;
-  color: #718561;
-  z-index: 2;
-  box-shadow: 0 4px 20px #37532605;
+  justify-content: space-between;
+  gap: 20px;
+  list-style: none;
+  font-size: 14px;
+  cursor: pointer;
 }
-.flow-label > span {
+.marketing-faq summary::-webkit-details-marker {
+  display: none;
+}
+.marketing-faq summary > span {
+  font-size: 20px;
+  font-weight: 300;
+  color: #71717a;
+}
+.marketing-faq details[open] summary > span {
+  transform: rotate(45deg);
+}
+.marketing-faq details p {
+  font-size: 13px;
+  color: #52525b;
+  line-height: 1.6;
+  margin-top: 18px;
+}
+.marketing-about-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 70px;
+  padding-top: 30px;
+}
+.marketing-site .marketing-about-body h2 {
+  font-size: 40px;
+  line-height: 1.15;
+  margin-top: 24px;
+}
+.marketing-about-body p {
+  font-size: 16px;
+  color: #52525b;
+  margin: 0 0 24px;
+}
+.marketing-product-missing {
+  text-align: center;
+  padding-top: 80px;
+  padding-bottom: 100px;
+}
+.marketing-site .marketing-product-missing h1 {
+  font-size: 48px;
+  margin-bottom: 30px;
+}
+.marketing-customers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding-top: 20px;
+}
+.marketing-customers-grid > a {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding: 28px;
+  border: 1px solid #e4e4e7;
+  background: #fafafa;
+  border-radius: 4px;
+}
+.marketing-customers-grid h2 {
+  font-size: 25px;
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  margin: 20px 0 12px;
+}
+.demo-company-mark {
   display: grid;
   place-items: center;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: #dfe9cf;
-  color: #7f9864;
+  height: 42px;
+  width: 42px;
+  border-radius: 6px;
+  background: #eeeaff;
+  color: #582efd;
+  font:
+    500 24px "Space Grotesk",
+    sans-serif;
 }
-.flow-label.label-one {
-  left: 75px;
-  top: 25px;
+.marketing-customers-grid p {
+  font-size: 13px;
+  color: #71717a;
 }
-.flow-label.label-two {
-  right: 20px;
-  top: 160px;
+.marketing-customers-grid strong {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 16px 0 24px;
 }
-.flow-label.label-three {
-  left: 65px;
-  bottom: 15px;
+.marketing-customers-grid > a > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #582efd;
+  margin-top: auto;
 }
-.flow-label .flow-dot {
-  width: 5px;
-  height: 5px;
-  margin: 0 4px;
-  background: #a5b882;
-}
-.flow-center {
+.marketing-skip {
   position: absolute;
-  right: 142px;
-  top: 84px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 1px solid #d1dbc4;
-  display: grid;
-  place-items: center;
-  background: #e9efdd;
-  z-index: 2;
+  top: -100px;
+  left: 16px;
+  background: #18181b;
+  color: #fff !important;
+  z-index: 100;
+  padding: 12px 18px;
+  border-radius: 4px;
+  font-size: 13px;
 }
-.flow-center > span {
-  font-size: 28px;
-  font-weight: 600;
-  color: #91a47d;
+.marketing-skip:focus {
+  top: 10px;
 }
+/* Compact, functional record previews on public product and resource pages. */
 .product-window {
-  border: 1px solid #cbd5c1;
-  border-radius: 9px;
-  overflow: hidden;
   background: #fff;
-  box-shadow: 0 22px 60px -30px #253d282e;
-  position: relative;
+  border: 1px solid #dddde4;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px -35px #18181b55;
+  font-family: "DM Sans", sans-serif;
+  color: #27272a;
 }
 .window-chrome {
-  height: 34px;
-  border-bottom: 1px solid #dfe5d7;
-  background: #edf1e7;
+  height: 32px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 15px;
-  gap: 10px;
-  color: #87947b;
+  align-items: center;
+  padding: 0 14px;
+  border-bottom: 1px solid #e4e4e7;
+  background: #f8f8fa;
+  color: #71717a;
   font-size: 8px;
 }
 .window-chrome > div {
@@ -419,16 +663,14 @@
   width: 100px;
 }
 .window-chrome i {
-  display: block;
-  width: 5px;
   height: 5px;
-  background: #ccd5c2;
+  width: 5px;
   border-radius: 50%;
+  background: #d4d4d8;
 }
 .window-chrome > span:nth-child(2) {
   font-family: monospace;
   font-size: 8px;
-  letter-spacing: 0.5px;
 }
 .window-chrome > .preview-demo-label {
   font-size: 7px;
@@ -437,213 +679,187 @@
 }
 .product-window-body {
   display: flex;
-  min-height: 490px;
+  min-height: 485px;
 }
 .preview-sidebar {
-  background: #263e31;
-  color: #c7d5ba;
-  flex: 0 0 187px;
+  flex: 0 0 176px;
+  background: #f7f7f9;
+  border-right: 1px solid #e9e9ed;
   display: flex;
   flex-direction: column;
-  padding: 24px 12px 13px;
+  padding: 22px 12px 14px;
 }
 .preview-brand {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 23px;
-  font-weight: 600;
-  letter-spacing: -0.8px;
-  color: #f2f3e6 !important;
-  padding: 0 10px;
+  gap: 7px;
+  font:
+    500 23px "Space Grotesk",
+    sans-serif;
+  color: #240257 !important;
+  padding: 0 8px;
 }
 .preview-brand > span {
-  font-size: 18px;
-  background: #d9e5b3;
-  color: #2e4733;
-  width: 21px;
-  height: 22px;
-  border-radius: 3px;
   display: grid;
   place-items: center;
-  font-weight: 800;
+  background: #582efd;
+  color: #fff;
+  border-radius: 4px;
+  width: 22px;
+  height: 23px;
+  font-size: 16px;
 }
 .preview-workspace {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin: 25px 0 26px;
-  padding: 10px 8px;
-  border: 1px solid #4e6248;
+  border: 1px solid #e4e4e7;
+  padding: 10px 7px;
   border-radius: 4px;
+  margin: 25px 0 26px;
 }
 .preview-workspace > b {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  background: #d4dec5;
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  background: #eeeaff;
+  color: #582efd;
   border-radius: 4px;
-  color: #4a6240;
   font-size: 9px;
 }
 .preview-workspace > span {
   font-size: 8px;
   flex: 1;
-  color: #d7e0ce;
-  font-weight: 500;
+  color: #52525b;
 }
 .preview-workspace small {
   display: block;
-  font-weight: 400;
   font-size: 6px;
-  color: #98ac8b;
-  margin-top: 4px;
-}
-.preview-workspace svg {
-  color: #97ad86;
+  color: #71717a;
+  margin-top: 3px;
 }
 .preview-nav-label {
-  font-size: 6px;
-  letter-spacing: 1.1px;
-  color: #a0b28e;
-  padding: 0 10px;
+  font-size: 7px;
+  letter-spacing: 0.6px;
+  padding: 0 9px;
   margin-bottom: 9px;
+  color: #71717a;
 }
 .preview-sidebar > button {
-  font-size: 8px;
-  background: transparent;
-  color: #bacdb0;
-  border: 0;
+  display: flex;
   justify-content: flex-start;
-  gap: 9px;
-  padding: 10px;
-  margin: 1px 0;
-  min-height: 34px;
+  gap: 8px;
+  border: 0;
+  background: none;
+  color: #52525b;
+  font-size: 9px;
+  padding: 10px 8px;
+  min-height: 33px;
   border-radius: 4px;
-  white-space: normal;
-  text-align: left;
+  margin: 1px 0;
 }
-.preview-sidebar > button.selected {
-  background: #dbe6bd;
-  color: #344c33;
-  font-weight: 500;
-}
+.preview-sidebar > button.selected,
 .preview-sidebar > button:hover {
-  background: #3c563e;
-}
-.preview-sidebar > button.selected:hover {
-  background: #dbe6bd;
+  background: #ede9fe;
+  color: #582efd;
 }
 .preview-sidebar-bottom {
+  margin-top: auto;
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin-top: auto;
-  padding: 30px 9px 0;
-}
-.preview-avatar {
-  border: 1px solid #e2e8d6;
-  background: #f0f3e9;
-  color: #81946f;
-  border-radius: 50%;
-  font-size: 6px;
-  font-weight: 500;
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
+  gap: 8px;
+  padding: 26px 8px 0;
 }
 .preview-sidebar-bottom > span:last-child {
   font-size: 8px;
-  color: #d1ddc5;
+  color: #52525b;
 }
 .preview-sidebar-bottom small {
   display: block;
   font-size: 6px;
-  color: #a3b493;
+  color: #71717a;
   margin-top: 3px;
+}
+.preview-avatar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #e4e4e7;
+  border-radius: 50%;
+  background: #eeeaff;
+  color: #6d4be5;
+  font-size: 6px;
 }
 .preview-main {
   flex: 1;
   min-width: 0;
-  background: #f9fbf6;
+  background: #fff;
 }
 .preview-breadcrumb {
-  height: 42px;
   display: flex;
   align-items: center;
   gap: 10px;
+  height: 42px;
+  border-bottom: 1px solid #ededf0;
   padding: 0 25px;
-  border-bottom: 1px solid #e6ecdf;
-  background: white;
-  font-size: 7px;
-  color: #9ba98c;
-}
-.preview-breadcrumb > span {
-  color: #bdc8b3;
+  font-size: 8px;
+  color: #71717a;
 }
 .preview-breadcrumb > b {
   font-weight: 400;
-  color: #768868;
+  color: #52525b;
 }
 .preview-breadcrumb > div {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 13px;
   margin-left: auto;
-}
-.preview-breadcrumb .preview-avatar {
-  height: 20px;
-  width: 20px;
-  font-size: 5px;
 }
 .preview-page {
   padding: 25px;
 }
 .preview-heading {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 22px;
 }
 .preview-heading > div > span {
   font-size: 6px;
   letter-spacing: 1px;
-  color: #a7b297;
+  color: #71717a;
 }
 .preview-heading h3 {
-  font-size: 19px;
-  margin: 7px 0 0;
-  font-family: "Segoe UI", Arial, sans-serif;
-  letter-spacing: -0.5px;
-  color: #334b30;
+  font:
+    500 20px "Space Grotesk",
+    sans-serif;
+  margin: 7px 0 0 !important;
+  letter-spacing: -0.4px !important;
 }
 .preview-heading > a {
-  font-size: 7px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #5e7c49;
+  border: 1px solid #e4e4e7;
+  border-radius: 4px;
   padding: 6px 9px;
-  border: 1px solid #dbe5d1;
-  border-radius: 3px;
-  background: #fff;
-  white-space: nowrap;
+  font-size: 8px;
+  color: #582efd !important;
 }
 .preview-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid #e0e8d7;
-  border-radius: 5px;
-  background: white;
+  border: 1px solid #e4e4e7;
+  border-radius: 4px;
   margin-bottom: 18px;
 }
 .preview-metrics > div {
-  border-right: 1px solid #e5ecdd;
   padding: 14px 16px;
+  border-right: 1px solid #e4e4e7;
   min-width: 0;
 }
 .preview-metrics > div:last-child {
@@ -651,44 +867,43 @@
 }
 .preview-metrics > div > span {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  font-size: 7px;
-  color: #94a082;
+  align-items: center;
+  font-size: 8px;
+  color: #71717a;
 }
 .preview-metrics strong {
   display: block;
-  font-size: 20px;
-  letter-spacing: -0.4px;
+  font-size: 21px;
   font-weight: 500;
-  margin: 11px 0;
-  color: #3f5636;
+  letter-spacing: -0.5px;
+  margin: 12px 0;
+  color: #27272a;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .preview-metrics small {
   font-size: 6px;
-  color: #a7b395;
+  color: #71717a;
 }
 .preview-analysis {
   display: grid;
   grid-template-columns: 1fr 200px;
-  gap: 17px;
+  gap: 16px;
 }
 .preview-chart,
 .preview-close {
-  border: 1px solid #e0e8d7;
-  border-radius: 5px;
-  background: white;
+  border: 1px solid #e4e4e7;
+  border-radius: 4px;
   padding: 16px;
   min-width: 0;
 }
 .preview-section-heading {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  color: #6a8158;
-  font-size: 9px;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #52525b;
 }
 .preview-section-heading strong {
   font-weight: 500;
@@ -712,90 +927,83 @@
 }
 .preview-bars i {
   display: block;
+  background: #9c8af4;
   width: 65%;
   max-width: 35px;
-  background: #a8bf8d;
   border-radius: 2px 2px 0 0;
 }
 .preview-bars > div:nth-child(even) i {
-  background: #c6d5af;
+  background: #ccc1fb;
 }
-.preview-bars span {
-  font-size: 6px;
-  color: #8a9c76;
-}
+.preview-bars span,
 .preview-bars small {
   font-size: 6px;
-  color: #94a784;
+  color: #71717a;
 }
 .preview-close > strong {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
-  color: #64804d;
 }
 .preview-close-number {
   font-size: 30px;
-  color: #526f3f;
-  margin-top: 10px;
-  letter-spacing: -1px;
+  font-weight: 500;
+  margin-top: 12px;
 }
 .preview-close-number > span {
-  font-size: 19px;
-  color: #b0be9e;
+  font-size: 20px;
+  color: #a1a1aa;
   margin-left: 4px;
 }
 .preview-close > span {
-  font-size: 6px;
-  color: #a3b48e;
+  font-size: 7px;
+  color: #71717a;
 }
 .preview-task {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-top: 12px;
-  font-size: 6px;
-  color: #91a37a;
+  margin-top: 13px;
+  font-size: 7px;
+  color: #71717a;
 }
 .preview-task > i,
 .preview-close-list > a > i {
+  width: 12px;
+  height: 12px;
   display: grid;
   place-items: center;
-  height: 11px;
-  width: 11px;
+  border: 1px solid #d4d4d8;
   border-radius: 50%;
-  border: 1px solid #d6e2c8;
   flex-shrink: 0;
 }
 .preview-task > i.done,
 .preview-close-list > a > i.done {
-  background: #e0ebd4;
-  color: #7d9c62;
+  background: #daf2e7;
+  border-color: #daf2e7;
+  color: #219869;
 }
 .preview-cash-row {
-  margin-top: 17px;
   display: flex;
   align-items: center;
-  gap: 11px;
-  font-size: 8px;
-  padding: 13px 15px;
-  border: 1px solid #e0e8d7;
-  background: #fff;
-  border-radius: 5px;
-  color: #7c9568;
+  gap: 10px;
+  border: 1px solid #e4e4e7;
+  border-radius: 4px;
+  padding: 14px 15px;
+  margin-top: 17px;
+  font-size: 9px;
 }
 .preview-cash-row > b {
   margin-left: auto;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
-  color: #617e4d;
 }
 .preview-cash-row > a {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 6px;
-  margin-left: 16px;
-  color: #86a06f;
+  gap: 5px;
+  font-size: 8px;
+  color: #582efd !important;
+  margin-left: 14px;
 }
 .preview-table-tools {
   display: flex;
@@ -803,8 +1011,7 @@
   justify-content: space-between;
   gap: 15px;
   padding: 12px;
-  background: white;
-  border: 1px solid #e1e8d8;
+  border: 1px solid #e4e4e7;
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
 }
@@ -812,89 +1019,88 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #e6ecdf;
-  border-radius: 3px;
+  border: 1px solid #e4e4e7;
   padding: 0 7px;
-  color: #a4b694;
+  border-radius: 3px;
+  color: #71717a;
 }
 .preview-table-tools input {
   border: 0;
-  min-height: 24px;
   padding: 5px 0;
-  font-size: 7px;
-  width: 140px;
+  min-height: 26px;
+  font-size: 8px;
+  width: 145px;
   background: none;
 }
 .preview-table-tools > span {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 7px;
-  color: #8fa17c;
+  gap: 6px;
+  font-size: 8px;
+  color: #71717a;
 }
 .preview-table-scroll {
   overflow-x: auto;
-  border: 1px solid #e1e8d8;
+  border: 1px solid #e4e4e7;
   border-radius: 0 0 4px 4px;
-  background: white;
 }
 .preview-table-scroll table {
-  min-width: 510px;
-  font-size: 8px;
+  min-width: 530px;
 }
 .preview-table-scroll th {
-  font-size: 7px;
+  font-size: 8px;
+  font-weight: 400;
+  background: #fafafa;
   padding: 10px 12px;
-  height: 32px;
+  height: 34px;
   border-top: 0;
-  background: #f4f7ef;
-  color: #9dad8a;
+  color: #71717a;
 }
 .preview-table-scroll td {
-  height: 42px;
+  font-size: 8px;
+  height: 43px;
   padding: 10px 12px;
-  font-size: 7px;
-  color: #82976e;
   max-width: 240px;
+  color: #52525b;
 }
 .preview-table-scroll td > a {
-  color: #65854c !important;
+  color: #582efd !important;
 }
 .preview-status {
   display: inline-flex;
   padding: 3px 6px;
-  background: #edf3e5;
-  color: #88a36d;
+  background: #f0edff;
+  color: #6f4ed2;
   border-radius: 3px;
-  font-size: 6px;
+  font-size: 7px;
   white-space: nowrap;
 }
 .preview-table-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   padding-top: 13px;
-  font-size: 6px;
-  color: #a4b592;
+  font-size: 7px;
+  color: #71717a;
 }
 .preview-no-results {
-  font-size: 9px;
-  padding: 30px;
   text-align: center;
-  color: #8a9e77;
+  padding: 30px;
+  font-size: 10px;
+  color: #71717a;
 }
 .preview-close-list {
-  border: 1px solid #e1e8d8;
-  border-radius: 5px;
-  background: white;
   padding: 0 15px;
+  border: 1px solid #e4e4e7;
+  border-radius: 4px;
 }
 .preview-close-list > a {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 13px 0;
-  border-bottom: 1px solid #eaf0e2;
+  padding: 14px 0;
+  border-bottom: 1px solid #eeeeef;
 }
 .preview-close-list > a:last-child {
   border: 0;
@@ -903,1594 +1109,326 @@
   flex: 1;
 }
 .preview-close-list strong {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 500;
-  color: #76905f;
 }
 .preview-close-list small {
   display: block;
-  font-size: 6px;
-  color: #a6b896;
+  font-size: 7px;
+  color: #71717a;
   margin-top: 4px;
 }
 .preview-assistant {
-  border: 1px solid #e1e8d8;
-  background: #fff;
+  border: 1px solid #e4e4e7;
   border-radius: 5px;
   max-width: 520px;
   padding: 25px 32px;
-  margin: 0 auto;
   text-align: center;
+  margin: auto;
 }
 .preview-assistant > span {
   display: grid;
   place-items: center;
-  background: #edf3e5;
-  color: #93ac78;
   width: 38px;
   height: 38px;
   border-radius: 10px;
+  background: #eeeaff;
+  color: #582efd;
   margin: auto;
 }
 .preview-assistant h4 {
-  font-family: Georgia, serif;
-  font-size: 21px;
-  font-weight: 400;
-  letter-spacing: -0.4px;
-  margin: 20px 0 12px;
-  color: #6a8356;
+  font:
+    500 22px "Space Grotesk",
+    sans-serif;
+  letter-spacing: -0.5px;
+  margin: 20px 0 14px;
 }
 .preview-assistant p {
-  font-size: 10px;
-  color: #8ba078;
+  font-size: 11px;
+  color: #71717a;
   margin-bottom: 17px;
 }
 .preview-assistant > a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #e3ecd8;
-  padding: 6px 10px;
+  border: 1px solid #e4e4e7;
+  padding: 7px 10px;
   border-radius: 4px;
-  font-size: 8px;
-  color: #8ca66f;
+  font-size: 9px;
+  color: #582efd !important;
 }
 .preview-assistant > div {
-  font-size: 7px;
-  color: #a9ba97;
-  margin-top: 17px;
+  font-size: 8px;
+  color: #71717a;
+  margin-top: 18px;
 }
 .preview-assistant .preview-ask {
   display: flex;
-  margin-top: 17px;
   justify-content: space-between;
-}
-.marketing-demo-companies {
-  padding: 42px 64px 52px;
-  max-width: 1280px;
-  margin: auto;
-  text-align: center;
-}
-.marketing-demo-companies > span {
-  font-size: 7px;
-  letter-spacing: 1.4px;
-  color: #a1a791;
-}
-.marketing-demo-companies > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 50px;
-  flex-wrap: wrap;
-  margin-top: 31px;
-  color: #8b967c;
-}
-.marketing-demo-companies b {
-  font-size: 25px;
-  letter-spacing: -1px;
-  font-weight: 500;
-}
-.marketing-demo-companies b > span:not(.company-orbit) {
-  font-size: 13px;
-  letter-spacing: -0.3px;
-  font-weight: 400;
-}
-.marketing-demo-companies .company-serif {
-  font-family: Georgia, serif;
-  font-size: 29px;
-  letter-spacing: -1.4px;
-}
-.marketing-demo-companies .company-mono {
-  font-family: monospace;
-  font-size: 18px;
-  letter-spacing: 4px;
-  font-weight: 500;
-}
-.company-orbit {
-  font-size: 22px;
-  vertical-align: middle;
-}
-.marketing-section {
-  max-width: 1280px;
-  padding: 96px 64px;
-  margin: 0 auto;
-}
-.marketing-section-intro {
-  text-align: center;
-}
-.marketing-section-intro .marketing-kicker {
-  justify-content: center;
-  margin-bottom: 24px;
-}
-.marketing-section-intro p {
-  font-size: 13px;
-  color: #879079;
-  margin-top: 23px;
-}
-.marketing-tour {
-  border-top: 1px solid var(--line);
-  padding-top: 90px;
-}
-.marketing-feature-tabs {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 40px;
-}
-.marketing-feature-tabs button {
-  border: 1px solid #dce1d2;
-  border-radius: 4px;
-  background: #f0f1e6;
-  padding: 12px 17px;
-  display: flex;
-  gap: 11px;
-  font-size: 10px;
-  color: #7e8e6a;
-}
-.marketing-feature-tabs button:hover,
-.marketing-feature-tabs button[aria-selected="true"] {
-  background: #e0e7d1;
-  border-color: #bdcda6;
-  color: #56743d;
-}
-.marketing-feature-tabs button > svg:last-child {
-  margin-left: 12px;
-}
-.marketing-product-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-  margin-top: 45px;
-}
-.marketing-product-card {
-  padding: 31px 26px;
-  position: relative;
-  border-bottom: 1px solid var(--line);
-  border-right: 1px solid var(--line);
-  min-height: 190px;
-  transition: background 0.15s;
-}
-.marketing-product-card:hover {
-  background: #eeefe2;
-}
-.marketing-product-card > span {
-  color: #8eaa70;
-  display: block;
-  margin-bottom: 26px;
-}
-.marketing-product-card h3 {
-  font-size: 15px;
-  font-weight: 500;
-  margin: 0 0 9px;
-  letter-spacing: -0.2px;
-}
-.marketing-product-card p {
-  font-size: 11px;
-  color: #98a086;
-  line-height: 1.6;
-}
-.marketing-product-card > svg {
-  position: absolute;
-  right: 24px;
-  top: 35px;
-  color: #a8b396;
-}
-.marketing-feature-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 70px;
-  align-items: center;
-  padding-top: 55px;
-  padding-bottom: 125px;
-}
-.marketing-feature-copy h2 {
-  margin-top: 25px;
-}
-.marketing-feature-copy > p {
-  font-size: 13px;
-  max-width: 350px;
-  color: #879179;
-  margin: 28px 0 23px;
-}
-.marketing-text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 20px;
-  font-size: 11px;
-  color: #597446 !important;
-  border-bottom: 1px solid #bac8a7;
-  padding-bottom: 6px;
-}
-.marketing-feature-points {
-  border-top: 1px solid var(--line);
-  padding-top: 21px;
-  margin-top: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-.marketing-feature-points > span {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-size: 10px;
-  color: #899a76;
-}
-.marketing-evidence-art {
-  background: #e9eddf;
-  min-height: 400px;
-  border-radius: 2px;
-  padding: 45px 35px;
-  position: relative;
-  background-image:
-    linear-gradient(#dce4d144 1px, transparent 1px),
-    linear-gradient(90deg, #dce4d144 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-.evidence-report {
-  background: #fcfdf8;
-  border: 1px solid #d9e2cd;
-  border-radius: 5px;
-  box-shadow: 0 8px 25px #445d2e08;
-  padding: 18px 20px;
-  max-width: 340px;
-}
-.evidence-report > div {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 9px;
-  color: #8e9f78;
-  padding: 12px 0;
-  border-bottom: 1px solid #e8edde;
-}
-.evidence-report > div:first-child {
-  padding: 0;
-  border: 0;
-  color: #6f875a;
-  font-size: 11px;
-}
-.evidence-report > div:first-child > span:last-child {
-  font-size: 7px;
-  color: #aab996;
-  margin-left: auto;
-}
-.evidence-report > p {
-  font-size: 7px;
-  color: #a5b68d;
-  margin: 10px 0 18px;
-}
-.evidence-report strong {
-  margin-left: auto;
-  font-size: 7px;
-  font-weight: 400;
-  color: #a6b98d;
-}
-.evidence-report .evidence-highlight {
-  color: #7f995e;
-  font-size: 8px;
-  background: #edf3e1;
-  margin: 0 -8px;
-  padding: 11px 8px;
-  border: 1px solid #dce7ca;
-  border-radius: 2px;
-  justify-content: space-between;
-}
-.evidence-report .evidence-total {
-  border: 0;
-  font-size: 8px;
-  color: #718c50;
-  justify-content: space-between;
-  margin-top: 5px;
-  padding-bottom: 0;
-}
-.evidence-journal {
-  background: #fff;
-  border: 1px solid #d9e2cd;
-  border-radius: 5px;
-  margin: -8px 0 0 57px;
-  position: relative;
-  padding: 19px 16px;
-  box-shadow: 0 6px 18px #445d2e0a;
-}
-.evidence-journal > div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.evidence-doc-icon {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 36px;
-  border: 1px solid #e4ecd9;
-  border-radius: 4px;
-  color: #a0b884;
-  background: #f5f8ef;
-}
-.evidence-journal strong {
-  font-size: 9px;
-  font-weight: 500;
-  color: #7c965c;
-}
-.evidence-journal p {
-  font-size: 7px;
-  color: #b0be9b;
-  margin-top: 5px;
-}
-.evidence-check {
-  height: 20px;
-  width: 20px;
-  background: #e8f0da;
-  display: grid;
-  place-items: center;
-  color: #8ba86a;
-  border-radius: 50%;
-  margin-left: auto;
-}
-.evidence-journal > a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 7px;
-  border-top: 1px solid #e9efdf;
-  padding-top: 14px;
-  margin-top: 16px;
-  color: #8da777 !important;
-}
-.marketing-art-caption {
-  display: block;
-  text-align: center;
-  font-size: 6px;
-  letter-spacing: 1.1px;
-  color: #a5b38f;
-  margin-top: 23px;
-}
-.marketing-why {
-  background: #293e31;
-  color: #e8edda;
-  padding: 97px max(64px, calc((100vw - 1152px) / 2));
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 100px;
-}
-.marketing-why .marketing-kicker {
-  color: #acbd91;
-}
-.marketing-why h2 {
-  font-size: 62px;
-  color: #f1f2e3;
-  margin: 25px 0 34px;
-}
-.marketing-why h2 em {
-  color: #bac9a0;
-}
-.marketing-principles {
-  padding-top: 10px;
-}
-.marketing-principles > div {
-  display: flex;
-  align-items: start;
-  gap: 23px;
-  padding: 25px 0 28px;
-  border-bottom: 1px solid #506046;
-}
-.marketing-principles > div:first-child {
-  padding-top: 0;
-}
-.marketing-principles > div > span {
-  font-size: 9px;
-  color: #8fa37a;
-  margin-top: 5px;
-}
-.marketing-principles h3 {
-  font-size: 17px;
-  color: #dde6cd;
-  font-weight: 400;
-  margin: 0 0 13px;
-  letter-spacing: -0.4px;
-}
-.marketing-principles p {
-  font-size: 12px;
-  color: #a7b896;
-  max-width: 330px;
-  line-height: 1.9;
-}
-.marketing-assistant-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 95px;
-  align-items: center;
-  padding-top: 125px;
-  padding-bottom: 115px;
-}
-.marketing-assistant-art {
-  background: #eceee1;
-  padding: 35px 30px;
-  border: 1px solid #e0e4d2;
-  border-radius: 3px;
-}
-.marketing-assistant-query {
-  margin-left: auto;
-  max-width: 230px;
-  width: fit-content;
-  background: #e0e7ce;
-  border: 1px solid #d0dcbc;
-  padding: 12px 15px;
-  font-size: 9px;
-  color: #829b62;
-  border-radius: 6px 6px 0 6px;
-}
-.marketing-assistant-answer {
-  background: #fafcf4;
-  border: 1px solid #e1e8d2;
-  border-radius: 6px;
-  padding: 19px 18px;
-  margin-top: 20px;
-}
-.marketing-assistant-answer > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 9px;
-  color: #85a264;
-}
-.marketing-assistant-answer small {
-  font-size: 6px;
-  color: #b0c197;
-  margin-left: auto;
-}
-.marketing-assistant-answer p {
-  font-size: 9px;
-  color: #95ac78;
-  margin: 15px 0;
-}
-.marketing-assistant-answer > a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 7px;
-  padding: 5px 8px;
-  border: 1px solid #e2ead2;
-  border-radius: 3px;
-  color: #91a875 !important;
-}
-.marketing-assistant-answer > div {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  padding: 13px;
-  border: 1px solid #dce8c8;
-  background: #f0f5e7;
-  margin-top: 18px;
-  border-radius: 3px;
-}
-.marketing-assistant-answer > div > span {
-  font-size: 6px;
-  color: #abc092;
-}
-.marketing-assistant-answer strong {
-  font-size: 9px;
-  font-weight: 500;
-  color: #859f65;
-}
-.marketing-resources-teaser {
-  padding-top: 80px;
-  border-top: 1px solid var(--line);
-  padding-bottom: 100px;
-}
-.marketing-resources-teaser h2 {
-  margin: 23px 0 43px;
-}
-.marketing-resources-teaser > div:last-child {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 19px;
-}
-.marketing-resources-teaser > div:last-child > a {
-  border: 1px solid #d9e0ce;
-  padding: 24px 24px 50px;
-  position: relative;
-  background: #eeefe3;
-  min-height: 195px;
-}
-.marketing-resources-teaser > div:last-child > a:nth-child(2) {
-  background: #e7eddd;
-}
-.marketing-resources-teaser > div:last-child > a:nth-child(3) {
-  background: #f1ecdf;
-}
-.marketing-resources-teaser a > span {
-  font-size: 7px;
-  letter-spacing: 1px;
-  color: #9aaa85;
-}
-.marketing-resources-teaser h3 {
-  font-family: Georgia, serif;
-  font-size: 25px;
-  line-height: 1.23;
-  font-weight: 400;
-  letter-spacing: -0.7px;
-  color: #657e50;
-  margin: 23px 0;
-}
-.marketing-resources-teaser a > svg {
-  color: #a8bb90;
-}
-.marketing-resources-teaser a > svg:last-child {
-  position: absolute;
-  bottom: 23px;
-  right: 22px;
-}
-.marketing-faq {
-  display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 80px;
-  padding-top: 45px;
-  padding-bottom: 120px;
-}
-.marketing-faq h2 {
-  margin-top: 25px;
-  font-size: 49px;
-}
-.marketing-faq details {
-  border-bottom: 1px solid var(--line);
-  padding: 21px 0;
-}
-.marketing-faq details:first-child {
-  border-top: 1px solid var(--line);
-}
-.marketing-faq summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  font-size: 12px;
-  color: #6f865a;
-  cursor: pointer;
-  list-style: none;
-}
-.marketing-faq summary::-webkit-details-marker {
-  display: none;
-}
-.marketing-faq summary > span {
-  font-size: 20px;
-  line-height: 1;
-  font-weight: 300;
-  color: #a6b592;
-}
-.marketing-faq details[open] summary > span {
-  transform: rotate(45deg);
-}
-.marketing-faq details p {
-  font-size: 11px;
-  color: #94a181;
-  margin: 18px 0 0;
-  max-width: 400px;
-}
-.marketing-final-cta {
-  padding: 86px 64px 83px;
-  text-align: center;
-  background: #dce5c7;
-  border-top: 1px solid #cdd9b7;
-  border-bottom: 1px solid #cdd9b7;
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-}
-.marketing-final-cta .marketing-kicker {
-  justify-content: center;
-  color: #8ca471;
-}
-.marketing-final-cta h2 {
-  font-size: 76px;
-  color: #456535;
-  margin: 26px 0 30px;
-  position: relative;
-  z-index: 1;
-}
-.marketing-final-cta h2 em {
-  color: #819e61;
-}
-.marketing-final-cta .marketing-button {
-  position: relative;
-  z-index: 1;
-}
-.marketing-final-cta > p {
-  font-size: 9px;
-  color: #8da775;
-  margin-top: 19px;
-  position: relative;
-  z-index: 1;
-}
-.cta-decoration {
-  position: absolute;
-  right: -45px;
-  top: -100px;
-  font-family: Georgia, serif;
-  font-size: 600px;
-  font-weight: 400;
-  line-height: 1;
-  color: #cbd9b2;
-  transform: rotate(-15deg);
-  z-index: -1;
-  user-select: none;
-}
-.marketing-footer {
-  padding: 65px 64px 0;
-  max-width: 1536px;
-  margin: 0 auto;
-}
-.marketing-footer-top {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
-  gap: 50px;
-  max-width: 1152px;
-  margin: 0 auto 55px;
-}
-.marketing-footer-top > div:first-child > p {
-  font-family: Georgia, serif;
-  font-size: 25px;
-  line-height: 1.2;
-  color: #869c70;
-  letter-spacing: -0.6px;
-  margin: 28px 0 25px;
-}
-.marketing-demo-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 7px;
-  color: #a3b28c;
-}
-.marketing-demo-pill > i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #a5b97e;
-}
-.marketing-footer h3 {
-  margin: 7px 0 25px;
-  font-size: 10px;
-  color: #677f51;
-  font-weight: 500;
-}
-.marketing-footer-top > div:not(:first-child) > a {
-  display: block;
-  font-size: 10px;
-  color: #9baa88;
-  margin-bottom: 15px;
-}
-.marketing-footer-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 24px 0;
-  border-top: 1px solid var(--line);
-  font-size: 8px;
-  color: #a3af91;
-  max-width: 1152px;
-  margin: auto;
-}
-.marketing-footer-bottom > a {
-  color: #8da575;
-}
-.marketing-mega {
-  background: #f8f9f1;
-  z-index: 45;
-  border: 1px solid #d8e2cc;
-  border-radius: 6px;
-  width: 430px;
-  box-shadow: 0 20px 45px #233b2421;
-  padding: 15px;
-}
-.marketing-menu-title {
-  font-size: 8px;
-  letter-spacing: 1.4px;
-  color: #95a67f;
-  padding: 9px 11px 16px;
-}
-.marketing-mega > a {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  border: 0;
-  border-radius: 4px;
-  padding: 13px 11px;
-  outline: 0;
-  color: #6f8a59;
-}
-.marketing-mega > a:hover,
-.marketing-mega > a[data-highlighted] {
-  background: #eaf0df;
-  text-decoration: none;
-}
-.marketing-mega > a > span {
-  width: 33px;
-  height: 33px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #dce6cf;
-  background: #f1f5e9;
-  border-radius: 4px;
-  color: #99b27d;
-}
-.marketing-mega strong {
-  font-size: 11px;
-  font-weight: 500;
-  color: #6f8a59;
-}
-.marketing-mega small {
-  display: block;
-  margin-top: 4px;
-  font-size: 8px;
-  color: #a3b390;
-}
-.marketing-mega > a > svg {
-  margin-left: auto;
-  color: #a9bc95;
-}
-.marketing-mobile-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.marketing-mobile-nav a {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 0;
-  border-bottom: 1px solid #e4eadb;
-  color: #6f8958;
-  font-size: 12px;
-}
-.marketing-mobile-nav a > svg:last-child {
-  margin-left: auto;
-}
-.marketing-walkthrough-note {
-  font-size: 12px;
-  color: #879b75;
-}
-.marketing-walkthrough-options {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 23px 0;
-}
-.marketing-walkthrough-options > button {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: 17px;
-  font-size: 10px;
-  white-space: normal;
-  text-align: left;
-  min-height: 98px;
-  padding: 15px;
-  background: #f7f9f1;
-  border: 1px solid #e1e9d6;
-  color: #95ab7e;
-}
-.marketing-walkthrough-options > button.selected {
-  background: #edf4df;
-  border-color: #b9cea0;
-  color: #688b4d;
-}
-.marketing-walkthrough-detail {
-  border: 1px solid #e1e9d6;
-  background: #f7f9f1;
-  padding: 22px;
-  border-radius: 5px;
-}
-.marketing-walkthrough-detail h3 {
-  margin: 0 0 10px;
-  color: #708a59;
-  font-size: 17px;
-}
-.marketing-walkthrough-detail p {
-  font-size: 12px;
-  color: #96a784;
-  margin-bottom: 20px;
-}
-.marketing-product-hero {
-  max-width: 1000px;
-  text-align: center;
-  margin: auto;
-  padding: 85px 40px 57px;
-}
-.marketing-product-hero > .marketing-kicker {
-  justify-content: center;
-  margin-bottom: 29px;
-}
-.marketing-product-hero > h1 {
-  font-size: 76px;
-  line-height: 1.1;
-  letter-spacing: -3px;
-}
-.marketing-product-hero > p {
-  font-size: 14px;
-  line-height: 1.9;
-  max-width: 550px;
-  margin: 26px auto;
-  color: #8d9b7e;
-}
-.marketing-product-note {
-  display: block;
-  font-size: 8px;
-  color: #a7b795;
   margin-top: 18px;
 }
-.marketing-product-page-preview {
-  max-width: 1280px;
-  margin: auto;
-  padding: 0 64px 30px;
-}
-.marketing-benefits {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 45px;
-  padding-top: 70px;
-  padding-bottom: 100px;
-}
-.marketing-benefits > div > span {
-  font-size: 10px;
-  color: #b1bf9d;
-}
-.marketing-benefits h2 {
-  font-size: 28px;
-  letter-spacing: -0.9px;
-  line-height: 1.2;
-  margin: 23px 0 20px;
-}
-.marketing-benefits p {
-  font-size: 12px;
-  color: #98a888;
-}
-.marketing-resource-guides {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  padding-top: 10px;
-  padding-bottom: 60px;
-}
-.marketing-resource-guides > article {
-  border: 1px solid var(--line);
-  padding: 28px;
-  background: #f1f4e9;
-  display: flex;
-  flex-direction: column;
-}
-.marketing-resource-guides > article > svg {
-  color: #9cb483;
-  margin-bottom: 25px;
-}
-.marketing-resource-guides h2 {
-  font-size: 28px;
-  letter-spacing: -0.7px;
-  line-height: 1.2;
-}
-.marketing-resource-guides p {
-  font-size: 11px;
-  color: #95a884;
-  margin: 20px 0;
-}
-.marketing-resource-guides ol {
-  font-size: 10px;
-  color: #8da479;
-  list-style: decimal;
-  margin: 0 0 25px;
-  padding-left: 16px;
-  line-height: 2;
-}
-.marketing-resource-guides .marketing-text-link {
-  margin-top: auto;
-  align-self: start;
-  font-size: 10px;
-}
-.marketing-demo-details {
-  background: #eaf0df;
-  border: 1px solid #dce7cf;
-  max-width: 1152px;
-  margin: 10px auto 85px;
-  padding: 45px;
-}
-.marketing-demo-details > svg {
-  color: #92b175;
-  margin-bottom: 24px;
-}
-.marketing-demo-details h2 {
-  font-size: 40px;
-  letter-spacing: -1.2px;
-  margin-bottom: 25px;
-}
-.marketing-demo-details p {
-  font-size: 12px;
-  color: #8da57c;
-  max-width: 750px;
-  margin: 15px 0;
-}
-.marketing-demo-details .marketing-text-link {
-  margin-top: 15px;
-}
-.marketing-about-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 90px;
-  padding-top: 30px;
-}
-.marketing-about-body h2 {
-  font-size: 44px;
-  margin-top: 22px;
-}
-.marketing-about-body p {
-  font-size: 13px;
-  color: #95a684;
-  margin-bottom: 23px;
-}
-.marketing-product-missing {
-  padding-top: 90px;
-  padding-bottom: 110px;
-  text-align: center;
-}
-.marketing-product-missing > h1 {
-  font-size: 55px;
-  margin-bottom: 35px;
-}
-.marketing-skip {
-  position: absolute;
-  top: -100px;
-  left: 15px;
-  z-index: 100;
-  background: #273e32;
-  padding: 12px 18px;
-  color: #f1f5e8 !important;
-  border-radius: 4px;
-  font-size: 12px;
-}
-.marketing-skip:focus {
-  top: 12px;
-}
-@media (min-width: 1600px) {
-  .marketing-hero h1 {
-    font-size: 106px;
-  }
-  .marketing-hero-copy {
-    margin-top: 65px;
-    margin-bottom: 95px;
-  }
-  .marketing-hero-description {
-    padding-left: 65px;
-  }
-  .marketing-flow {
-    top: 270px;
-  }
-  .marketing-header {
-    height: 110px;
-  }
-  .marketing-hero {
-    padding-top: 45px;
+@media (min-width: 991px) and (max-width: 1560px) {
+  .marketing-site {
+    --ru: calc(100vw / 97.5);
+    --gutter: calc(3.5 * var(--ru));
   }
 }
-@media (max-width: 1280px) {
-  .marketing-header {
-    padding: 0 40px;
-    gap: 20px;
-  }
+@media (max-width: 1200px) {
   .marketing-header > nav {
-    gap: 24px;
-    margin-left: 0;
+    gap: 22px;
   }
   .marketing-header-actions {
-    gap: 18px;
-  }
-  .marketing-hero {
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-  .marketing-hero-copy {
-    gap: 30px;
-  }
-  .marketing-hero h1 {
-    font-size: 78px;
-    letter-spacing: -4px;
-  }
-  .marketing-hero-description {
-    padding-left: 30px;
-  }
-  .marketing-hero-description > div {
-    gap: 14px;
-  }
-  .marketing-hero-description > p {
-    font-size: 13px;
-  }
-  .marketing-hero-description .marketing-button {
-    padding: 14px 16px;
-    gap: 17px;
-    font-size: 11px;
-  }
-  .marketing-section {
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-  .marketing-why {
-    padding-left: 60px;
-    padding-right: 60px;
-    gap: 75px;
-  }
-  .marketing-feature-section {
-    gap: 50px;
-  }
-  .marketing-assistant-section {
-    gap: 65px;
-  }
-  .marketing-faq {
-    gap: 60px;
-  }
-  .marketing-product-page-preview {
-    padding: 0 40px 30px;
-  }
-  .marketing-footer {
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-}
-@media (max-width: 1100px) {
-  .marketing-header {
-    padding: 0 32px;
-    height: 87px;
-  }
-  .marketing-header > nav {
-    gap: 21px;
+    gap: 16px;
   }
   .marketing-header > nav > a,
-  .marketing-header > nav > button {
-    font-size: 11px;
+  .marketing-nav-button {
+    font-size: 13px !important;
   }
-  .marketing-header-actions {
-    gap: 14px;
+}
+@media (max-width: 990px) {
+  .marketing-site {
+    --gutter: 32px;
   }
+  .marketing-header {
+    height: 80px;
+  }
+  .marketing-header > nav,
   .marketing-header .marketing-login {
     display: none;
   }
-  .marketing-hero {
-    padding-left: 32px;
-    padding-right: 32px;
-    padding-top: 30px;
+  .marketing-header-actions {
+    gap: 22px;
   }
-  .marketing-hero-copy {
-    gap: 30px;
-    margin: 50px 0 65px;
-    grid-template-columns: 1.2fr 1fr;
+  .marketing-mobile-toggle {
+    display: inline-flex;
   }
-  .marketing-hero h1 {
-    font-size: 67px;
-    letter-spacing: -3.4px;
-  }
-  .marketing-hero-description {
-    padding-left: 10px;
-  }
-  .marketing-hero-description > p {
+  .marketing-header .marketing-button.small {
     font-size: 12px;
-    line-height: 1.8;
+    min-height: 32px;
   }
-  .marketing-hero-description > div {
-    gap: 12px;
-    margin: 22px 0 13px;
-  }
-  .marketing-text-button {
-    font-size: 10px !important;
-  }
-  .marketing-hero-description > span {
-    font-size: 8px;
-  }
-  .marketing-flow {
-    width: 480px;
-    height: 220px;
-    top: 250px;
-  }
-  .preview-sidebar {
-    flex-basis: 165px;
-    padding: 20px 10px 13px;
-  }
-  .preview-workspace {
-    gap: 5px;
-    padding: 9px 6px;
-  }
-  .preview-workspace > span {
-    font-size: 7px;
-  }
-  .preview-workspace small {
-    font-size: 5px;
-  }
-  .preview-page {
-    padding: 20px;
-  }
-  .preview-metrics strong {
-    font-size: 17px;
-  }
-  .preview-analysis {
-    grid-template-columns: 1fr 168px;
-    gap: 13px;
-  }
-  .preview-close,
-  .preview-chart {
-    padding: 13px;
-  }
-  .product-window-body {
-    min-height: 465px;
-  }
-  .preview-bars {
-    gap: 10px;
-  }
-  .marketing-section {
-    padding-left: 32px;
-    padding-right: 32px;
+  .marketing-site h1 {
+    font-size: 48px;
   }
   .marketing-site h2 {
-    font-size: 46px;
-    letter-spacing: -2px;
-  }
-  .marketing-feature-section {
-    gap: 35px;
-    padding-bottom: 95px;
-  }
-  .marketing-evidence-art {
-    padding: 35px 23px;
-    min-height: 375px;
-  }
-  .evidence-journal {
-    margin-left: 25px;
-  }
-  .marketing-feature-copy > p {
-    font-size: 12px;
-  }
-  .marketing-why {
-    gap: 65px;
-    padding: 80px 45px;
-  }
-  .marketing-why h2 {
-    font-size: 54px;
-  }
-  .marketing-principles h3 {
-    font-size: 16px;
-  }
-  .marketing-principles p {
-    font-size: 11px;
-  }
-  .marketing-assistant-section {
-    gap: 45px;
-    padding-top: 95px;
-    padding-bottom: 95px;
-  }
-  .marketing-assistant-art {
-    padding: 28px 22px;
-  }
-  .marketing-faq {
-    gap: 45px;
-  }
-  .marketing-site .marketing-final-cta h2 {
-    font-size: 66px;
+    font-size: 44px;
   }
   .marketing-footer-top {
-    gap: 40px;
-  }
-  .marketing-footer-top > div:not(:first-child) > a {
-    font-size: 9px;
-  }
-  .marketing-product-hero > h1 {
-    font-size: 65px;
-  }
-  .marketing-product-page-preview {
-    padding: 0 32px 25px;
-  }
-  .marketing-benefits {
     gap: 30px;
   }
-  .marketing-site .marketing-benefits h2 {
-    font-size: 26px;
-    letter-spacing: -0.8px;
+  .marketing-mega {
+    max-width: calc(100vw - 30px);
   }
-  .marketing-site .marketing-resource-guides h2 {
-    font-size: 25px;
-    letter-spacing: -0.8px;
-  }
-  .marketing-resource-guides > article {
-    padding: 24px;
-  }
-  .marketing-demo-details {
-    margin-left: 32px;
-    margin-right: 32px;
-  }
-  .marketing-site .marketing-about-body h2 {
-    font-size: 37px;
-    letter-spacing: -1.2px;
+  .marketing-resource-guides,
+  .marketing-customers-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .marketing-about-body {
-    gap: 50px;
+    gap: 40px;
   }
-}
-@media (max-width: 850px) {
-  .marketing-header > nav {
-    gap: 17px;
-  }
-  .marketing-hero-copy {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    margin-top: 45px;
-    margin-bottom: 45px;
-  }
-  .marketing-hero h1 {
-    font-size: 80px;
-    letter-spacing: -4px;
-  }
-  .marketing-hero-description {
-    padding: 0;
-    max-width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 25px;
-    align-items: start;
-  }
-  .marketing-hero-description > p {
-    font-size: 13px;
-  }
-  .marketing-hero-description > div {
-    margin: 0;
-    flex-direction: column;
-    align-items: start;
-    gap: 15px;
-    padding-top: 3px;
-  }
-  .marketing-hero-description > span {
-    margin-top: 15px;
-  }
-  .marketing-flow {
-    top: 190px;
-    width: 350px;
-    opacity: 0.45;
+  .marketing-faq {
+    gap: 35px;
   }
   .preview-sidebar {
     flex-basis: 145px;
+    padding: 20px 9px;
   }
-  .preview-sidebar > button {
+  .preview-workspace {
+    padding: 9px 5px;
+    gap: 5px;
+  }
+  .preview-workspace > span {
     font-size: 7px;
-    gap: 7px;
-    padding-left: 8px;
   }
   .preview-workspace > svg {
     display: none;
   }
-  .preview-workspace > span {
-    font-size: 6px;
-  }
-  .preview-workspace small {
-    font-size: 5px;
+  .preview-sidebar > button {
+    font-size: 8px;
   }
   .preview-page {
-    padding: 17px;
+    padding: 20px;
   }
-  .preview-breadcrumb {
-    padding: 0 17px;
+  .preview-analysis {
+    grid-template-columns: 1fr 165px;
   }
   .preview-metrics > div {
     padding: 12px;
   }
   .preview-metrics strong {
-    font-size: 15px;
+    font-size: 17px;
   }
-  .preview-close {
-    display: none;
-  }
-  .preview-analysis {
-    grid-template-columns: 1fr;
-  }
-  .preview-bars {
-    height: 148px;
-  }
-  .preview-cash-row {
-    gap: 7px;
-    font-size: 7px;
-  }
-  .preview-cash-row > a {
-    margin-left: 5px;
-  }
-  .preview-cash-row > b {
-    font-size: 8px;
-  }
-  .marketing-demo-companies {
-    padding: 33px 32px 45px;
-  }
-  .marketing-demo-companies > div {
-    gap: 30px;
-  }
-  .marketing-demo-companies b {
-    font-size: 22px;
-  }
-  .marketing-demo-companies .company-serif {
-    font-size: 24px;
-  }
-  .marketing-demo-companies .company-mono {
-    font-size: 15px;
-    letter-spacing: 3px;
-  }
-  .marketing-section {
-    padding-top: 70px;
-    padding-bottom: 70px;
-  }
-  .marketing-product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .marketing-feature-section {
-    grid-template-columns: 1fr;
-    gap: 45px;
-  }
-  .marketing-feature-copy > p {
-    max-width: 430px;
-  }
-  .marketing-feature-copy h2 {
-    font-size: 52px;
-  }
-  .marketing-feature-points {
-    max-width: 430px;
-  }
-  .marketing-evidence-art {
-    max-width: 500px;
-    width: 100%;
-    justify-self: center;
-    padding: 40px;
-    min-height: 405px;
-  }
-  .evidence-journal {
-    margin-left: 60px;
-  }
-  .marketing-why {
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    padding: 70px 32px;
-  }
-  .marketing-why h2 {
-    font-size: 45px;
-  }
-  .marketing-principles > div {
-    gap: 15px;
-  }
-  .marketing-principles h3 {
-    font-size: 15px;
-    line-height: 1.4;
-  }
-  .marketing-principles p {
-    font-size: 10px;
-  }
-  .marketing-assistant-section {
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-  }
-  .marketing-assistant-section h2 {
-    font-size: 42px;
-  }
-  .marketing-assistant-art {
-    padding: 23px 16px;
-  }
-  .marketing-assistant-answer {
-    padding: 16px 13px;
-  }
-  .marketing-assistant-answer p {
-    font-size: 8px;
-  }
-  .marketing-assistant-query {
-    font-size: 8px;
-    padding: 10px;
-  }
-  .marketing-resources-teaser > div:last-child {
-    gap: 12px;
-  }
-  .marketing-resources-teaser > div:last-child > a {
-    padding: 20px 17px 40px;
-    min-height: 195px;
-  }
-  .marketing-resources-teaser h3 {
-    font-size: 21px;
-  }
-  .marketing-resources-teaser a > span {
-    font-size: 6px;
-  }
-  .marketing-faq {
-    gap: 30px;
-  }
-  .marketing-faq h2 {
-    font-size: 38px;
-  }
-  .marketing-faq summary {
-    font-size: 11px;
-  }
-  .marketing-site .marketing-final-cta h2 {
-    font-size: 60px;
-  }
-  .marketing-footer-top {
-    grid-template-columns: 1.2fr 1fr 1fr;
-    gap: 35px;
-  }
-  .marketing-footer-top > div:last-child {
-    grid-column: 2/-1;
-    display: flex;
-    gap: 20px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .marketing-footer-top > div:last-child > h3,
-  .marketing-footer-top > div:last-child > a {
-    margin: 0;
-  }
-  .marketing-footer-top > div:last-child > h3 {
-    width: 100%;
-  }
-  .marketing-footer-bottom {
-    font-size: 7px;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-  .marketing-product-hero {
-    padding: 65px 32px 45px;
-  }
-  .marketing-product-hero > h1 {
-    font-size: 58px;
+  .marketing-site .marketing-product-hero > h1 {
+    font-size: 48px;
   }
   .marketing-product-hero > p {
-    font-size: 12px;
-  }
-  .marketing-resource-guides {
-    grid-template-columns: 1fr 1fr;
+    font-size: 16px;
   }
   .marketing-benefits {
-    gap: 25px;
+    gap: 26px;
   }
   .marketing-site .marketing-benefits h2 {
-    font-size: 23px;
-  }
-  .marketing-about-body {
-    gap: 35px;
-  }
-  .marketing-site .marketing-about-body h2 {
-    font-size: 32px;
-  }
-  .marketing-about-body p {
-    font-size: 12px;
+    font-size: 25px;
   }
 }
-@media (max-width: 650px) {
-  .marketing-announcement {
-    min-height: 31px;
-    font-size: 8px;
-    gap: 10px;
-  }
-  .marketing-announcement > span {
-    display: none;
-  }
-  .marketing-header {
-    height: 74px;
-    padding: 0 20px;
-    gap: 15px;
+@media (max-width: 767px) {
+  .marketing-site {
+    --gutter: 24px;
   }
   .marketing-brand {
-    font-size: 27px;
-    gap: 7px;
-  }
-  .marketing-brand > span:first-child {
-    height: 25px;
-    width: 22px;
-    font-size: 21px;
-  }
-  .marketing-header > nav {
-    display: none;
+    font-size: 30px;
   }
   .marketing-header-actions {
-    gap: 15px;
+    gap: 22px;
   }
-  .marketing-header-actions > .marketing-button {
+  .marketing-header .marketing-button.small {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  .marketing-section {
+    padding: 60px 24px;
+  }
+  .marketing-product-hero {
+    padding: 48px 24px 36px;
+  }
+  .marketing-site .marketing-product-hero > h1 {
+    font-size: 40px;
+    line-height: 1.1;
+    letter-spacing: -0.75px;
+  }
+  .marketing-product-hero > p {
+    font-size: 16px;
+    line-height: 24px;
+    margin: 22px auto;
+  }
+  .marketing-product-note {
+    font-size: 11px;
+  }
+  .marketing-product-page-preview {
+    padding: 0 24px 20px;
+  }
+  .marketing-benefits {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .marketing-benefits > div {
+    padding-top: 23px;
+    border-top: 1px solid #e4e4e7;
+  }
+  .marketing-site .marketing-benefits h2 {
+    font-size: 28px;
+    margin: 16px 0;
+  }
+  .marketing-benefits p {
+    font-size: 14px;
+  }
+  .marketing-site .marketing-final-cta h2 {
+    font-size: 32px;
+    line-height: 1.15;
+  }
+  .marketing-final-cta {
+    padding: 60px 24px;
+  }
+  .marketing-final-cta p {
+    font-size: 13px;
+    margin: 18px 0 23px;
+  }
+  .marketing-footer {
+    padding: 0 24px;
+  }
+  .marketing-guide-bar {
+    align-items: start;
+    flex-direction: column;
+    padding: 22px 18px;
+    gap: 18px;
+    margin: 38px 0 35px;
+  }
+  .marketing-footer-top {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px 22px;
+    padding-bottom: 36px;
+  }
+  .marketing-footer h3 {
+    font-size: 11px;
+    margin-bottom: 18px;
+  }
+  .marketing-footer-top > div > a {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  .marketing-footer-bottom {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 22px;
+    padding: 25px 0;
+    font-size: 10px;
+  }
+  .marketing-footer-bottom > .marketing-brand {
+    width: 100%;
+    font-size: 28px;
+  }
+  .marketing-footer-bottom > span:last-child {
     font-size: 9px;
-    min-height: 33px;
-    padding: 10px 12px;
-    gap: 12px;
   }
-  .marketing-mobile-toggle {
-    display: inline-flex;
-    min-width: 28px;
-    min-height: 28px;
+  .marketing-resource-guides,
+  .marketing-customers-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding-top: 10px;
   }
-  .marketing-hero {
-    padding: 26px 20px 0;
+  .marketing-resource-guides > article,
+  .marketing-customers-grid > a {
+    padding: 25px;
   }
-  .marketing-hero-topline .marketing-kicker {
-    font-size: 7px;
-    letter-spacing: 1.1px;
+  .marketing-site .marketing-resource-guides h2,
+  .marketing-customers-grid h2 {
+    font-size: 28px;
   }
-  .marketing-edition {
-    display: none;
+  .marketing-resource-guides p,
+  .marketing-resource-guides ol {
+    font-size: 13px;
   }
-  .marketing-hero-copy {
-    margin: 34px 0 39px;
-    gap: 24px;
+  .marketing-demo-details {
+    margin: 0 24px 50px;
+    padding: 26px 22px;
+    max-width: 100%;
   }
-  .marketing-hero h1 {
-    font-size: clamp(43px, 9.9vw, 64px);
-    letter-spacing: -2.6px;
+  .marketing-site .marketing-demo-details h2 {
+    font-size: 30px;
+    line-height: 1.2;
+  }
+  .marketing-demo-details p {
+    font-size: 13px;
+  }
+  .marketing-faq {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-top: 20px;
+  }
+  .marketing-site .marketing-faq h2 {
+    font-size: 34px;
     line-height: 1.1;
   }
-  .marketing-hero-description {
-    display: block;
+  .marketing-faq summary {
+    font-size: 13px;
   }
-  .marketing-hero-description > p {
+  .marketing-faq details p {
     font-size: 12px;
-    line-height: 1.85;
-    max-width: 320px;
   }
-  .marketing-desktop-break {
-    display: none;
+  .marketing-about-body {
+    grid-template-columns: 1fr;
+    gap: 26px;
+    padding-top: 20px;
   }
-  .marketing-hero-description > div {
-    margin: 24px 0 14px;
-    flex-direction: row;
-    align-items: center;
-    gap: 19px;
+  .marketing-site .marketing-about-body h2 {
+    font-size: 34px;
+    line-height: 1.15;
   }
-  .marketing-hero-description .marketing-button {
-    font-size: 10px;
-    padding: 12px 14px;
-    min-height: 40px;
-    gap: 16px;
+  .marketing-about-body p {
+    font-size: 14px;
   }
-  .marketing-text-button {
-    font-size: 9px !important;
-    gap: 5px;
-  }
-  .marketing-text-button > svg {
-    height: 16px;
-    width: 16px;
-  }
-  .marketing-hero-description > span {
-    font-size: 7px;
-  }
-  .marketing-flow {
-    top: 150px;
-    right: -150px;
-    width: 400px;
-    opacity: 0.3;
-  }
-  .marketing-preview-caption > span {
-    font-size: 6px;
-    letter-spacing: 1.1px;
-    gap: 6px;
-  }
-  .marketing-preview-caption > a {
-    height: 23px;
-    width: 23px;
-  }
-  .marketing-preview-caption > a > svg {
-    width: 12px;
+  .marketing-site .marketing-product-missing h1 {
+    font-size: 34px;
   }
   .window-chrome {
     height: 27px;
@@ -2498,100 +1436,89 @@
   }
   .window-chrome > div {
     width: 35px;
-    gap: 4px;
-  }
-  .window-chrome i {
-    width: 4px;
-    height: 4px;
   }
   .window-chrome > span:nth-child(2) {
     font-size: 6px;
-    letter-spacing: 0;
   }
   .window-chrome > .preview-demo-label {
-    font-size: 5px;
+    font-size: 6px;
     width: 70px;
-  }
-  .product-window {
-    border-radius: 6px;
   }
   .preview-sidebar {
     display: none;
   }
   .product-window-body {
-    min-height: 360px;
+    min-height: 365px;
   }
   .preview-breadcrumb {
     height: 33px;
     padding: 0 12px;
-    font-size: 6px;
+    font-size: 7px;
     gap: 7px;
-  }
-  .preview-breadcrumb > div {
-    gap: 10px;
   }
   .preview-breadcrumb .preview-avatar {
-    height: 17px;
-    width: 17px;
-    font-size: 4px;
+    height: 18px;
+    width: 18px;
+    font-size: 5px;
   }
   .preview-page {
-    padding: 17px 11px;
+    padding: 17px 12px;
   }
   .preview-heading {
-    margin-bottom: 15px;
-    gap: 7px;
+    margin-bottom: 16px;
+    gap: 8px;
   }
   .preview-heading > div > span {
     font-size: 5px;
-    letter-spacing: 0.7px;
+    letter-spacing: 0.8px;
   }
   .preview-heading h3 {
-    font-size: 17px;
-    margin-top: 6px;
+    font-size: 18px;
+    margin-top: 6px !important;
   }
   .preview-heading > a {
-    font-size: 6px;
+    font-size: 7px;
     padding: 5px 7px;
     gap: 4px;
   }
-  .preview-heading > a > svg {
-    width: 10px;
-  }
   .preview-metrics {
-    margin-bottom: 12px;
+    margin-bottom: 13px;
   }
   .preview-metrics > div {
     padding: 11px 8px;
   }
   .preview-metrics > div > span {
-    font-size: 5px;
-    gap: 2px;
+    font-size: 6px;
   }
   .preview-metrics > div > span > svg {
-    width: 8px;
-    height: 8px;
+    width: 9px;
   }
   .preview-metrics strong {
-    font-size: clamp(9px, 2.7vw, 16px);
-    letter-spacing: -0.3px;
+    font-size: clamp(10px, 2.7vw, 16px);
+    letter-spacing: -0.25px;
     margin: 9px 0 5px;
   }
   .preview-metrics small {
     font-size: 5px;
   }
+  .preview-analysis {
+    grid-template-columns: 1fr;
+  }
+  .preview-close {
+    display: none;
+  }
   .preview-chart {
     padding: 12px;
   }
   .preview-section-heading {
-    font-size: 7px;
+    font-size: 8px;
   }
   .preview-bars {
     height: 118px;
-    gap: 9px;
     padding-top: 12px;
+    gap: 9px;
   }
-  .preview-bars > div > i {
+  .preview-bars i {
     max-height: 82px;
     width: 70%;
   }
@@ -2601,56 +1528,50 @@
   }
   .preview-cash-row {
     margin-top: 12px;
-    font-size: 6px;
     padding: 10px;
     gap: 6px;
+    font-size: 7px;
   }
   .preview-cash-row > svg {
     width: 13px;
-    height: 13px;
   }
   .preview-cash-row > b {
-    font-size: 7px;
+    font-size: 8px;
   }
   .preview-cash-row > a {
-    font-size: 5px;
+    font-size: 6px;
     margin-left: 2px;
     gap: 2px;
   }
   .preview-cash-row > a > svg {
     width: 9px;
-    height: 9px;
   }
   .preview-table-tools {
     padding: 8px;
-    gap: 7px;
+    gap: 8px;
   }
   .preview-table-tools input {
-    font-size: 6px;
     width: 115px;
-    min-height: 22px;
+    font-size: 7px;
+    min-height: 23px;
   }
   .preview-table-tools > span {
-    font-size: 5px;
+    font-size: 6px;
     gap: 3px;
   }
-  .preview-table-tools > span > svg {
-    width: 9px;
-  }
   .preview-table-scroll table {
-    min-width: 460px;
+    min-width: 470px;
   }
   .preview-table-scroll th,
   .preview-table-scroll td {
-    font-size: 6px;
+    font-size: 7px;
     padding: 9px 10px;
   }
   .preview-table-scroll td {
-    height: 41px;
+    height: 42px;
   }
   .preview-table-bottom {
-    font-size: 5px;
-    gap: 8px;
+    font-size: 6px;
   }
   .preview-close-list {
     padding: 0 11px;
@@ -2660,538 +1581,45 @@
     gap: 8px;
   }
   .preview-close-list strong {
-    font-size: 7px;
+    font-size: 8px;
   }
   .preview-close-list small {
-    font-size: 5px;
+    font-size: 6px;
   }
   .preview-close-list .preview-status {
-    font-size: 5px;
+    font-size: 6px;
   }
   .preview-assistant {
     padding: 22px 15px;
   }
   .preview-assistant h4 {
-    font-size: 20px;
-    line-height: 1.25;
+    font-size: 21px;
+    line-height: 1.2;
   }
   .preview-assistant p {
-    font-size: 9px;
-  }
-  .marketing-demo-companies {
-    padding: 28px 20px 35px;
-  }
-  .marketing-demo-companies > span {
-    font-size: 5px;
-    letter-spacing: 1.1px;
-  }
-  .marketing-demo-companies > div {
-    margin-top: 23px;
-    gap: 20px 28px;
-    justify-content: center;
-  }
-  .marketing-demo-companies b {
-    font-size: 19px;
-  }
-  .marketing-demo-companies b > span:not(.company-orbit) {
-    font-size: 9px;
-  }
-  .marketing-demo-companies .company-serif {
-    font-size: 21px;
-  }
-  .marketing-demo-companies .company-mono {
-    font-size: 12px;
-    letter-spacing: 2px;
-  }
-  .company-orbit {
-    font-size: 16px;
-  }
-  .marketing-section {
-    padding: 57px 20px;
-  }
-  .marketing-site h2 {
-    font-size: 37px;
-    letter-spacing: -1.5px;
-    line-height: 1.12;
-  }
-  .marketing-kicker {
-    font-size: 7px;
-    letter-spacing: 1.1px;
-  }
-  .marketing-section-intro .marketing-kicker {
-    margin-bottom: 21px;
-  }
-  .marketing-section-intro p {
-    font-size: 11px;
-    margin-top: 18px;
-  }
-  .marketing-feature-tabs {
-    gap: 8px;
-    margin-top: 30px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-  .marketing-feature-tabs > button {
-    font-size: 8px;
-    padding: 11px 9px;
-    gap: 7px;
-    justify-content: flex-start;
-  }
-  .marketing-feature-tabs > button > svg:first-child {
-    width: 13px;
-    height: 13px;
-  }
-  .marketing-feature-tabs > button > svg:last-child {
-    margin-left: auto;
-    width: 11px;
-    height: 11px;
-  }
-  .marketing-product-grid {
-    margin-top: 25px;
-  }
-  .marketing-product-card {
-    padding: 23px 16px;
-    min-height: 157px;
-  }
-  .marketing-product-card > span {
-    margin-bottom: 20px;
-  }
-  .marketing-product-card > span > svg {
-    height: 19px;
-    width: 19px;
-  }
-  .marketing-product-card h3 {
-    font-size: 11px;
-    margin-bottom: 7px;
-    letter-spacing: -0.1px;
-  }
-  .marketing-product-card p {
-    font-size: 8px;
-    max-width: 115px;
-  }
-  .marketing-product-card > svg {
-    top: 27px;
-    right: 15px;
-    width: 13px;
-    height: 13px;
-  }
-  .marketing-feature-section {
-    padding-top: 18px;
-    gap: 30px;
-  }
-  .marketing-feature-copy h2 {
-    font-size: 39px;
-    margin-top: 23px;
-  }
-  .marketing-feature-copy > p {
-    font-size: 11px;
-    max-width: 300px;
-    margin: 23px 0 20px;
-  }
-  .marketing-text-link {
-    font-size: 10px;
-    gap: 17px;
-  }
-  .marketing-feature-points {
-    margin-top: 25px;
-    padding-top: 20px;
-    gap: 12px;
-  }
-  .marketing-feature-points > span {
-    font-size: 9px;
-  }
-  .marketing-evidence-art {
-    padding: 30px 22px;
-    min-height: 350px;
-  }
-  .evidence-report {
-    padding: 17px;
-    max-width: 280px;
-  }
-  .evidence-report > div {
-    font-size: 8px;
-  }
-  .evidence-report > div:first-child {
-    font-size: 10px;
-  }
-  .evidence-report > p {
-    font-size: 6px;
-  }
-  .evidence-report .evidence-highlight {
-    font-size: 7px;
-  }
-  .evidence-journal {
-    padding: 16px 14px;
-    margin: 0 0 0 25px;
-  }
-  .evidence-journal strong {
-    font-size: 8px;
-  }
-  .evidence-journal p {
-    font-size: 6px;
-  }
-  .evidence-journal > a {
-    font-size: 6px;
-  }
-  .marketing-art-caption {
-    font-size: 5px;
-    margin-top: 20px;
-    letter-spacing: 0.8px;
-  }
-  .marketing-why {
-    grid-template-columns: 1fr;
-    gap: 45px;
-    padding: 57px 24px;
-  }
-  .marketing-why h2 {
-    font-size: 48px;
-    letter-spacing: -2px;
-    margin: 23px 0 27px;
-  }
-  .marketing-why .marketing-button {
-    font-size: 10px;
-    min-height: 40px;
-    padding: 12px 17px;
-    gap: 24px;
-  }
-  .marketing-principles {
-    padding-top: 0;
-  }
-  .marketing-principles > div {
-    gap: 20px;
-    padding: 22px 0;
-  }
-  .marketing-principles h3 {
-    font-size: 15px;
-    margin-bottom: 10px;
-  }
-  .marketing-principles p {
-    font-size: 11px;
-  }
-  .marketing-principles > div > span {
-    font-size: 8px;
-  }
-  .marketing-assistant-section {
-    grid-template-columns: 1fr;
-    gap: 35px;
-  }
-  .marketing-assistant-section .marketing-feature-copy {
-    grid-row: 1;
-  }
-  .marketing-assistant-section h2 {
-    font-size: 40px;
-  }
-  .marketing-assistant-art {
-    padding: 28px 21px;
-  }
-  .marketing-assistant-query {
-    font-size: 8px;
-  }
-  .marketing-assistant-answer {
-    padding: 18px 16px;
-  }
-  .marketing-assistant-answer p {
-    font-size: 9px;
-  }
-  .marketing-resources-teaser {
-    padding-top: 35px;
-  }
-  .marketing-resources-teaser h2 {
-    font-size: 40px;
-    margin: 20px 0 30px;
-  }
-  .marketing-resources-teaser > div:last-child {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .marketing-resources-teaser > div:last-child > a {
-    min-height: 150px;
-    padding: 23px 20px 35px;
-  }
-  .marketing-resources-teaser h3 {
-    font-size: 26px;
-    max-width: 235px;
-    margin: 19px 0 16px;
-  }
-  .marketing-resources-teaser a > span {
-    font-size: 7px;
-  }
-  .marketing-resources-teaser a > svg:not(:last-child) {
-    position: absolute;
-    top: 22px;
-    right: 22px;
-    width: 20px;
-  }
-  .marketing-faq {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    padding-top: 18px;
-  }
-  .marketing-faq h2 {
-    font-size: 39px;
-  }
-  .marketing-faq details {
-    padding: 20px 0;
-  }
-  .marketing-faq summary {
-    font-size: 11px;
-  }
-  .marketing-faq details p {
-    font-size: 10px;
-    margin-top: 15px;
-  }
-  .marketing-final-cta {
-    padding: 62px 20px 56px;
-  }
-  .marketing-site .marketing-final-cta h2 {
-    font-size: 48px;
-    letter-spacing: -2px;
-    margin: 25px 0 28px;
-  }
-  .marketing-final-cta .marketing-button {
-    font-size: 10px;
-    min-height: 41px;
-    padding: 13px 19px;
-    gap: 28px;
-  }
-  .marketing-final-cta > p {
-    font-size: 7px;
-    margin-top: 18px;
-  }
-  .cta-decoration {
-    font-size: 380px;
-    top: -10px;
-    right: -76px;
-  }
-  .marketing-footer {
-    padding: 45px 20px 0;
-  }
-  .marketing-footer-top {
-    grid-template-columns: 1fr 1fr;
-    gap: 30px 20px;
-    margin-bottom: 35px;
-  }
-  .marketing-footer-top > div:first-child {
-    grid-column: 1/-1;
-    padding-bottom: 10px;
-  }
-  .marketing-footer-top > div:first-child > p {
-    font-size: 24px;
-    margin: 24px 0 20px;
-  }
-  .marketing-footer-top > div:last-child {
-    grid-column: 1/-1;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px 20px;
-  }
-  .marketing-footer-top > div:last-child > a {
-    font-size: 8px;
-  }
-  .marketing-footer h3 {
-    font-size: 9px;
-    margin: 0 0 22px;
-  }
-  .marketing-footer-top > div:not(:first-child) > a {
-    font-size: 9px;
-    margin-bottom: 13px;
-  }
-  .marketing-footer-bottom {
-    padding: 20px 0;
-    align-items: start;
-    font-size: 7px;
-    gap: 14px;
-  }
-  .marketing-footer-bottom > span:nth-child(2) {
-    order: 3;
-    width: 100%;
-    font-size: 6px;
-  }
-  .marketing-mega {
-    max-width: calc(100vw - 30px);
-  }
-  .marketing-walkthrough-options {
-    gap: 7px;
-    margin-top: 20px;
-  }
-  .marketing-walkthrough-options > button {
-    font-size: 8px;
-    min-height: 100px;
-    padding: 12px 9px;
-    gap: 16px;
-  }
-  .marketing-walkthrough-detail {
-    padding: 17px;
-  }
-  .marketing-walkthrough-detail h3 {
-    font-size: 16px;
-  }
-  .marketing-walkthrough-detail p {
-    font-size: 11px;
-  }
-  .marketing-product-hero {
-    padding: 53px 20px 35px;
-  }
-  .marketing-product-hero > .marketing-kicker {
-    margin-bottom: 26px;
-  }
-  .marketing-product-hero > h1 {
-    font-size: 43px;
-    letter-spacing: -1.9px;
-    line-height: 1.14;
-  }
-  .marketing-product-hero > p {
-    font-size: 11px;
-    line-height: 1.8;
-    margin: 24px auto;
-  }
-  .marketing-product-hero > .marketing-button {
-    font-size: 10px;
-    padding: 13px 17px;
-    min-height: 41px;
-  }
-  .marketing-product-note {
-    font-size: 7px;
-    margin-top: 15px;
-  }
-  .marketing-product-page-preview {
-    padding: 0 20px 10px;
-  }
-  .marketing-benefits {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-  .marketing-benefits > div {
-    border-top: 1px solid var(--line);
-    padding-top: 23px;
-  }
-  .marketing-benefits > div > span {
-    font-size: 8px;
-  }
-  .marketing-site .marketing-benefits h2 {
-    font-size: 30px;
-    margin: 16px 0 16px;
-    letter-spacing: -0.9px;
-  }
-  .marketing-benefits p {
-    font-size: 11px;
-  }
-  .marketing-resource-guides {
-    grid-template-columns: 1fr;
-    padding-top: 10px;
-    gap: 15px;
-  }
-  .marketing-resource-guides > article {
-    padding: 26px;
-  }
-  .marketing-site .marketing-resource-guides h2 {
-    font-size: 30px;
-  }
-  .marketing-resource-guides p {
-    font-size: 11px;
-  }
-  .marketing-resource-guides ol {
-    font-size: 10px;
-  }
-  .marketing-demo-details {
-    margin: 0 20px 57px;
-    padding: 27px 22px;
-  }
-  .marketing-site .marketing-demo-details h2 {
-    font-size: 32px;
-    letter-spacing: -1px;
-    margin-bottom: 21px;
-  }
-  .marketing-demo-details p {
-    font-size: 10px;
-  }
-  .marketing-about-body {
-    grid-template-columns: 1fr;
-    gap: 30px;
-    padding-top: 15px;
-  }
-  .marketing-site .marketing-about-body h2 {
-    font-size: 37px;
-    letter-spacing: -1.4px;
-  }
-  .marketing-about-body p {
-    font-size: 11px;
-  }
-  .marketing-site .marketing-product-missing > h1 {
-    font-size: 38px;
-    letter-spacing: -1.5px;
-  }
-  .marketing-skip {
     font-size: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .marketing-site * {
     scroll-behavior: auto !important;
+    animation: none !important;
     transition: none !important;
   }
 }
 @media print {
-  .marketing-announcement,
   .marketing-header,
   .marketing-footer,
-  .marketing-flow,
-  .marketing-final-cta,
-  .marketing-feature-tabs {
+  .marketing-final-cta {
     display: none;
   }
   .marketing-site {
-    background: white;
+    background: #fff;
   }
-  .marketing-section,
-  .marketing-hero {
+  .marketing-section {
     padding: 20px;
   }
   .product-window {
     box-shadow: none;
-  }
-  .marketing-feature-section,
-  .marketing-faq {
-    break-inside: avoid;
-  }
-}
-/* Keep supporting copy readable on the warm paper surface. */
-.marketing-hero-description > p,
-.marketing-section-intro p,
-.marketing-feature-copy > p,
-.marketing-product-hero > p,
-.marketing-about-body p {
-  color: #65735d;
-}
-.marketing-product-card p,
-.marketing-benefits p,
-.marketing-faq details p {
-  color: #6b795e;
-}
-.marketing-footer-top > div:not(:first-child) > a,
-.marketing-footer h3,
-.marketing-footer-bottom,
-.marketing-demo-pill {
-  color: #6b7c5d;
-}
-.marketing-hero-description > span,
-.marketing-product-note,
-.marketing-preview-caption > span,
-.marketing-edition {
-  color: #768368;
-}
-.marketing-resources-teaser a > span,
-.marketing-faq summary,
-.marketing-resource-guides p,
-.marketing-resource-guides ol,
-.marketing-demo-details p {
-  color: #697e56;
-}
-@media (max-width: 650px) {
-  .marketing-feature-tabs > button:last-child:nth-child(odd) {
-    grid-column: 1/-1;
-  }
-  .marketing-principles p {
-    color: #bdccab;
   }
 }

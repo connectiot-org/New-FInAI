@@ -1,24 +1,121 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router-dom";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
 import {
-  ArrowDown,
   ArrowRight,
   ArrowUpRight,
-  BookOpen,
-  Check,
+  Building2,
   ChevronDown,
-  CirclePlay,
-  Layers,
+  Check,
   Menu,
   ShieldCheck,
-  Sparkles,
-  Workflow,
+  Users,
 } from "lucide-react";
-import { Modal } from "../../components/ui";
+import { Modal, useToast } from "../../components/ui";
+import { useDemo } from "../../store";
+import { money, inScope } from "../../demo/selectors";
 import { ProductPreview } from "./ProductPreview";
 import { products, questions, type PreviewView } from "./content";
+import { ReferenceHome, PreviewExplorer } from "./ReferenceHome";
 import "../../styles/marketing.css";
+import "../../styles/reference-home.css";
+
+type PublicItem = { label: string; description: string; to: string };
+const coreSlugs = [
+  "automated-general-ledger",
+  "accounts-receivable",
+  "accounts-payable",
+  "bank-reconciliation",
+  "month-end-close",
+  "native-integrations",
+  "financial-reporting",
+];
+function PublicMenu({
+  label,
+  groups,
+}: {
+  label: string;
+  groups: { title: string; items: PublicItem[] }[];
+}) {
+  return (
+    <Dropdown.Root>
+      <Dropdown.Trigger className="marketing-nav-button">
+        {label}
+        <ChevronDown size={13} />
+      </Dropdown.Trigger>
+      <Dropdown.Portal>
+        <Dropdown.Content
+          className={`marketing-mega ${groups.length > 1 ? "has-columns" : ""}`}
+          sideOffset={20}
+          align="center"
+        >
+          {groups.map((group) => (
+            <div key={group.title}>
+              <div className="marketing-menu-title">{group.title}</div>
+              {group.items.map((item) => (
+                <Dropdown.Item asChild key={item.label}>
+                  <Link to={item.to}>
+                    <span>
+                      <ArrowUpRight size={15} />
+                    </span>
+                    <div>
+                      <strong>{item.label}</strong>
+                      <small>{item.description}</small>
+                    </div>
+                  </Link>
+                </Dropdown.Item>
+              ))}
+            </div>
+          ))}
+        </Dropdown.Content>
+      </Dropdown.Portal>
+    </Dropdown.Root>
+  );
+}
+function BookmarkGuide() {
+  const toast = useToast();
+  const [saved, setSaved] = useState(() => {
+    try {
+      return localStorage.getItem("finai-public-guide") === "/resources";
+    } catch {
+      return false;
+    }
+  });
+  return (
+    <div className="marketing-guide-bar">
+      <div>
+        <strong>Keep a useful guide close</strong>
+        <span>Save a local shortcut to the FinAI demo workflows</span>
+      </div>
+      <div>
+        {saved ? (
+          <Link to="/resources">
+            <Check size={14} />
+            Workflow guide saved
+            <ArrowUpRight size={14} />
+          </Link>
+        ) : (
+          <button
+            onClick={() => {
+              try {
+                localStorage.setItem("finai-public-guide", "/resources");
+                setSaved(true);
+                toast("Workflow guide saved in this browser");
+              } catch {
+                toast(
+                  "Browser storage is unavailable; open Resources to view the guide.",
+                );
+              }
+            }}
+          >
+            Save workflow guide
+            <ArrowRight size={14} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 export function MarketingLayout() {
   const [mobile, setMobile] = useState(false),
     location = useLocation();
@@ -30,73 +127,165 @@ export function MarketingLayout() {
       );
     } else window.scrollTo(0, 0);
   }, [location.pathname, location.hash]);
+  const groups = [
+    {
+      title: "Core features",
+      items: products
+        .filter((p) => coreSlugs.includes(p.slug))
+        .sort((a, b) => coreSlugs.indexOf(a.slug) - coreSlugs.indexOf(b.slug))
+        .map((p) => ({
+          label: p.name,
+          description: p.short,
+          to: `/product/${p.slug}`,
+        })),
+    },
+    {
+      title: "Advanced features",
+      items: products
+        .filter((p) => !coreSlugs.includes(p.slug))
+        .map((p) => ({
+          label: p.name,
+          description: p.short,
+          to: `/product/${p.slug}`,
+        })),
+    },
+  ];
   return (
     <div className="marketing-site">
       <a className="marketing-skip" href="#marketing-content">
         Skip to content
       </a>
-      <div className="marketing-announcement">
-        <span>Meet your next chapter in accounting.</span>
-        <Link to="/welcome">
-          Explore the FinAI demo
-          <ArrowRight size={12} />
-        </Link>
-      </div>
       <header className="marketing-header">
         <Link className="marketing-brand" to="/" aria-label="FinAI home">
-          <span>F</span>FinAI<span className="marketing-brand-dot">.</span>
+          FinAI
         </Link>
         <nav aria-label="Public navigation">
-          <Dropdown.Root>
-            <Dropdown.Trigger className="marketing-nav-button">
-              Product
-              <ChevronDown size={13} />
-            </Dropdown.Trigger>
-            <Dropdown.Portal>
-              <Dropdown.Content
-                className="marketing-mega"
-                sideOffset={23}
-                align="start"
-              >
-                <div className="marketing-menu-title">
-                  ONE CONNECTED WORKSPACE
-                </div>
-                {products.map((p) => (
-                  <Dropdown.Item asChild key={p.slug}>
-                    <Link to={`/product/${p.slug}`}>
-                      <span>
-                        <p.icon size={19} />
-                      </span>
-                      <div>
-                        <strong>{p.name}</strong>
-                        <small>{p.short}</small>
-                      </div>
-                      <ArrowUpRight size={14} />
-                    </Link>
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Content>
-            </Dropdown.Portal>
-          </Dropdown.Root>
-          <Link to="/#why-finai">Why FinAI</Link>
-          <Link to="/resources">Resources</Link>
-          <Link to="/about">Company</Link>
+          <PublicMenu label="Product" groups={groups} />
+          <PublicMenu
+            label="Solutions"
+            groups={[
+              {
+                title: "By role",
+                items: [
+                  {
+                    label: "Finance leaders",
+                    description: "Explore financial statements",
+                    to: "/reports",
+                  },
+                  {
+                    label: "Accountants",
+                    description: "Follow the ledger and journals",
+                    to: "/accounting/ledger",
+                  },
+                  {
+                    label: "Reviewers",
+                    description: "Bring approvals into view",
+                    to: "/close",
+                  },
+                ],
+              },
+              {
+                title: "By workspace",
+                items: [
+                  {
+                    label: "Growing teams",
+                    description: "Connected demo workflows",
+                    to: "/welcome",
+                  },
+                  {
+                    label: "Multiple entities",
+                    description: "Separate books and a group view",
+                    to: "/entities",
+                  },
+                  {
+                    label: "SaaS business",
+                    description: "Customers, contracts, and revenue",
+                    to: "/revenue/contracts",
+                  },
+                ],
+              },
+            ]}
+          />
+          <Link to="/customers">Customers</Link>
+          <PublicMenu
+            label="Partners"
+            groups={[
+              {
+                title: "Explore together",
+                items: [
+                  {
+                    label: "About this prototype",
+                    description: "The idea behind FinAI",
+                    to: "/about",
+                  },
+                  {
+                    label: "Workflow guides",
+                    description: "A useful starting point",
+                    to: "/resources",
+                  },
+                ],
+              },
+            ]}
+          />
+          <PublicMenu
+            label="Resources"
+            groups={[
+              {
+                title: "Learn",
+                items: [
+                  {
+                    label: "Workflow guides",
+                    description: "Explore the accounting demo",
+                    to: "/resources",
+                  },
+                  {
+                    label: "Interactive preview",
+                    description: "Inspect local records",
+                    to: "/resources#interactive-preview",
+                  },
+                  {
+                    label: "Questions answered",
+                    description: "Honest demo details",
+                    to: "/resources#questions",
+                  },
+                ],
+              },
+              {
+                title: "Company",
+                items: [
+                  {
+                    label: "About FinAI",
+                    description: "A connected accounting prototype",
+                    to: "/about",
+                  },
+                  {
+                    label: "Public demo",
+                    description: "No credentials required",
+                    to: "/welcome",
+                  },
+                  {
+                    label: "Local data and privacy",
+                    description: "Understand the demo boundaries",
+                    to: "/resources#demo-details",
+                  },
+                ],
+              },
+            ]}
+          />
         </nav>
         <div className="marketing-header-actions">
           <Link className="marketing-login" to="/welcome">
-            Open workspace
-            <ArrowUpRight size={12} />
+            Log in <span className="sr-only">to demo</span>
           </Link>
           <Link className="marketing-button dark small" to="/welcome">
-            Explore demo
-            <ArrowRight size={13} />
+            Explore the demo
           </Link>
           <button
             className="marketing-mobile-toggle"
             aria-label="Open public navigation"
             onClick={() => setMobile(true)}
           >
-            <Menu size={22} />
+            <Menu size={25} />
           </button>
         </div>
       </header>
@@ -104,50 +293,58 @@ export function MarketingLayout() {
         <Outlet />
       </main>
       <footer className="marketing-footer">
+        <BookmarkGuide />
         <div className="marketing-footer-top">
           <div>
-            <Link className="marketing-brand" to="/" aria-label="FinAI home">
-              <span>F</span>FinAI<span className="marketing-brand-dot">.</span>
-            </Link>
-            <p>
-              A little clarity.
-              <br />A lot of possibility.
-            </p>
-            <span className="marketing-demo-pill">
-              <i />
-              Interactive demo workspace
-            </span>
-          </div>
-          <div>
-            <h3>Product</h3>
-            {products.slice(0, 4).map((p) => (
+            <h3>PRODUCT</h3>
+            {products.map((p) => (
               <Link key={p.slug} to={`/product/${p.slug}`}>
                 {p.name}
               </Link>
             ))}
           </div>
           <div>
-            <h3>Explore</h3>
-            <Link to="/product/month-end-close">Month-end close</Link>
-            <Link to="/product/assistant">FinAI Assistant</Link>
-            <Link to="/resources">Workflow guides</Link>
-            <Link to="/about">About FinAI</Link>
+            <h3>SOLUTIONS</h3>
+            <Link to="/reports">Finance leaders</Link>
+            <Link to="/accounting/ledger">Accountants</Link>
+            <Link to="/close">Reviewers</Link>
+            <Link to="/entities">Multi-entity teams</Link>
+            <Link to="/customers">Demo customers</Link>
           </div>
           <div>
-            <h3>Your next step</h3>
-            <Link to="/welcome">Enter demo workspace</Link>
-            <Link to="/resources#demo-details">About the demo</Link>
-            <Link to="/#questions">Questions, answered</Link>
+            <h3>RESOURCES</h3>
+            <Link to="/resources">Workflow guides</Link>
+            <Link to="/resources#interactive-preview">Interactive preview</Link>
+            <Link to="/resources#questions">Questions answered</Link>
+            <Link to="/welcome">Public demo</Link>
+          </div>
+          <div>
+            <h3>COMPANY</h3>
+            <Link to="/about">About FinAI</Link>
+            <Link to="/resources#demo-details">Local data and privacy</Link>
+            <Link to="/settings/preferences">Demo preferences</Link>
+            <a
+              href="https://github.com/connectiot-org/New-FInAI"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+              <ArrowUpRight size={10} />
+            </a>
           </div>
         </div>
         <div className="marketing-footer-bottom">
+          <Link className="marketing-brand" to="/" aria-label="FinAI home">
+            FinAI
+          </Link>
           <span>
-            © {new Date().getFullYear()} FinAI · Original demonstration
+            © {new Date().getFullYear()} FinAI · Original demonstration ·
+            Synthetic records
           </span>
           <span>
-            Local data. Simulated payments and connections. No live AI.
+            <ShieldCheck size={13} />
+            Local demo · No live AI or payments
           </span>
-          <a href="#marketing-content">Back to top ↑</a>
         </div>
       </footer>
       <Modal
@@ -160,15 +357,23 @@ export function MarketingLayout() {
           className="marketing-mobile-nav"
           aria-label="Mobile public navigation"
         >
-          {products.map((p) => (
-            <Link key={p.slug} to={`/product/${p.slug}`}>
-              <p.icon size={18} />
-              {p.name}
-              <ArrowRight size={15} />
-            </Link>
+          {groups.map((group) => (
+            <details key={group.title} open={group.title === "Core features"}>
+              <summary>
+                {group.title}
+                <ChevronDown size={15} />
+              </summary>
+              {group.items.map((p) => (
+                <Link key={p.to} to={p.to}>
+                  {p.label}
+                  <ArrowRight size={13} />
+                </Link>
+              ))}
+            </details>
           ))}
-          <Link to="/#why-finai">
-            Why FinAI
+          <Link to="/customers">
+            <Users size={17} />
+            Demo customers
             <ArrowRight size={15} />
           </Link>
           <Link to="/resources">
@@ -176,7 +381,7 @@ export function MarketingLayout() {
             <ArrowRight size={15} />
           </Link>
           <Link to="/about">
-            Company
+            About FinAI
             <ArrowRight size={15} />
           </Link>
           <Link to="/welcome">
@@ -188,528 +393,22 @@ export function MarketingLayout() {
     </div>
   );
 }
-function Walkthrough({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-}) {
-  const [selected, setSelected] = useState("ledger");
-  const steps = [
-    {
-      key: "ledger",
-      title: "Follow a number",
-      description:
-        "Open the ledger, filter an account, then inspect the journal and source behind it.",
-      to: "/accounting/ledger",
-      icon: BookOpen,
-    },
-    {
-      key: "close",
-      title: "Bring a close together",
-      description:
-        "Complete a task with evidence, request a review, and see progress update.",
-      to: "/close",
-      icon: Check,
-    },
-    {
-      key: "assistant",
-      title: "Ask a better question",
-      description:
-        "Try a supported question, inspect its evidence, and preview a local action.",
-      to: "/assistant",
-      icon: Sparkles,
-    },
-  ];
-  const current = steps.find((s) => s.key === selected)!;
-  return (
-    <Modal
-      title="A closer look at FinAI"
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <p className="marketing-walkthrough-note">
-        Choose a guided starting point. Everything uses fictional, local demo
-        data.
-      </p>
-      <div className="marketing-walkthrough-options">
-        {steps.map((s) => (
-          <button
-            key={s.key}
-            className={selected === s.key ? "selected" : ""}
-            onClick={() => setSelected(s.key)}
-          >
-            <s.icon size={20} />
-            {s.title}
-          </button>
-        ))}
-      </div>
-      <div className="marketing-walkthrough-detail">
-        <h3>{current.title}</h3>
-        <p>{current.description}</p>
-        <Link
-          className="button primary"
-          to={current.to}
-          onClick={() => onOpenChange(false)}
-        >
-          Start this walkthrough
-          <ArrowRight size={14} />
-        </Link>
-      </div>
-    </Modal>
-  );
-}
-function FlowArtwork() {
-  return (
-    <div className="marketing-flow" aria-hidden="true">
-      <div className="flow-orbit orbit-one" />
-      <div className="flow-orbit orbit-two" />
-      <div className="flow-label label-one">
-        <ReceiptIcon />
-        Invoice issued
-        <span>
-          <Check size={11} />
-        </span>
-      </div>
-      <div className="flow-center">
-        <span>F</span>
-      </div>
-      <div className="flow-label label-two">
-        <BookOpen size={14} />
-        Ledger updated
-        <span>
-          <Check size={11} />
-        </span>
-      </div>
-      <div className="flow-label label-three">
-        <Workflow size={14} />
-        Ready for review
-        <span className="flow-dot" />
-      </div>
-      <svg viewBox="0 0 600 260" preserveAspectRatio="none">
-        <path d="M0 120 H150 Q180 120 180 90 V70 Q180 40 210 40 H280 Q310 40 310 70 V190 Q310 220 340 220 H600" />
-        <path d="M0 230 H190 Q225 230 225 195 V170 Q225 140 255 140 H390 Q420 140 420 110 V70 Q420 40 450 40 H600" />
-      </svg>
-    </div>
-  );
-}
-function ReceiptIcon() {
-  return <Layers size={14} />;
-}
 function CallToAction() {
   return (
     <section className="marketing-final-cta">
-      <span className="marketing-kicker">YOUR NEXT CHAPTER</span>
-      <h2>
-        Make room for
-        <br />
-        <em>the bigger picture.</em>
-      </h2>
+      <h2>Get one step closer to a clearer close</h2>
+      <p>Connected records. Reviewable workflows. A bigger picture.</p>
       <Link className="marketing-button light" to="/welcome">
         Explore the demo
-        <ArrowRight size={16} />
+        <ArrowRight size={15} />
       </Link>
-      <p>No sign-in. No bank connection. Just a little more clarity.</p>
-      <div className="cta-decoration" aria-hidden="true">
-        F
-      </div>
-    </section>
-  );
-}
-function FeatureFrame({ children }: { children: ReactNode }) {
-  return (
-    <section className="marketing-section marketing-feature-section">
-      {children}
     </section>
   );
 }
 export function HomePage() {
-  const [view, setView] = useState<PreviewView>("overview"),
-    [tour, setTour] = useState(false);
-  return (
-    <>
-      <section className="marketing-hero">
-        <div className="marketing-hero-topline">
-          <span className="marketing-kicker">
-            <i />
-            ACCOUNTING, ALL TOGETHER
-          </span>
-          <span className="marketing-edition">A FINAI PRODUCT DEMO — 01</span>
-        </div>
-        <div className="marketing-hero-copy">
-          <h1>
-            A clear mind.
-            <br />
-            <em>A connected ledger.</em>
-          </h1>
-          <div className="marketing-hero-description">
-            <p>
-              Your numbers have a story to tell.
-              <br />
-              Bring your books, workflows, and insights
-              <br className="marketing-desktop-break" /> into one thoughtfully
-              connected workspace.
-            </p>
-            <div>
-              <Link className="marketing-button dark" to="/welcome">
-                Explore the demo
-                <ArrowRight size={15} />
-              </Link>
-              <button
-                className="marketing-text-button"
-                onClick={() => setTour(true)}
-              >
-                <CirclePlay size={18} />
-                Take a closer look
-              </button>
-            </div>
-            <span>Fictional company. Real, interactive workflows.</span>
-          </div>
-        </div>
-        <FlowArtwork />
-        <div
-          className="marketing-preview-wrapper"
-          id="homepage-product-preview"
-        >
-          <div className="marketing-preview-caption">
-            <span>
-              <i />A WORKSPACE THAT CONNECTS THE DOTS
-            </span>
-            <a href="#product-tour" aria-label="Explore the product preview">
-              <ArrowDown size={16} />
-            </a>
-          </div>
-          <ProductPreview view={view} onViewChange={setView} />
-        </div>
-      </section>
-      <section className="marketing-demo-companies">
-        <span>MEET THE FICTIONAL BUSINESSES INSIDE THE DEMO</span>
-        <div>
-          <b>
-            acorn<span> / labs</span>
-          </b>
-          <b className="company-serif">Meridian</b>
-          <b>
-            <span className="company-orbit">◉</span> orbit
-          </b>
-          <b className="company-mono">JUNIPER</b>
-          <b className="company-serif">cedar.</b>
-        </div>
-      </section>
-      <section className="marketing-section marketing-tour" id="product-tour">
-        <div className="marketing-section-intro">
-          <span className="marketing-kicker">
-            ONE PLACE. THE WHOLE PICTURE.
-          </span>
-          <h2>
-            Built around the way
-            <br />
-            <em>finance really works.</em>
-          </h2>
-          <p>
-            From the smallest entry to the month-end close,
-            <br />
-            keep the details connected and the next step clear.
-          </p>
-        </div>
-        <div
-          className="marketing-feature-tabs"
-          role="tablist"
-          aria-label="Product preview views"
-        >
-          {(
-            [
-              { key: "overview", label: "Overview", icon: Layers },
-              { key: "ledger", label: "General ledger", icon: BookOpen },
-              { key: "receivables", label: "Receivables", icon: Layers },
-              { key: "close", label: "Month-end close", icon: Check },
-              { key: "assistant", label: "FinAI Assistant", icon: Sparkles },
-            ] as const
-          ).map((t) => (
-            <button
-              role="tab"
-              aria-controls="homepage-product-preview"
-              aria-selected={view === t.key}
-              key={t.key}
-              onClick={() => {
-                setView(t.key);
-                document
-                  .querySelector(".marketing-preview-wrapper")
-                  ?.scrollIntoView({
-                    block: "center",
-                    behavior: window.matchMedia(
-                      "(prefers-reduced-motion: reduce)",
-                    ).matches
-                      ? "instant"
-                      : "smooth",
-                  });
-              }}
-            >
-              <t.icon size={16} />
-              {t.label}
-              <ArrowUpRight size={14} />
-            </button>
-          ))}
-        </div>
-        <div className="marketing-product-grid">
-          {products.map((p) => (
-            <Link
-              className="marketing-product-card"
-              to={`/product/${p.slug}`}
-              key={p.slug}
-            >
-              <span>
-                <p.icon size={22} />
-              </span>
-              <h3>{p.name}</h3>
-              <p>{p.short}</p>
-              <ArrowUpRight size={18} />
-            </Link>
-          ))}
-        </div>
-      </section>
-      <FeatureFrame>
-        <div className="marketing-feature-copy">
-          <span className="marketing-kicker">FROM ENTRY TO UNDERSTANDING</span>
-          <h2>
-            Every number.
-            <br />
-            <em>A little more context.</em>
-          </h2>
-          <p>
-            Financial statements are only the beginning. Follow an account to
-            its journal, open its source document, and see how everything fits
-            together.
-          </p>
-          <Link
-            className="marketing-text-link"
-            to="/product/automated-general-ledger"
-          >
-            Meet your general ledger
-            <ArrowRight size={15} />
-          </Link>
-          <div className="marketing-feature-points">
-            <span>
-              <Check size={14} />
-              Connected source records
-            </span>
-            <span>
-              <Check size={14} />A clear review and audit trail
-            </span>
-            <span>
-              <Check size={14} />
-              Entity and period context
-            </span>
-          </div>
-        </div>
-        <div className="marketing-evidence-art">
-          <div className="evidence-report">
-            <div>
-              <BookOpen size={15} />
-              <span>Profit & loss</span>
-              <span>USD</span>
-            </div>
-            <p>September 2026 · Northstar Analytics</p>
-            <div>
-              <span>Subscription revenue</span>
-              <strong>Posted ledger</strong>
-            </div>
-            <div className="evidence-highlight">
-              <span>4000 · Subscription revenue</span>
-              <ArrowUpRight size={14} />
-            </div>
-            <div>
-              <span>Operating expenses</span>
-              <strong>Account detail</strong>
-            </div>
-            <div className="evidence-total">
-              <span>One connected view</span>
-              <Check size={14} />
-            </div>
-          </div>
-          <div className="evidence-journal">
-            <div>
-              <span className="evidence-doc-icon">
-                <BookOpen size={18} />
-              </span>
-              <div>
-                <strong>A number with a source.</strong>
-                <p>Journal → Invoice → Customer</p>
-              </div>
-              <span className="evidence-check">
-                <Check size={13} />
-              </span>
-            </div>
-            <Link to="/reports/profit-and-loss">
-              Follow the trail in the demo
-              <ArrowRight size={13} />
-            </Link>
-          </div>
-          <span className="marketing-art-caption">
-            ILLUSTRATIVE WORKFLOW · DEMO RECORDS
-          </span>
-        </div>
-      </FeatureFrame>
-      <section className="marketing-why" id="why-finai">
-        <div>
-          <span className="marketing-kicker">A BETTER KIND OF BUSY</span>
-          <h2>
-            Less piecing
-            <br />
-            things together.
-            <br />
-            <em>More seeing ahead.</em>
-          </h2>
-          <Link className="marketing-button light" to="/welcome">
-            Find your clarity
-            <ArrowRight size={15} />
-          </Link>
-        </div>
-        <div className="marketing-principles">
-          {[
-            {
-              n: "01",
-              title: "The details belong together.",
-              text: "Give your invoices, bills, journals, and reports the context of a shared ledger.",
-            },
-            {
-              n: "02",
-              title: "Keep the next step visible.",
-              text: "See what needs coding, which items need review, and what is holding up the close.",
-            },
-            {
-              n: "03",
-              title: "Stay in control of the work.",
-              text: "Inspect the evidence, review a proposal, and choose when a local action happens.",
-            },
-          ].map((p) => (
-            <div key={p.n}>
-              <span>{p.n}</span>
-              <div>
-                <h3>{p.title}</h3>
-                <p>{p.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="marketing-section marketing-assistant-section">
-        <div className="marketing-assistant-art">
-          <div className="marketing-assistant-query">
-            What needs my attention for close?
-          </div>
-          <div className="marketing-assistant-answer">
-            <span>
-              <Sparkles size={16} />
-              FinAI Assistant<small>Demo</small>
-            </span>
-            <p>
-              Start with the tasks waiting for review.
-              <br />
-              Your checklist has the supporting evidence.
-            </p>
-            <Link to="/close">
-              <Check size={12} />
-              Close checklist
-              <ArrowUpRight size={12} />
-            </Link>
-            <div>
-              <span>Proposed local action</span>
-              <strong>Prepare a close task for review</strong>
-              <span>Always requires your explicit approval</span>
-            </div>
-          </div>
-          <span className="marketing-art-caption">
-            DETERMINISTIC DEMO RESPONSES · NO LIVE AI
-          </span>
-        </div>
-        <div className="marketing-feature-copy">
-          <span className="marketing-kicker">
-            <Sparkles size={14} />
-            ANOTHER WAY TO GET THERE
-          </span>
-          <h2>
-            A conversation
-            <br />
-            <em>with your numbers.</em>
-          </h2>
-          <p>
-            Explore a different way to find answers. Ask a supported question,
-            inspect the linked records, and preview the next step before
-            deciding.
-          </p>
-          <Link className="marketing-text-link" to="/product/assistant">
-            Explore FinAI Assistant
-            <ArrowRight size={15} />
-          </Link>
-        </div>
-      </section>
-      <section className="marketing-section marketing-resources-teaser">
-        <div>
-          <span className="marketing-kicker">GET A FEEL FOR THE FLOW</span>
-          <h2>
-            A few good
-            <br />
-            <em>places to begin.</em>
-          </h2>
-        </div>
-        <div>
-          {[
-            {
-              label: "01 / THE FOUNDATIONS",
-              title: "From draft to posted journal",
-              to: "/accounting/journals",
-              icon: BookOpen,
-            },
-            {
-              label: "02 / THE BIG PICTURE",
-              title: "See how the statements connect",
-              to: "/reports",
-              icon: Layers,
-            },
-            {
-              label: "03 / THE FINISHING TOUCHES",
-              title: "Bring a month-end close together",
-              to: "/close",
-              icon: Check,
-            },
-          ].map((r) => (
-            <Link to={r.to} key={r.to}>
-              <span>{r.label}</span>
-              <h3>{r.title}</h3>
-              <r.icon size={23} />
-              <ArrowUpRight size={18} />
-            </Link>
-          ))}
-        </div>
-      </section>
-      <section className="marketing-section marketing-faq" id="questions">
-        <div>
-          <span className="marketing-kicker">A LITTLE MORE CLARITY</span>
-          <h2>
-            Good questions.
-            <br />
-            <em>Straight answers.</em>
-          </h2>
-        </div>
-        <div>
-          {questions.map((q) => (
-            <details key={q.q}>
-              <summary>
-                {q.q}
-                <span>+</span>
-              </summary>
-              <p>{q.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-      <CallToAction />
-      <Walkthrough open={tour} onOpenChange={setTour} />
-    </>
-  );
+  return <ReferenceHome />;
 }
+
 export function ProductPage() {
   const { product: slug } = useParams(),
     product = products.find((p) => p.slug === slug),
@@ -815,6 +514,24 @@ export function ResourcesPage() {
           <ArrowRight size={14} />
         </Link>
       </section>
+      <PreviewExplorer />
+      <section className="marketing-section marketing-faq" id="questions">
+        <div>
+          <span className="marketing-kicker">DEMO DETAILS</span>
+          <h2>Questions, answered.</h2>
+        </div>
+        <div>
+          {questions.map((q) => (
+            <details key={q.q}>
+              <summary>
+                {q.q}
+                <span>+</span>
+              </summary>
+              <p>{q.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
       <CallToAction />
     </>
   );
@@ -864,6 +581,54 @@ export function AboutPage() {
             browser-local data. It is not a production accounting service.
           </p>
         </div>
+      </section>
+      <CallToAction />
+    </>
+  );
+}
+
+export function DemoCustomersPage() {
+  const s = useDemo();
+  return (
+    <>
+      <section className="marketing-product-hero">
+        <span className="marketing-kicker">
+          <Building2 size={15} />
+          FICTIONAL DEMO COMPANIES
+        </span>
+        <h1>Relationships, with the numbers attached.</h1>
+        <p>
+          Explore the synthetic customers inside Northstar Analytics. These are
+          fictional records, not FinAI customer endorsements.
+        </p>
+      </section>
+      <section className="marketing-section marketing-customers-grid">
+        {s.customers
+          .filter((c) => c.entity === s.entity)
+          .map((c) => (
+            <Link to={`/receivables/customers/${c.id}`} key={c.id}>
+              <span className="demo-company-mark">{c.name[0]}</span>
+              <h2>{c.name}</h2>
+              <p>{c.contact}</p>
+              <strong>
+                {money(
+                  s.invoices
+                    .filter(
+                      (i) =>
+                        i.customer === c.id &&
+                        inScope(s, i) &&
+                        i.status !== "Draft",
+                    )
+                    .reduce((v, i) => v + i.amount - i.paid, 0),
+                )}{" "}
+                outstanding
+              </strong>
+              <span>
+                View demo profile
+                <ArrowRight size={14} />
+              </span>
+            </Link>
+          ))}
       </section>
       <CallToAction />
     </>

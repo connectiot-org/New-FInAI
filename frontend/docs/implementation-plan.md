@@ -6,4 +6,4 @@
 4. Add close, statements, consolidation, deterministic assistant, automations, integrations and local settings/roles.
 5. Typecheck, lint, build, run browser route and workflow checks, inspect four viewport sizes, and record exact results/gaps.
 
-No backend, authentication, payment, OCR, model or remote bank calls. Local roles demonstrate UI permissions. Existing checkout is used; no worktrees. Reference access is blocked, so workspace styling is explicitly inferred.
+No backend, authentication, payment, OCR, model or remote bank calls. Local roles demonstrate UI permissions. Existing checkout is used; no worktrees. Reference access was initially blocked. The later reference revision uses observed public HTML/CSS and isolated static browser captures; see `reference-map.md` for current evidence and scope.

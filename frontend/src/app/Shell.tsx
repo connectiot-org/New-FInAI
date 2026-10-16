@@ -30,6 +30,7 @@ export function Shell() {
     location = useLocation(),
     navigate = useNavigate(),
     toast = useToast();
+  const [navExpanded, setNavExpanded] = useState(false);
   const [mobile, setMobile] = useState(false),
     [assistant, setAssistant] = useState(false),
     [search, setSearch] = useState(""),
@@ -85,6 +86,8 @@ export function Shell() {
             {!collapsed.includes(group.group) &&
               group.items.map((item) => (
                 <NavLink
+                  aria-label={item.label}
+                  title={item.label}
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
@@ -104,19 +107,16 @@ export function Shell() {
       <div className="sidebar-footer">
         <CircleHelp size={16} />
         <Help />
-        <a
-          href="https://www.rillet.com/"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Open public design reference"
-        >
+        <Link to="/" aria-label="FinAI homepage" title="FinAI homepage">
           <ArrowUpRight size={14} />
-        </a>
+        </Link>
       </div>
     </>
   );
   return (
-    <div className={`app ${s.compact ? "compact" : ""}`}>
+    <div
+      className={`app ${navExpanded ? "nav-expanded" : ""} ${s.compact ? "compact" : ""}`}
+    >
       <aside className="sidebar">{sidebar}</aside>
       <Modal
         open={mobile}
@@ -129,6 +129,16 @@ export function Shell() {
       <div className="workspace">
         <header className="topbar">
           <div className="breadcrumbs">
+            <button
+              className="icon-btn desktop-nav-toggle"
+              aria-label={
+                navExpanded ? "Collapse navigation" : "Expand navigation"
+              }
+              title={navExpanded ? "Collapse navigation" : "Expand navigation"}
+              onClick={() => setNavExpanded((v) => !v)}
+            >
+              <Menu size={18} />
+            </button>
             <button
               className="icon-btn mobile-only"
               aria-label="Open navigation"
