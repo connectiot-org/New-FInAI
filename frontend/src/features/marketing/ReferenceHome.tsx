@@ -45,7 +45,7 @@ const platform = [
         Intelligence
       </>
     ),
-    description: "Explore answers backed by your books",
+    description: "Put the demo books to work",
     kind: "intelligence",
     to: "/product/assistant",
   },
@@ -57,7 +57,7 @@ const platform = [
         general ledger
       </>
     ),
-    description: "One connected system of record",
+    description: "One connected, traceable system of record",
     kind: "ledger",
     to: "/product/automated-general-ledger",
   },
@@ -92,7 +92,7 @@ const platform = [
         global-ready
       </>
     ),
-    description: "Separate entities. A shared perspective.",
+    description: "Separate books. Shared view.",
     kind: "entities",
     to: "/product/multi-entity",
   },
@@ -104,7 +104,7 @@ const platform = [
         management
       </>
     ),
-    description: "A clear path through the month-end close",
+    description: "Bring your close together.",
     kind: "close",
     to: "/product/month-end-close",
   },
@@ -451,7 +451,7 @@ const aiSections = [
   {
     id: "assistant",
     label: "FINAI ASSISTANT",
-    title: "Ask your books a question",
+    title: "Ask anything",
     description:
       "Explore cash, revenue, open invoices, and close tasks. Supported demo answers link to the records behind the number.",
     to: "/assistant",
@@ -459,7 +459,7 @@ const aiSections = [
   {
     id: "agents",
     label: "REVIEW WORKFLOWS",
-    title: "Give repeatable work a clear path",
+    title: "Review repeatable work",
     description:
       "Set a trigger, choose an amount condition, and preview which local records a rule will flag before running it.",
     to: "/automations",
@@ -475,7 +475,7 @@ const aiSections = [
   {
     id: "records",
     label: "LINKED RECORDS",
-    title: "Follow the source. Keep the context.",
+    title: "Follow the source",
     description:
       "Move from a financial statement to an account, journal, invoice, or bill in the same connected demo workspace.",
     to: "/reports",
@@ -672,7 +672,7 @@ export function ReferenceHome() {
         </div>
       </section>
       <section className="reference-companies reference-container">
-        <h2>Meet the companies in this demo:</h2>
+        <h2>Meet the demo companies</h2>
         <div className="reference-company-grid">
           {companies.map((c, i) => (
             <Link
@@ -712,11 +712,11 @@ export function ReferenceHome() {
             <h2>
               Built for the details
               <br />
-              behind every close
+              behind every month-end close
             </h2>
             <p>
-              Keep your entries traceable, your reviews connected, and your next
-              step in view.
+              Keep every entry traceable to its source, every review connected,
+              and the next step in your close in view.
             </p>
           </div>
           <div className="reference-platform-grid">
@@ -729,7 +729,9 @@ export function ReferenceHome() {
                   </span>
                   <p>{p.description}</p>
                 </div>
-                <PlatformArt kind={p.kind} />
+                <div className="platform-art-frame">
+                  <PlatformArt kind={p.kind} />
+                </div>
               </Link>
             ))}
           </div>
@@ -753,17 +755,15 @@ export function ReferenceHome() {
           <div className="reference-ai-heading">
             <span>02 FINAI INTELLIGENCE</span>
             <h2>
-              Let the details work.
+              Offload the busy work.
               <br />
-              Keep the decisions yours.
+              Keep the control.
             </h2>
             <p>
-              Explore demo answers, local review rules, and evidence you can
-              inspect. Every action stays under your control.
+              Explore local demo answers, review rules, and inspectable
+              evidence. No live AI connection; every action stays under your
+              control.
             </p>
-            <span className="reference-demo-note">
-              Demo responses · No live AI connection
-            </span>
           </div>
           <div className="reference-ai-body">
             <nav aria-label="FinAI intelligence capabilities">

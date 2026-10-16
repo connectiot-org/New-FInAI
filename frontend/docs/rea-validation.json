@@ -1,0 +1,269 @@
+{
+  "created_at": "2026-10-16T14:34:47.716Z",
+  "tool": {
+    "repository": "https://github.com/morluto/rea",
+    "inspected_commit": "180ba03bfddd5916251e81e97a500b1ede7a9eea",
+    "npm_package": "rea-agents",
+    "npm_version": "6.5.0",
+    "surface": "CLI"
+  },
+  "targets": {
+    "reference": "http://127.0.0.1:8766/",
+    "app": "http://127.0.0.1:4173/"
+  },
+  "comparison_policy": {
+    "channel_threshold": 12,
+    "metric": "REA normalized_result.changed_ratio is the fraction of viewport pixels exceeding the channel threshold; lower means fewer differing pixels.",
+    "interpretation": "This is not a semantic similarity score, a claim of identical UI, or evidence of private-page coverage."
+  },
+  "scope": {
+    "viewport_only": true,
+    "scale": 1,
+    "timezone": "Asia/Dhaka",
+    "maximum_concurrent_jobs": 2
+  },
+  "limitations": [
+    "Reference URL may be an isolated static rendering; consult its asset-manifest.json for source digests and omitted behavior.",
+    "Only the declared homepage viewport and wait actions are captured; this does not validate full-page, private UI or accounting behavior.",
+    "FinAI branding, synthetic records and honest demo labels intentionally differ from public Rillet content.",
+    "Rendering, font rasterization, animation timing and changing content can affect the pixel comparison.",
+    "No browser trust settings, agent registration, native engines or third-party target scripts are installed by this runner."
+  ],
+  "captures": [
+    {
+      "name": "reference-1440",
+      "target": "reference",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "http://127.0.0.1:8766/",
+      "evidence_id": "ev_565ff73bdf8c91e2fd31dbbdfc8eb54cf3704bd8c2ee8ea9c208318063613b04",
+      "evidence_file": "reference-1440-evidence.json",
+      "screenshot_file": "reference-1440.png",
+      "screenshot_sha256": "8648193f52e3a731b27a49d16ec8d2f57dcaec99a6a5297f3271c674b79600c8",
+      "completeness": {
+        "status": "complete",
+        "equality_eligible": true,
+        "missing_sections": [],
+        "truncated_sections": []
+      },
+      "browser": {
+        "mode": "launch",
+        "process_ownership": "provider-owned",
+        "cleanup": "terminated-owned-process",
+        "product": "Chromium",
+        "version": "154.0.8037.57"
+      },
+      "failed_steps": [],
+      "page_errors": [],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "name": "app-1440",
+      "target": "app",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "url": "http://127.0.0.1:4173/",
+      "evidence_id": "ev_65de1bfc034d50debeb2cf3cd487411d3e321873cddbf588e107101a2055f58e",
+      "evidence_file": "app-1440-evidence.json",
+      "screenshot_file": "app-1440.png",
+      "screenshot_sha256": "8874ae771ee3265b34f5a1e60f5434b45e6c3b231ffe8b8298e6e124e04c76a9",
+      "completeness": {
+        "status": "complete",
+        "equality_eligible": true,
+        "missing_sections": [],
+        "truncated_sections": []
+      },
+      "browser": {
+        "mode": "launch",
+        "process_ownership": "provider-owned",
+        "cleanup": "terminated-owned-process",
+        "product": "Chromium",
+        "version": "154.0.8037.57"
+      },
+      "failed_steps": [],
+      "page_errors": [],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "name": "reference-390",
+      "target": "reference",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "url": "http://127.0.0.1:8766/",
+      "evidence_id": "ev_e24acab5006e1e38a97aae51ac249a7b7244e669ad7707a45c6234d89f3616c4",
+      "evidence_file": "reference-390-evidence.json",
+      "screenshot_file": "reference-390.png",
+      "screenshot_sha256": "2d0a8f7d46058a2186925ce16b572e7ab34e49d540d752c0e946b3ae9e971774",
+      "completeness": {
+        "status": "complete",
+        "equality_eligible": true,
+        "missing_sections": [],
+        "truncated_sections": []
+      },
+      "browser": {
+        "mode": "launch",
+        "process_ownership": "provider-owned",
+        "cleanup": "terminated-owned-process",
+        "product": "Chromium",
+        "version": "154.0.8037.57"
+      },
+      "failed_steps": [],
+      "page_errors": [],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "Browser host platform and architecture were not observed."
+      ]
+    },
+    {
+      "name": "app-390",
+      "target": "app",
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "url": "http://127.0.0.1:4173/",
+      "evidence_id": "ev_a2bf6fc5a3e8061c55dd8b6176c351ab54385ce589510dc8d8a6a02c9b4a34d3",
+      "evidence_file": "app-390-evidence.json",
+      "screenshot_file": "app-390.png",
+      "screenshot_sha256": "d42f9788ce6838666c1f4510ec9953e89760cafc724370aa6fe7e4c742bed160",
+      "completeness": {
+        "status": "complete",
+        "equality_eligible": true,
+        "missing_sections": [],
+        "truncated_sections": []
+      },
+      "browser": {
+        "mode": "launch",
+        "process_ownership": "provider-owned",
+        "cleanup": "terminated-owned-process",
+        "product": "Chromium",
+        "version": "154.0.8037.57"
+      },
+      "failed_steps": [],
+      "page_errors": [],
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Event sequence records provider receipt order; simultaneous browser causality is not inferred.",
+        "Network content is retained only when selected; Playwright response-body bytes are API results and are not guaranteed to match wire bytes.",
+        "Request bytes are limited to what Playwright exposes; not_exposed does not establish body absence or multipart file coverage.",
+        "Network content reads settle within 5 seconds each and the observer does not request bodies from unfinished responses.",
+        "Playwright scenario events do not expose request initiator stacks; receipt order does not prove causality.",
+        "Storage values are hashed only after declared-secret redaction.",
+        "Browser host platform and architecture were not observed."
+      ]
+    }
+  ],
+  "comparisons": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "evidence_id": "ev_aef189d3ff2ad0d66b6b322109400f57da45ca8bc2ef2af339b4a9a59906b583",
+      "evidence_file": "comparison-1440-evidence.json",
+      "normalized_result": {
+        "before": {
+          "width": 1440,
+          "height": 1000
+        },
+        "after": {
+          "width": 1440,
+          "height": 1000
+        },
+        "channel_threshold": 12,
+        "limitations": [
+          "Pixel comparison does not perform OCR, semantic layout analysis, or perceptual color correction.",
+          "Only non-interlaced 8-bit RGB and RGBA PNG screenshots are accepted.",
+          "PNG tRNS transparency is accepted only as a six-byte RGB color key; tRNS on RGBA or with another length is rejected."
+        ],
+        "status": "different",
+        "compared_pixels": 1440000,
+        "changed_pixels": 54316,
+        "changed_ratio": 0.037719444444444444,
+        "maximum_channel_delta": 255,
+        "mean_absolute_channel_delta": 3.1402411458333335
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Pixel comparison does not perform OCR, semantic layout analysis, or perceptual color correction.",
+        "Only non-interlaced 8-bit RGB and RGBA PNG screenshots are accepted.",
+        "PNG tRNS transparency is accepted only as a six-byte RGB color key; tRNS on RGBA or with another length is rejected."
+      ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "evidence_id": "ev_4e1182ba52a5fcd13dc4b95ffd310abc5ce4782e08305414e326ca1ef312f468",
+      "evidence_file": "comparison-390-evidence.json",
+      "normalized_result": {
+        "before": {
+          "width": 390,
+          "height": 1000
+        },
+        "after": {
+          "width": 390,
+          "height": 1000
+        },
+        "channel_threshold": 12,
+        "limitations": [
+          "Pixel comparison does not perform OCR, semantic layout analysis, or perceptual color correction.",
+          "Only non-interlaced 8-bit RGB and RGBA PNG screenshots are accepted.",
+          "PNG tRNS transparency is accepted only as a six-byte RGB color key; tRNS on RGBA or with another length is rejected."
+        ],
+        "status": "different",
+        "compared_pixels": 390000,
+        "changed_pixels": 38090,
+        "changed_ratio": 0.09766666666666667,
+        "maximum_channel_delta": 255,
+        "mean_absolute_channel_delta": 8.335267307692307
+      },
+      "limitations": [
+        "Artifact identity is unavailable for this observation.",
+        "Pixel comparison does not perform OCR, semantic layout analysis, or perceptual color correction.",
+        "Only non-interlaced 8-bit RGB and RGBA PNG screenshots are accepted.",
+        "PNG tRNS transparency is accepted only as a six-byte RGB color key; tRNS on RGBA or with another length is rejected."
+      ]
+    }
+  ],
+  "failures": [],
+  "success": true,
+  "rawEvidenceDirectory": "frontend/artifacts/rea-ui-20261016 (generated and ignored by Git; rerun the documented workflow to reproduce)",
+  "publishedScreenshots": {
+    "reference1440": "reference/rillet-home-1440-top.png",
+    "reference390": "reference/rillet-home-390-top.png",
+    "finai1440": "screenshots/homepage-1440-top.png",
+    "finai390": "screenshots/homepage-390-top.png"
+  }
+}

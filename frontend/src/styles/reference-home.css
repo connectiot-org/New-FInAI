@@ -702,15 +702,16 @@
   width: 1em;
 }
 .reference-companies {
-  padding-top: calc(1.5 * var(--ru));
-  padding-bottom: calc(4 * var(--ru));
+  position: relative;
+  padding-top: calc(3.5 * var(--ru));
+  padding-bottom: calc(3.5 * var(--ru));
   text-align: center;
 }
 .reference-companies > h2 {
-  font-size: 22px;
-  line-height: 1.3;
+  font-size: calc(1.25 * var(--ru));
+  line-height: 1.4;
   letter-spacing: 0;
-  margin-bottom: 20px;
+  margin-bottom: var(--ru);
 }
 .reference-company-grid {
   display: grid;
@@ -750,7 +751,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 28px 12px;
+  padding: 0 12px;
+  height: calc(7.19 * var(--ru));
   border-right: 1px solid #e4e4e7;
   border-bottom: 1px solid #e4e4e7;
   min-height: 85px;
@@ -776,10 +778,14 @@
 .reference-companies > p {
   font-size: 10px;
   color: #71717a;
-  margin-top: 13px;
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  margin: 0;
 }
 .reference-platform {
-  padding: calc(4 * var(--ru)) 0 calc(4 * var(--ru));
+  padding: calc(9.53125 * var(--ru)) 0;
 }
 .reference-heading {
   text-align: center;
@@ -789,20 +795,20 @@
   font-size: 12px;
   line-height: 18px;
   display: block;
-  margin-bottom: 16px;
+  margin-bottom: var(--ru);
 }
 .reference-heading h2 {
   font-size: calc(3.5 * var(--ru));
   line-height: 1;
   letter-spacing: -0.75px;
   margin: 0 auto;
-  max-width: 780px;
+  max-width: calc(65 * var(--ru));
 }
 .reference-heading p {
   font-size: 18px;
   line-height: 24px;
   color: #52525b;
-  margin: 22px 0 0;
+  margin: var(--ru) 0 0;
 }
 .reference-platform-grid {
   display: grid;
@@ -819,23 +825,25 @@
   background: #fafafa;
   border-right: 1px solid #e4e4e7;
   border-bottom: 1px solid #e4e4e7;
-  min-height: calc(28 * var(--ru));
+  height: calc(30.891 * var(--ru));
+  min-height: 0;
   overflow: hidden;
 }
 .reference-platform-card:hover {
   background: #f7f5fd;
 }
 .reference-platform-card > div:first-child {
-  padding: 24px 22px 16px;
+  padding: calc(1.5 * var(--ru)) calc(1.5 * var(--ru)) 16px;
   position: relative;
   z-index: 1;
 }
 .reference-platform-card h3 {
-  font-size: 24px;
-  line-height: 28px;
+  font-size: calc(1.5 * var(--ru));
+  line-height: calc(1.875 * var(--ru));
   letter-spacing: -0.4px;
   margin: 0;
-  padding-right: 30px;
+  padding-right: 0;
+  max-width: 75%;
 }
 .platform-card-arrow {
   position: absolute;
@@ -860,11 +868,28 @@
   margin-top: 8px;
   max-width: 210px;
 }
+.platform-art-frame {
+  position: relative;
+  height: calc(21.075 * var(--ru));
+  width: 100%;
+  margin-top: auto;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.platform-art-frame > .platform-art {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  min-height: 0;
+  margin-top: 0;
+}
 .platform-art {
   position: relative;
   margin-top: auto;
   min-height: 210px;
-  height: calc(19 * var(--ru));
+  height: calc(21.075 * var(--ru));
+  flex-shrink: 0;
   width: 100%;
   font-family: "DM Sans", sans-serif;
 }
@@ -1313,11 +1338,15 @@
 }
 .reference-live-demo {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 35px;
-  padding-top: calc(1.5 * var(--ru));
-  padding-bottom: calc(4 * var(--ru));
+  padding-top: 0;
+  padding-bottom: calc(7.5 * var(--ru));
+  min-height: calc(14.5 * var(--ru));
+}
+.reference-live-demo > button {
+  align-self: flex-end;
 }
 .reference-live-demo h2 {
   font-size: calc(2.5 * var(--ru));
@@ -1334,13 +1363,14 @@
 .reference-ai {
   background: linear-gradient(180deg, #211452, #392498);
   color: #fafafa;
-  padding: calc(6 * var(--ru)) 0 calc(4 * var(--ru));
+  padding: calc(7.5 * var(--ru)) 0;
 }
 .reference-ai-heading {
-  max-width: 600px;
-  margin-bottom: calc(3 * var(--ru));
+  max-width: 48%;
+  margin-bottom: 0;
 }
 .reference-ai-heading > span:first-child {
+  display: block;
   font-size: 12px;
   line-height: 18px;
 }
@@ -1349,13 +1379,13 @@
   line-height: 1;
   letter-spacing: -0.75px;
   color: #fafafa;
-  margin-top: 18px;
+  margin-top: var(--ru);
 }
 .reference-ai-heading > p {
   font-size: 18px;
   line-height: 24px;
   color: #ffffffb3;
-  margin-top: 22px;
+  margin-top: calc(2.625 * var(--ru));
   max-width: 600px;
 }
 .reference-demo-note {
@@ -1367,7 +1397,7 @@
 .reference-ai-body {
   display: grid;
   grid-template-columns: 20% 1fr;
-  gap: 4%;
+  gap: 0;
 }
 .reference-ai-body > nav {
   position: sticky;
@@ -1392,7 +1422,8 @@
 }
 .reference-ai article {
   scroll-margin-top: 120px;
-  margin-bottom: calc(5 * var(--ru));
+  margin-bottom: 0;
+  padding-top: calc(5 * var(--ru));
 }
 .reference-ai article > div:first-child {
   position: relative;
@@ -1401,7 +1432,7 @@
 .reference-ai article > div:first-child > span {
   font-size: 10px;
   color: #c4b4ff;
-  display: block;
+  display: none;
   margin-bottom: 12px;
 }
 .reference-ai article h3 {
@@ -1432,8 +1463,9 @@
 }
 .ai-visual {
   padding: 65px 55px;
-  min-height: 380px;
-  margin-top: 30px;
+  min-height: 0;
+  aspect-ratio: 2.3284;
+  margin-top: calc(2.5 * var(--ru));
   border: 1px solid #ffffff12;
   border-radius: 4px;
   background-image:
@@ -1543,7 +1575,7 @@
   padding-bottom: calc(7.5 * var(--ru));
 }
 .reference-integrations .reference-heading h2 {
-  max-width: 950px;
+  max-width: calc(65 * var(--ru));
 }
 .reference-integration-grid {
   display: grid;
@@ -1838,8 +1870,8 @@
     padding: 20px 17px 15px;
   }
   .reference-platform-card h3 {
-    font-size: 21px;
-    line-height: 25px;
+    font-size: calc(1.5 * var(--ru));
+    line-height: calc(1.875 * var(--ru));
   }
   .platform-card-arrow {
     right: 17px;
@@ -1852,11 +1884,11 @@
     line-height: 21px;
   }
   .reference-platform-card {
-    min-height: 390px;
+    min-height: calc(30.891 * var(--ru));
   }
   .reference-company-grid > a {
     font-size: 15px;
-    padding: 22px 8px;
+    padding: 0 8px;
     gap: 6px;
   }
   .reference-company-grid .company-geometric {
@@ -1944,6 +1976,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .reference-platform-card {
+    height: auto;
     min-height: 440px;
   }
   .reference-platform-card > div:first-child {
@@ -1957,7 +1990,7 @@
     font-size: 16px;
     line-height: 24px;
   }
-  .platform-art {
+  .platform-art-frame {
     height: 270px;
   }
   .reference-live-demo {
@@ -2182,21 +2215,22 @@
     border-radius: 4px;
   }
   .reference-companies {
-    padding-top: 0;
-    padding-bottom: 45px;
+    padding-top: 32px;
+    padding-bottom: 32px;
   }
   .reference-companies > h2 {
-    font-size: 21px;
-    line-height: 27px;
+    font-size: 20px;
+    line-height: 24px;
     letter-spacing: 0;
-    margin: 0 0 18px;
+    margin: 0 0 16px;
   }
   .reference-company-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .reference-company-grid > a {
     font-size: 17px;
-    padding: 23px 11px;
+    padding: 0 11px;
+    height: 64px;
     min-height: 64px;
     gap: 7px;
   }
@@ -2211,294 +2245,87 @@
     height: 18px;
   }
   .reference-companies > p {
-    font-size: 10px;
+    font-size: 8px;
     line-height: 1.5;
-    margin-top: 14px;
+    margin-top: 0;
+    bottom: 7px;
   }
   .reference-platform {
-    padding: 50px 0;
+    padding: 86px 0;
   }
   .reference-heading {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
   .reference-heading > span {
     font-size: 12px;
-    margin-bottom: 15px;
+    margin-bottom: 16px;
   }
   .reference-heading h2 {
-    font-size: 36px;
-    line-height: 38px;
+    font-size: 32px;
+    line-height: 36px;
     letter-spacing: -0.75px;
   }
   .reference-heading p {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 24px;
-    margin-top: 20px;
+    margin-top: 16px;
+  }
+  .reference-platform-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    border: 0;
   }
   .reference-platform-card {
-    min-height: 330px;
+    height: auto;
+    min-height: 0;
+    border: 1px solid #e4e4e7;
   }
   .reference-platform-card > div:first-child {
-    padding: 17px 12px 16px;
+    padding: 16px 16px 0;
   }
   .reference-platform-card h3 {
-    font-size: 17px;
-    line-height: 21px;
+    font-size: 18px;
+    line-height: 18px;
     letter-spacing: -0.25px;
-    padding-right: 20px;
+    padding-right: 0;
+    max-width: 200px;
   }
   .platform-card-arrow {
     height: 24px;
     width: 24px;
-    right: 10px;
-    top: 17px;
+    right: 16px;
+    top: 16px;
   }
   .platform-card-arrow > svg {
     width: 11px;
     height: 11px;
   }
   .reference-platform-card p {
-    font-size: 12px;
-    line-height: 17px;
-    margin-top: 10px;
-    max-width: 128px;
+    font-size: 16px;
+    line-height: 24px;
+    margin-top: 4px;
+    max-width: 276px;
   }
-  .platform-art {
-    height: 190px;
-    min-height: 170px;
-  }
-  .intelligence-art > span {
-    height: 95px;
-    width: 95px;
-  }
-  .intelligence-art > span > svg {
-    height: 36px;
-    width: 36px;
-  }
-  .mini-ledger {
-    margin-left: 12px;
-    width: calc(100% + 30px);
-    height: 190px;
-    padding: 12px 8px;
-    transform: translateY(8px);
-  }
-  .mini-ledger-head {
-    font-size: 7px;
-    margin-bottom: 9px;
-  }
-  .mini-ledger-metrics {
-    gap: 3px;
-    margin-bottom: 13px;
-  }
-  .mini-ledger-metrics > div {
-    font-size: 5px;
-    padding: 6px 4px;
-  }
-  .mini-ledger-metrics strong {
-    font-size: 8px;
-    margin-top: 6px;
-  }
-  .mini-ledger h4 {
-    font-size: 6px;
-    margin: 10px 0 7px;
-  }
-  .mini-record {
-    font-size: 5px;
-    padding: 4px 5px;
-  }
-  .mini-record b {
-    font-size: 5px;
-  }
-  .mini-ledger-connections > span {
-    font-size: 5px;
-    padding: 5px;
-  }
-  .mini-waterfall {
-    margin-left: 13px;
-    padding: 11px 8px 0;
-    width: calc(100% + 45px);
-    height: 190px;
-    transform: translateY(8px);
-  }
-  .mini-waterfall > strong {
-    font-size: 8px;
-  }
-  .mini-waterfall-head,
-  .mini-waterfall > div:not(.mini-waterfall-head) {
-    font-size: 4px;
-    gap: 4px;
-    margin-top: 11px;
-  }
-  .mini-waterfall > div:not(.mini-waterfall-head) {
-    margin-top: 10px;
-  }
-  .mini-waterfall section {
-    top: 85px;
-    right: -80px;
-    width: 200px;
-    padding: 10px;
-  }
-  .mini-waterfall section > strong {
-    font-size: 8px;
-  }
-  .mini-waterfall section > p {
-    font-size: 5px;
-    margin: 12px 0;
-    line-height: 1.2;
-  }
-  .orbit-art > i {
-    height: 170px;
-    width: 170px;
-    bottom: -5px;
-  }
-  .orbit-art > i:nth-child(2) {
-    height: 128px;
-    width: 128px;
-    bottom: 16px;
-  }
-  .orbit-art > i:nth-child(3) {
-    height: 90px;
-    width: 90px;
-    bottom: 35px;
-  }
-  .orbit-art > strong {
-    height: 58px;
-    width: 58px;
-    bottom: 51px;
-    font-size: 24px;
-  }
-  .orbit-node {
-    font-size: 5px;
-    padding: 5px 4px;
-    max-width: 60px;
-  }
-  .node-0 {
-    top: 10%;
-  }
-  .node-1 {
-    left: 3%;
-  }
-  .node-2 {
-    right: 2%;
-  }
-  .orbit-art.security .orbit-node {
-    font-size: 5px;
-    gap: 4px;
-    padding: 5px;
-    max-width: 130px;
-  }
-  .orbit-person {
-    height: 14px;
-    width: 14px;
-    font-size: 6px;
-  }
-  .orbit-art.security .node-0 {
-    left: 10%;
-    top: 6%;
-  }
-  .orbit-art.security .node-1 {
-    left: 0;
-    top: 29%;
-  }
-  .orbit-art.security .node-2 {
-    right: 0;
-    bottom: 4%;
-  }
-  .mini-entities {
-    margin-left: 12px;
-    width: calc(100% + 10px);
-    padding: 11px 8px;
-    transform: translateY(10px);
-    font-size: 5px;
-    height: 190px;
-  }
-  .mini-entities > div:first-child {
-    margin-bottom: 13px;
-    gap: 12px;
-    font-size: 5px;
-  }
-  .mini-entities h4 {
-    font-size: 6px;
-    margin: 12px 0 6px;
-  }
-  .mini-entities > div:not(:first-child) {
-    padding: 7px 4px;
-  }
-  .mini-entities strong,
-  .mini-entities b {
-    font-size: 5px;
-  }
-  .mini-close {
-    padding: 7px 6px 0;
-  }
-  .mini-close > div {
-    font-size: 5px;
-    min-height: 30px;
-    margin-bottom: 4px;
-    padding: 8px 6px;
-    gap: 5px;
-    border-radius: 7px;
-  }
-  .mini-close > div > i {
-    width: 20px;
-    height: 5px;
-  }
-  .mini-close b {
-    height: 14px;
-    width: 14px;
-  }
-  .mini-close b > svg {
-    height: 8px;
-    width: 8px;
-  }
-  .mini-report {
-    padding: 7px 6px 0;
-  }
-  .mini-report > div {
-    font-size: 5px;
-    gap: 5px;
-    padding: 9px 5px;
-    min-height: 31px;
-    margin-bottom: 4px;
-  }
-  .mini-report strong {
-    font-size: 5px;
-    max-width: 75px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .mini-report i {
-    width: 18px;
-    height: 5px;
-  }
-  .mini-report b {
-    font-size: 4px;
-    padding: 3px;
-  }
-  .mini-report > div > span {
-    font-size: 4px;
-    padding: 2px;
-  }
-  .mini-report-shield {
-    height: 55px;
-    width: 55px;
-    right: -4px;
-    bottom: 6px;
-  }
-  .mini-report-shield > svg {
-    width: 30px;
-    height: 30px;
+  .platform-art-frame {
+    height: auto;
+    aspect-ratio: 1.06956;
+    min-height: 0;
+    margin-top: 16px;
   }
   .reference-live-demo {
     align-items: start;
     flex-direction: column;
     gap: 24px;
     padding-top: 0;
-    padding-bottom: 52px;
+    padding-bottom: 86px;
+    min-height: 295px;
+  }
+  .reference-live-demo > button {
+    align-self: flex-start;
   }
   .reference-live-demo h2 {
-    font-size: 28px;
-    line-height: 32px;
+    font-size: 32px;
+    line-height: 40px;
     letter-spacing: -0.5px;
     margin-bottom: 14px;
   }
@@ -2507,15 +2334,16 @@
     line-height: 21px;
   }
   .reference-ai {
-    padding: 55px 0 20px;
+    padding: 56px 0;
   }
   .reference-ai-heading {
-    margin-bottom: 35px;
+    margin-bottom: 0;
+    max-width: 100%;
   }
   .reference-ai-heading h2 {
     font-size: 36px;
-    line-height: 38px;
-    margin-top: 17px;
+    line-height: 36px;
+    margin-top: 16px;
   }
   .reference-ai-heading > p {
     font-size: 16px;
@@ -2528,31 +2356,29 @@
   }
   .reference-ai-body {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 0;
   }
   .reference-ai-body > nav {
-    position: static;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 13px 15px;
-    border-bottom: 1px solid #ffffff30;
-    padding-bottom: 25px;
+    display: none;
   }
   .reference-ai-body > nav > a {
     font-size: 10px;
     max-width: none;
   }
   .reference-ai article {
-    margin-bottom: 45px;
+    margin-bottom: 0;
+    padding-top: 40px;
     scroll-margin-top: 100px;
   }
   .reference-ai article > div:first-child > span {
-    font-size: 10px;
-    margin-bottom: 13px;
+    display: block;
+    font-size: 12px;
+    line-height: 18px;
+    margin-bottom: 16px;
   }
   .reference-ai article h3 {
-    font-size: 30px;
-    line-height: 34px;
+    font-size: 32px;
+    line-height: 40px;
     letter-spacing: -0.4px;
   }
   .reference-ai article p {
@@ -2565,55 +2391,59 @@
     margin-top: 20px;
   }
   .ai-visual {
-    padding: 26px 15px;
-    min-height: 260px;
-    margin-top: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-height: 0;
+    margin-top: 24px;
     background-size:
       36px 36px,
       36px 36px,
       100% 100%;
   }
   .ai-visual-window {
-    padding: 15px 12px;
-    border-radius: 12px;
+    width: 60%;
+    padding: 8px 6px;
+    border-radius: 7px;
   }
   .ai-example-question {
-    font-size: 11px;
-    padding: 10px 11px;
+    font-size: 6px;
+    padding: 4px 6px;
     line-height: 1.3;
     border-radius: 8px;
     max-width: 95%;
   }
   .ai-example-answer {
-    padding: 27px 2px 30px;
-    gap: 10px;
+    padding: 14px 2px 16px;
+    gap: 4px;
   }
   .ai-example-answer > svg {
-    width: 21px;
-    height: 21px;
+    width: 12px;
+    height: 12px;
   }
   .ai-example-answer strong {
-    font-size: 11px;
+    font-size: 6px;
   }
   .ai-example-answer p {
-    font-size: 8px !important;
+    font-size: 5px !important;
     line-height: 1.5 !important;
-    margin-top: 7px;
+    margin-top: 4px;
   }
   .ai-example-composer {
-    font-size: 8px;
-    padding: 9px 8px;
-    border-radius: 9px;
-    gap: 6px;
+    font-size: 4px;
+    padding: 4px;
+    border-radius: 5px;
+    gap: 3px;
   }
   .ai-example-composer > span:nth-child(2) {
-    font-size: 6px;
-    gap: 4px;
-    padding: 4px 6px;
+    font-size: 3px;
+    gap: 2px;
+    padding: 2px 3px;
   }
   .ai-example-composer > span:nth-child(2) > svg {
-    height: 9px;
-    width: 9px;
+    height: 5px;
+    width: 5px;
   }
   .ai-example-composer > i {
     height: 22px;
@@ -2624,11 +2454,11 @@
     width: 13px;
   }
   .reference-integrations {
-    padding-top: 55px;
-    padding-bottom: 60px;
+    padding-top: 86px;
+    padding-bottom: 86px;
   }
   .reference-integrations .reference-heading h2 {
-    font-size: 33px;
+    font-size: 32px;
     line-height: 36px;
   }
   .reference-integration-grid {

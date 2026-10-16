@@ -15,10 +15,12 @@ import { Modal, useToast } from "../../components/ui";
 import { useDemo } from "../../store";
 import { money, inScope } from "../../demo/selectors";
 import { ProductPreview } from "./ProductPreview";
+import { ProductDetails } from "./ProductDetails";
 import { products, questions, type PreviewView } from "./content";
 import { ReferenceHome, PreviewExplorer } from "./ReferenceHome";
 import "../../styles/marketing.css";
 import "../../styles/reference-home.css";
+import "../../styles/product-reference.css";
 
 type PublicItem = { label: string; description: string; to: string };
 const coreSlugs = [
@@ -427,38 +429,45 @@ export function ProductPage() {
       </section>
     );
   return (
-    <>
-      <section className="marketing-product-hero">
-        <span className="marketing-kicker">
-          <product.icon size={15} />
-          {product.name.toUpperCase()}
-        </span>
-        <h1>{product.title}</h1>
-        <p>{product.description}</p>
-        <Link className="marketing-button dark" to={product.to}>
-          Try this workflow
-          <ArrowRight size={15} />
-        </Link>
-        <span className="marketing-product-note">
-          Interactive local demo · No credentials required
-        </span>
-      </section>
-      <div className="marketing-product-page-preview">
-        <ProductPreview view={view} onViewChange={setView} />
+    <div className="marketing-product-detail" key={product.slug}>
+      <div className="product-reference-hero-background">
+        <section className="marketing-product-hero">
+          <span className="marketing-kicker">
+            <product.icon size={15} />
+            {product.name}
+          </span>
+          <h1>{product.title}</h1>
+          <p>{product.description}</p>
+          <Link className="marketing-button dark" to={product.to}>
+            Try this workflow
+            <ArrowRight size={15} />
+          </Link>
+          <span className="marketing-product-note">
+            Interactive local demo · No credentials required
+          </span>
+        </section>
+        <div className="marketing-product-page-preview">
+          <ProductPreview view={view} onViewChange={setView} />
+        </div>
       </div>
       <section className="marketing-section marketing-benefits">
         {product.benefits.map(([title, description], i) => (
           <div key={title}>
-            <span>0{i + 1}</span>
+            <span>
+              <product.icon size={18} />
+              <span className="sr-only">Benefit {i + 1}</span>
+            </span>
             <h2>{title}</h2>
             <p>{description}</p>
           </div>
         ))}
       </section>
+      <ProductDetails product={product} />
       <CallToAction />
-    </>
+    </div>
   );
 }
+
 export function ResourcesPage() {
   return (
     <>

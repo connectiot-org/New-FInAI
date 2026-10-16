@@ -51,7 +51,7 @@ Print CSS is checked through Chromium print-media emulation; physical printer/OS
 
 ## Public website follow-up
 
-Public static reference evidence is now observed. FinAI branding and demo data remain; private Rillet screens and live animations were not verified. Production smoke checks cover **16 public + 37 accounting routes**, plus welcome, with no runtime errors, failed requests or external runtime requests. The full browser suite has **28 passing tests**.
+Public static reference evidence is now observed. FinAI branding and demo data remain; private Rillet screens and live animations were not verified. Production smoke checks cover **16 public + 37 accounting routes**, plus welcome, with no runtime errors, failed requests or external runtime requests. The full browser suite has **30 passing tests**.
 
 | Route                                   | Implemented behavior                                                                                                                                                            | Verification                                                                         |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
@@ -74,3 +74,5 @@ Public static reference evidence is now observed. FinAI branding and demo data r
 | `/product/:unknown`                     | Public missing-product recovery                                                                                                                                                 | Browser recovery test                                                                |
 
 The homepage replaces the earlier `/` → `/welcome` redirect. `/welcome` and all accounting routes continue to work. Public typography/artwork are self-hosted; the application requires no reference-site requests at runtime.
+
+The REA-assisted product revision adds boxed benefits, a four-card feature grid, a lavender source-record story and a related-product carousel to every valid product page. Regression coverage verifies the observed desktop dimensions, mobile full-width platform stacking, carousel controls and navigation to a real journal. [REA workflow](rea-workflow.md) documents repeatable capture and comparison; `rea-validation.json` retains the reviewed evidence index.

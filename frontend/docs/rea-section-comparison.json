@@ -1,0 +1,1199 @@
+{
+  "reference": "https://www.rillet.com/",
+  "referenceRendering": "TLS-verified downloaded HTML/CSS/fonts/assets rendered locally; all original remote scripts excluded",
+  "measurementTool": "Playwright DOM geometry, separate from REA pixel evidence",
+  "capturedAt": "2026-10-16T14:35:29.642Z",
+  "limitations": [
+    "Public static evidence only; original animation, video, remote scripts, and authenticated product UI unobserved.",
+    "Missing lazy-loaded image contents do not establish source image absence.",
+    "Different honest demo copy can change wrapping."
+  ],
+  "viewports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pairs": [
+        {
+          "name": "companies_grid",
+          "sourceSelector": ".logos-static__wrapper",
+          "finaiSelector": ".reference-company-grid",
+          "reference": {
+            "rect": {
+              "x": 51.6875,
+              "y": 1226.09375,
+              "width": 1336.625,
+              "height": 213.375,
+              "bottom": 1439.46875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "14.7692px",
+              "lineHeight": "23.6308px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 51.6875,
+              "y": 1204.46875,
+              "width": 1336.609375,
+              "height": 175,
+              "bottom": 1379.46875
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "222.594px 222.609px 222.594px 222.609px 222.594px 222.609px"
+          },
+          "after": {
+            "rect": {
+              "x": 51.6875,
+              "y": 1226.03125,
+              "width": 1336.609375,
+              "height": 213.375,
+              "bottom": 1439.40625
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "222.594px 222.609px 222.594px 222.609px 222.594px 222.609px"
+          },
+          "delta": {
+            "x": 0,
+            "y": -0.0625,
+            "width": -0.015625,
+            "height": 0
+          }
+        },
+        {
+          "name": "platform_heading",
+          "sourceSelector": ".home__features-parent h2",
+          "finaiSelector": ".reference-platform .reference-heading h2",
+          "reference": {
+            "rect": {
+              "x": 240,
+              "y": 1664.6875,
+              "width": 960,
+              "height": 103.375,
+              "bottom": 1768.0625
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 329.984375,
+              "y": 1559.59375,
+              "width": 780,
+              "height": 103.375,
+              "bottom": 1662.96875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 239.984375,
+              "y": 1664.625,
+              "width": 960,
+              "height": 103.375,
+              "bottom": 1768
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": -0.015625,
+            "y": -0.0625,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "name": "platform_grid",
+          "sourceSelector": ".home__features-grid",
+          "finaiSelector": ".reference-platform-grid",
+          "reference": {
+            "rect": {
+              "x": 51.6875,
+              "y": 1843.75,
+              "width": 1336.625,
+              "height": 913.46875,
+              "bottom": 2757.21875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "14.7692px",
+              "lineHeight": "23.6308px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "333.906px 333.906px 333.906px 333.906px"
+          },
+          "before": {
+            "rect": {
+              "x": 51.6875,
+              "y": 1745.890625,
+              "width": 1336.609375,
+              "height": 868.21875,
+              "bottom": 2614.109375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "333.891px 333.906px 333.906px 333.906px"
+          },
+          "after": {
+            "rect": {
+              "x": 51.6875,
+              "y": 1843.6875,
+              "width": 1336.609375,
+              "height": 913.46875,
+              "bottom": 2757.15625
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "333.891px 333.906px 333.906px 333.906px"
+          },
+          "delta": {
+            "x": 0,
+            "y": -0.0625,
+            "width": -0.015625,
+            "height": 0
+          }
+        },
+        {
+          "name": "platform_card_1",
+          "sourceSelector": ".home__features-item:nth-child(1)",
+          "finaiSelector": ".reference-platform-card:nth-child(1)",
+          "reference": {
+            "rect": {
+              "x": 52.6875,
+              "y": 1844.75,
+              "width": 333.90625,
+              "height": 456.234375,
+              "bottom": 2300.984375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "14.7692px",
+              "lineHeight": "23.6308px",
+              "weight": "500"
+            },
+            "padding": "22.1538px 0px 0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 52.6875,
+              "y": 1746.890625,
+              "width": 333.890625,
+              "height": 433.609375,
+              "bottom": 2180.5
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 52.6875,
+              "y": 1844.6875,
+              "width": 333.890625,
+              "height": 456.234375,
+              "bottom": 2300.921875
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": -0.0625,
+            "width": -0.015625,
+            "height": 0
+          }
+        },
+        {
+          "name": "walkthrough_section",
+          "sourceSelector": ".section__live-product",
+          "finaiSelector": ".reference-live-demo",
+          "reference": {
+            "rect": {
+              "x": 0,
+              "y": 2897.984375,
+              "width": 1440,
+              "height": 214.140625,
+              "bottom": 3112.125
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "14.7692px",
+              "lineHeight": "23.6308px",
+              "weight": "500"
+            },
+            "padding": "0px 51.6923px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 51.6875,
+              "y": 2673.171875,
+              "width": 1336.609375,
+              "height": 177.8125,
+              "bottom": 2850.984375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "22.1538px 0px 59.0769px",
+            "gap": "35px",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 51.6875,
+              "y": 2897.921875,
+              "width": 1336.609375,
+              "height": 214.140625,
+              "bottom": 3112.0625
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px 0px 110.769px",
+            "gap": "35px",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 51.6875,
+            "y": -0.0625,
+            "width": -103.390625,
+            "height": 0
+          }
+        },
+        {
+          "name": "ai_heading",
+          "sourceSelector": ".products-updated__parent > .parent__space-between h2",
+          "finaiSelector": ".reference-ai-heading h2",
+          "reference": {
+            "rect": {
+              "x": 51.6875,
+              "y": 3255.65625,
+              "width": 641.578125,
+              "height": 103.375,
+              "bottom": 3359.03125
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 51.6875,
+              "y": 2981.59375,
+              "width": 600,
+              "height": 155.0625,
+              "bottom": 3136.65625
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 51.6875,
+              "y": 3255.59375,
+              "width": 641.5625,
+              "height": 103.375,
+              "bottom": 3358.96875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": -0.0625,
+            "width": -0.015625,
+            "height": 0
+          }
+        },
+        {
+          "name": "ai_main_column",
+          "sourceSelector": ".products-updated__content-wrapper",
+          "finaiSelector": ".reference-ai-body > div",
+          "reference": {
+            "rect": {
+              "x": 319.015625,
+              "y": 3445.796875,
+              "width": 1069.296875,
+              "height": 2693.5625,
+              "bottom": 6139.359375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "14.7692px",
+              "lineHeight": "23.6308px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 372.453125,
+              "y": 3282.453125,
+              "width": 1015.84375,
+              "height": 2706.5625,
+              "bottom": 5989.015625
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 319,
+              "y": 3445.734375,
+              "width": 1069.296875,
+              "height": 2694.4375,
+              "bottom": 6140.171875
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": -0.015625,
+            "y": -0.0625,
+            "width": 0,
+            "height": 0.875
+          }
+        },
+        {
+          "name": "ai_article_1",
+          "sourceSelector": ".products-updated__content.is--first",
+          "finaiSelector": ".reference-ai article:first-child",
+          "reference": {
+            "rect": {
+              "x": 319.015625,
+              "y": 3445.796875,
+              "width": 1069.296875,
+              "height": 673.390625,
+              "bottom": 4119.1875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "14.7692px",
+              "lineHeight": "23.6308px",
+              "weight": "500"
+            },
+            "padding": "73.8462px 0px 0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 372.453125,
+              "y": 3282.453125,
+              "width": 1015.84375,
+              "height": 602.796875,
+              "bottom": 3885.25
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 319,
+              "y": 3445.734375,
+              "width": 1069.296875,
+              "height": 673.609375,
+              "bottom": 4119.34375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "73.8462px 0px 0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": -0.015625,
+            "y": -0.0625,
+            "width": 0,
+            "height": 0.21875
+          }
+        },
+        {
+          "name": "integrations_heading",
+          "sourceSelector": ".home__integrations-paren h2",
+          "finaiSelector": ".reference-integrations h2",
+          "reference": {
+            "rect": {
+              "x": 240,
+              "y": 6423.65625,
+              "width": 960,
+              "height": 103.375,
+              "bottom": 6527.03125
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 244.984375,
+              "y": 6192.84375,
+              "width": 950,
+              "height": 103.375,
+              "bottom": 6296.21875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 239.984375,
+              "y": 6394.46875,
+              "width": 960,
+              "height": 103.375,
+              "bottom": 6497.84375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "51.6923px",
+              "lineHeight": "51.6923px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": -0.015625,
+            "y": -29.1875,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 1000
+      },
+      "pairs": [
+        {
+          "name": "companies_grid",
+          "sourceSelector": ".logos-static__wrapper",
+          "finaiSelector": ".reference-company-grid",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 811.34375,
+              "width": 342,
+              "height": 385,
+              "bottom": 1196.34375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "16px",
+              "lineHeight": "25.6px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 811.59375,
+              "width": 342,
+              "height": 442,
+              "bottom": 1253.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "170.5px 170.5px"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 811.59375,
+              "width": 342,
+              "height": 385,
+              "bottom": 1196.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "170.5px 170.5px"
+          },
+          "delta": {
+            "x": 0,
+            "y": 0.25,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "name": "platform_heading",
+          "sourceSelector": ".home__features-parent h2",
+          "finaiSelector": ".reference-platform .reference-heading h2",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 1348.34375,
+              "width": 342,
+              "height": 108,
+              "bottom": 1456.34375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "32px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 1410.59375,
+              "width": 342,
+              "height": 76,
+              "bottom": 1486.59375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "36px",
+              "lineHeight": "38px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 1348.59375,
+              "width": 342,
+              "height": 108,
+              "bottom": 1456.59375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "32px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": 0.25,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "name": "platform_grid",
+          "sourceSelector": ".home__features-grid",
+          "finaiSelector": ".reference-platform-grid",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 1568.34375,
+              "width": 342,
+              "height": 3591.125,
+              "bottom": 5159.46875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "16px",
+              "lineHeight": "25.6px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "24px",
+            "gridTemplateColumns": "342px"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 1584.59375,
+              "width": 342,
+              "height": 1322,
+              "bottom": 2906.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "170.5px 170.5px"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 1568.59375,
+              "width": 342,
+              "height": 3567,
+              "bottom": 5135.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "24px",
+            "gridTemplateColumns": "342px"
+          },
+          "delta": {
+            "x": 0,
+            "y": 0.25,
+            "width": 0,
+            "height": -24.125
+          }
+        },
+        {
+          "name": "platform_card_1",
+          "sourceSelector": ".home__features-item:nth-child(1)",
+          "finaiSelector": ".reference-platform-card:nth-child(1)",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 1568.34375,
+              "width": 342,
+              "height": 415.890625,
+              "bottom": 1984.234375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "16px",
+              "lineHeight": "25.6px",
+              "weight": "500"
+            },
+            "padding": "16px 0px 0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 25,
+              "y": 1585.59375,
+              "width": 170.5,
+              "height": 330,
+              "bottom": 1915.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 1568.59375,
+              "width": 342,
+              "height": 415.875,
+              "bottom": 1984.46875
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": 0.25,
+            "width": 0,
+            "height": -0.015625
+          }
+        },
+        {
+          "name": "walkthrough_section",
+          "sourceSelector": ".section__live-product",
+          "finaiSelector": ".reference-live-demo",
+          "reference": {
+            "rect": {
+              "x": 0,
+              "y": 5245.46875,
+              "width": 390,
+              "height": 295,
+              "bottom": 5540.46875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "16px",
+              "lineHeight": "25.6px",
+              "weight": "500"
+            },
+            "padding": "0px 24px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 2956.59375,
+              "width": 342,
+              "height": 237,
+              "bottom": 3193.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px 0px 52px",
+            "gap": "24px",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 5221.59375,
+              "width": 342,
+              "height": 295,
+              "bottom": 5516.59375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px 0px 86px",
+            "gap": "24px",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 24,
+            "y": -23.875,
+            "width": -48,
+            "height": 0
+          }
+        },
+        {
+          "name": "ai_heading",
+          "sourceSelector": ".products-updated__parent > .parent__space-between h2",
+          "finaiSelector": ".reference-ai-heading h2",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 5630.46875,
+              "width": 342,
+              "height": 108,
+              "bottom": 5738.46875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "36px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 3289.59375,
+              "width": 342,
+              "height": 114,
+              "bottom": 3403.59375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "36px",
+              "lineHeight": "38px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 5606.59375,
+              "width": 342,
+              "height": 108,
+              "bottom": 5714.59375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "36px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": -23.875,
+            "width": 0,
+            "height": 0
+          }
+        },
+        {
+          "name": "ai_main_column",
+          "sourceSelector": ".products-updated__content-wrapper",
+          "finaiSelector": ".reference-ai-body > div",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 5850.46875,
+              "width": 342,
+              "height": 1683.5,
+              "bottom": 7533.96875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "16px",
+              "lineHeight": "25.6px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 3661.59375,
+              "width": 342,
+              "height": 2255.1875,
+              "bottom": 5916.78125
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 5806.59375,
+              "width": 342,
+              "height": 1769.5,
+              "bottom": 7576.09375
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": -43.875,
+            "width": 0,
+            "height": 86
+          }
+        },
+        {
+          "name": "ai_article_1",
+          "sourceSelector": ".products-updated__content.is--first",
+          "finaiSelector": ".reference-ai article:first-child",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 5850.46875,
+              "width": 342,
+              "height": 428.875,
+              "bottom": 6279.34375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "16px",
+              "lineHeight": "25.6px",
+              "weight": "500"
+            },
+            "padding": "40px 0px 0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 3661.59375,
+              "width": 342,
+              "height": 518.796875,
+              "bottom": 4180.390625
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 5806.59375,
+              "width": 342,
+              "height": 422.375,
+              "bottom": 6228.96875
+            },
+            "font": {
+              "family": "\"DM Sans\", sans-serif",
+              "size": "16px",
+              "lineHeight": "24px",
+              "weight": "400"
+            },
+            "padding": "40px 0px 0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": -43.875,
+            "width": 0,
+            "height": -6.5
+          }
+        },
+        {
+          "name": "integrations_heading",
+          "sourceSelector": ".home__integrations-paren h2",
+          "finaiSelector": ".reference-integrations h2",
+          "reference": {
+            "rect": {
+              "x": 24,
+              "y": 7709.96875,
+              "width": 342,
+              "height": 144,
+              "bottom": 7853.96875
+            },
+            "font": {
+              "family": "\"Space Grotesk\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif",
+              "size": "32px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "before": {
+            "rect": {
+              "x": 24,
+              "y": 6024.78125,
+              "width": 342,
+              "height": 144,
+              "bottom": 6168.78125
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "33px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "after": {
+            "rect": {
+              "x": 24,
+              "y": 7752.09375,
+              "width": 342,
+              "height": 144,
+              "bottom": 7896.09375
+            },
+            "font": {
+              "family": "\"Space Grotesk\", sans-serif",
+              "size": "32px",
+              "lineHeight": "36px",
+              "weight": "500"
+            },
+            "padding": "0px",
+            "gap": "normal",
+            "gridTemplateColumns": "none"
+          },
+          "delta": {
+            "x": 0,
+            "y": 42.125,
+            "width": 0,
+            "height": 0
+          }
+        }
+      ]
+    }
+  ]
+}

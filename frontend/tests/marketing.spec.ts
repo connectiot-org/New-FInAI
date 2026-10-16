@@ -235,3 +235,80 @@ test("public workflow carousel, local guide bookmark and workspace navigation ra
     .click();
   await expect(page.locator("main h1")).toHaveText("Journal entries");
 });
+
+test("platform sections preserve measured desktop spacing and stack full cards on mobile", async ({
+  page,
+}) => {
+  for (const target of [
+    { width: 1440, headingY: 1664.69, gridY: 1843.75, columns: 4 },
+    { width: 390, headingY: 1348.34, gridY: 1568.34, columns: 1 },
+  ]) {
+    await page.setViewportSize({ width: target.width, height: 1000 });
+    await page.goto("/");
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator(".reference-platform-card")).toHaveCount(8);
+    const layout = await page.evaluate(() => {
+      const grid = document.querySelector(".reference-platform-grid")!,
+        heading = document.querySelector(".reference-platform h2")!,
+        cards = [...grid.children].map((card) => {
+          const r = card.getBoundingClientRect();
+          return { x: r.x, y: r.y, width: r.width, height: r.height };
+        });
+      return {
+        headingY: heading.getBoundingClientRect().y,
+        gridY: grid.getBoundingClientRect().y,
+        columns: getComputedStyle(grid).gridTemplateColumns.split(" ").length,
+        cards,
+      };
+    });
+    expect(Math.abs(layout.headingY - target.headingY)).toBeLessThan(4);
+    expect(Math.abs(layout.gridY - target.gridY)).toBeLessThan(4);
+    expect(layout.columns).toBe(target.columns);
+    if (target.width === 390) {
+      for (const card of layout.cards) {
+        expect(Math.abs(card.width - 342)).toBeLessThan(1);
+        expect(card.height).toBeGreaterThan(400);
+      }
+      for (let i = 1; i < layout.cards.length; i++)
+        expect(layout.cards[i].y - layout.cards[i - 1].y).toBeGreaterThan(400);
+      await expect(page.locator(".reference-ai-body > nav")).toBeHidden();
+    } else {
+      expect(Math.abs(layout.cards[0].height - 456.23)).toBeLessThan(2);
+      await expect(page.locator(".reference-ai-body > nav")).toBeVisible();
+    }
+  }
+});
+
+test("product feature cards, source story and related-workflow carousel remain functional", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/product/automated-general-ledger");
+  await expect(page.locator(".marketing-benefits > div")).toHaveCount(3);
+  await expect(
+    page.locator(".product-reference-feature-grid > article"),
+  ).toHaveCount(4);
+  const feature = await page
+    .locator(".product-reference-feature-grid > article")
+    .first()
+    .boundingBox();
+  expect(Math.abs(feature!.width - 653.55)).toBeLessThan(2);
+  expect(Math.abs(feature!.height - 605.33)).toBeLessThan(2);
+  const rail = page.locator(".product-reference-related-rail");
+  await expect(rail.locator(":scope > a")).toHaveCount(11);
+  await expect(
+    page.getByRole("button", { name: "Previous related workflows" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Next related workflows" }).click();
+  await expect
+    .poll(() => rail.evaluate((el) => el.scrollLeft))
+    .toBeGreaterThan(0);
+  await expect(
+    page.getByRole("button", { name: "Previous related workflows" }),
+  ).toBeEnabled();
+  await page
+    .getByRole("link", { name: "Explore the record", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/accounting\/journals\//);
+  await expect(page.locator("main h1")).toBeVisible();
+});
