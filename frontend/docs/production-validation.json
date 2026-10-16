@@ -1,0 +1,24 @@
+{
+  "productionRoutes": 37,
+  "viewports": [
+    1440,
+    1280,
+    1024,
+    390
+  ],
+  "runtimeErrors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "printCss": "checked; physical output not tested",
+  "journalCsv": "USD numeric values checked",
+  "counts": {
+    "accounts": 44,
+    "customers": 24,
+    "vendors": 16,
+    "invoices": 72,
+    "bills": 48,
+    "contracts": 12,
+    "journals": 203,
+    "ledgerLines": 408
+  }
+}
