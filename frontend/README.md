@@ -1,6 +1,6 @@
 # FinAI frontend
 
-A standalone accounting product demo for the fictional Northstar Analytics. React 19, TypeScript, Vite, Tailwind CSS, Radix dialogs/dropdowns, Redux Toolkit, TanStack Table, React Hook Form + Zod, Recharts, and Lucide. No backend, credentials, or external runtime services.
+A standalone FinAI public website and accounting product demo for the fictional Northstar Analytics. React 19, TypeScript, Vite, Tailwind CSS, Radix dialogs/dropdowns, Redux Toolkit, TanStack Table, React Hook Form + Zod, Recharts, and Lucide. No backend, credentials, or external runtime services.
 
 ## Install and run
 
@@ -12,7 +12,7 @@ npm ci
 npm run dev -- --port 5173
 ```
 
-Open `http://localhost:5173/welcome`. Vite supports direct deep links. For a production static host, configure an SPA fallback to `index.html` for application paths; no API routes exist.
+Open `http://localhost:5173/` for the new public homepage, or `http://localhost:5173/welcome` to enter the accounting demo directly. Vite supports direct deep links. For a production static host, configure an SPA fallback to `index.html` for application paths; no API routes exist.
 
 ```sh
 npm run typecheck
@@ -60,3 +60,11 @@ Rillet reference URLs were blocked by the environment proxy. All workspace visua
 `src/types/domain.ts` defines serializable domain records and `DemoService`; `src/store/index.ts` contains transitions and the `localDemoService` adapter. Replace that adapter in a separate integration task when APIs exist. UI components do not issue remote business requests. Calculation selectors are in `src/demo/selectors.ts`; report composition is in `src/features/Reports.tsx`. Do not connect a backend to run this prototype.
 
 Existing backend and root repository files are untouched. No deployment has been performed. Development uses the existing isolated checkout; do not create a worktree unless explicitly requested.
+
+## Public website
+
+The root route now opens the public FinAI homepage. It includes product navigation, a walkthrough chooser, interactive canonical-data previews, product cards, workflow explanations, FAQ, and links into the accounting demo. Six product pages live under `/product/`; `/resources` contains workflow guides and local-data details, and `/about` describes the prototype. All public navigation works without a backend or lead-collection service.
+
+Seven additional Playwright tests cover public navigation/deep links, preview search and source links, walkthroughs, keyboard FAQs, missing-product recovery, and containment at 1440/1280/1024/390 pixels. The existing 19 accounting tests remain in place.
+
+Live Chromium and direct HTTPS were both blocked when attempting to inspect Rillet. The public site is an original fallback approximation using FinAI branding; it is not a verified reproduction. This follow-up explicitly expands the earlier frontend-only brief to include a marketing homepage. Existing accounting workflows are retained.

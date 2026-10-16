@@ -42,9 +42,28 @@ All visual reference confidence is **inferred**: public Rillet URLs were denied 
 | `/settings/dimensions`         | Add/remove local department labels                                                                                    | Route smoke                                                     |
 | `/settings/notifications`      | Enable/pause local activity panel                                                                                     | Route smoke                                                     |
 | `/settings/preferences`        | Density, controllable loading/empty/error states, reset                                                               | Error/retry; reset restores consistent seed                     |
-| `/settings`, `/`               | Redirect to workspace settings / welcome                                                                              | Router definitions; welcome journey                             |
+| `/settings`                    | Redirect to workspace settings                                                                                        | Router definitions; welcome journey                             |
 | Unknown route / missing record | Explicit recovery view                                                                                                | Browser missing route/record tests                              |
 
 All listed areas are implemented for the bounded local demo. Contact/contract fixtures are read views. Reconciliation uses a September sample, not a statement ingestion system. Automation results are local review summaries/history, not external execution. File contents and conversation text are session-only. See README for the intentional domain limits.
 
 Outstanding: reference-based visual comparison remains blocked; print CSS is checked through Chromium print-media emulation; physical printer/OS output is not tested. The test suite checks Chromium; other browser engines and assistive-technology audits have not been run. Route smoke is not exhaustive testing of every control.
+
+## Public website follow-up
+
+Visual confidence is **inferred**. Live Chromium was also blocked; there is no observed Rillet homepage reference. The following are original FinAI implementations, not verified copies.
+
+| Route                               | Implemented behavior                                                                                                                            | Verification                                |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| `/`                                 | Public homepage, product dropdown, local walkthrough chooser, canonical-data previews/search/record links, feature tabs, FAQ, footer navigation | Public browser tests; four viewport checks  |
+| `/product/automated-general-ledger` | General-ledger presentation and live local preview; workflow links                                                                              | Direct load/refresh; navigation             |
+| `/product/accounts-receivable`      | Receivables presentation, invoice preview and real detail links                                                                                 | Direct load/refresh; responsive containment |
+| `/product/accounts-payable`         | Payables explanation, coding/review guidance, working bill-workflow link                                                                        | Direct load/refresh                         |
+| `/product/financial-reporting`      | Reporting presentation, canonical overview preview and statement links                                                                          | Direct load/refresh                         |
+| `/product/month-end-close`          | Close presentation, actual task preview and checklist link                                                                                      | Direct load/refresh                         |
+| `/product/assistant`                | Assistant explanation, actual closing cash, ledger evidence and assistant link                                                                  | Direct load/refresh; demo-response labels   |
+| `/resources`                        | Workflow guides and honest local-demo/privacy details                                                                                           | Direct load/refresh                         |
+| `/about`                            | Original prototype description, accounting demo entry                                                                                           | Direct load/refresh; demo entry             |
+| `/product/:unknown`                 | Public missing-product recovery                                                                                                                 | Browser recovery test                       |
+
+The homepage replaces the earlier `/` → `/welcome` redirect. The `/welcome` demo entry and all accounting routes continue to work.

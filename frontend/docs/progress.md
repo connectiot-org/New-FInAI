@@ -42,3 +42,20 @@ npm run dev -- --port 5173
 ```
 
 The current task leaves the development server on port 5173. Live processes do not survive a new machine; run the command again when needed. No API keys or backend processes are required. Installation, commands, reset, supported demo journeys, adapter boundaries and limitations are in `frontend/README.md`.
+
+## Public homepage follow-up checkpoint
+
+The user expanded the scope to include the public homepage and requested another access method. Both direct HTTPS and **live Chromium through the configured network proxy** were attempted. HTTPS returned proxy 403 and Chromium returned `ERR_TUNNEL_CONNECTION_FAILED`. The saved allowlist remains a draft; public Rillet content was not observed.
+
+Following the user's instruction to continue despite that blocker, added an **original FinAI fallback website**, not a verified Rillet reproduction:
+
+- Root homepage with product navigation, interactive canonical-data preview, walkthrough chooser, product cards, workflow diagrams, FAQ, and functional demo entry.
+- Six product pages, resources/workflow guides, about page, and missing-product recovery.
+- Shared FinAI branding, warm neutral/forest visual system, responsive public navigation, reduced-motion handling, keyboard FAQ behavior, local data labels, and source record links.
+- Existing `/welcome` and accounting routes remain intact. No backend/root repository files changed.
+
+Latest checks: `npm run build` passed (including TypeScript); `npm run lint` passed; **26 Playwright tests passed** (7 public-site checks plus the 19 accounting checks), zero failures or skips, 53.9 seconds. The built app passed **46 direct route checks** (9 public + 37 accounting) with zero runtime/console errors, failed requests, or external requests. Four target widths checked. Homepage screenshots and a mobile product screenshot are retained in `docs/screenshots/`; first-viewport desktop/tablet/mobile images were visually inspected. Exact Rillet fidelity is still unverified and is not claimed.
+
+Machine-readable result: `docs/homepage-validation.json`. Original accounting-only evidence remains in `docs/production-validation.json` and earlier screenshots. Largest production JavaScript chunk is now about 376 kB before gzip. `http://localhost:5173/` opens the public homepage; `/welcome` opens the demo entry directly. Source archive refreshed at `artifacts/FinAI-frontend.zip` (ignored generated artifact).
+
+Next useful reference step is still accessible Rillet screenshots or activated public-site access. Continue from these working pages; replace inferred visual decisions only when evidence is available.

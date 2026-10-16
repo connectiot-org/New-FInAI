@@ -1,0 +1,16 @@
+{
+  "productionRoutes": 46,
+  "publicRoutes": 9,
+  "accountingRoutes": 37,
+  "viewports": [
+    1440,
+    1280,
+    1024,
+    390
+  ],
+  "runtimeErrors": [],
+  "externalRequests": [],
+  "failedRequests": [],
+  "referenceAccess": "Direct HTTPS: proxy 403. Live Chromium through configured proxy: ERR_TUNNEL_CONNECTION_FAILED. No Rillet visuals observed.",
+  "visualMatch": "Unverified; original fallback implementation."
+}

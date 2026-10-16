@@ -8,6 +8,13 @@ import {
 } from "react-router-dom";
 import { ArrowRight, BookOpen, Check, ShieldCheck } from "lucide-react";
 import { Shell } from "./Shell";
+import {
+  MarketingLayout,
+  HomePage,
+  ProductPage,
+  ResourcesPage,
+  AboutPage,
+} from "../features/marketing/Marketing";
 import { useAppDispatch, useDemo, command } from "../store";
 import { Overview } from "../features/Overview";
 import {
@@ -137,11 +144,20 @@ function NotFound() {
   );
 }
 const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MarketingLayout />,
+    children: [
+      { index: true, element: <HomePage /> },
+      { path: "product/:product", element: <ProductPage /> },
+      { path: "resources", element: <ResourcesPage /> },
+      { path: "about", element: <AboutPage /> },
+    ],
+  },
   { path: "/welcome", element: <Welcome /> },
   {
     element: <Shell />,
     children: [
-      { index: true, element: <Navigate to="/welcome" replace /> },
       { path: "overview", element: <Overview /> },
       { path: "accounting/ledger", element: <Ledger /> },
       { path: "accounting/journals", element: <Journals /> },
