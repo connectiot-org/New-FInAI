@@ -67,6 +67,11 @@ export const navigation = [
     group: "Insights",
     items: [
       { label: "Month-end close", path: "/close", icon: CheckSquare },
+      {
+        label: "Monthly checklist",
+        path: "/close/checklist",
+        icon: CheckSquare,
+      },
       { label: "Reports", path: "/reports", icon: ChartNoAxesCombined },
       { label: "Entities", path: "/entities", icon: Building2 },
       { label: "FinAI Assistant", path: "/assistant", icon: Sparkles },
@@ -97,6 +102,7 @@ export const routeTitles: Record<string, string> = {
   "/banking/accounts": "Bank accounts",
   "/banking/reconciliation": "Reconciliation",
   "/close": "Month-end close",
+  "/close/checklist": "Monthly checklist",
   "/reports": "Reports",
   "/reports/profit-and-loss": "Profit & loss",
   "/reports/balance-sheet": "Balance sheet",

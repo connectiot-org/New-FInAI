@@ -107,6 +107,7 @@ export function Shell() {
                   title={item.label}
                   key={item.path}
                   to={item.path}
+                  end={item.path === "/close"}
                   className={({ isActive }) =>
                     `nav-item ${isActive ? "active" : ""}`
                   }

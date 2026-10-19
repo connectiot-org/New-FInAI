@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "playwright test",
     "preview": "vite preview --host 0.0.0.0",
-    "format": "prettier --write src tests docs *.ts *.js *.json *.html README.md"
+    "format": "prettier --write src tests docs *.ts *.js *.json *.html README.md",
+    "test:checklist": "playwright test --config playwright.checklist.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
