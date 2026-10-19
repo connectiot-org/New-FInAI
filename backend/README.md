@@ -1,0 +1,37 @@
+# FinAI local checklist API
+
+NestJS 11 / TypeScript / Prisma 6.19.3 / PostgreSQL 17.6. Local-only persistent monthly checklist; existing frontend financial workflows remain simulations. Production identity is not implemented, and startup refuses production/deployment flags, non-loopback binding or implicit identity. No cloud account or third-party key is required.
+
+From `backend/`, with Node 24/npm 11 and Docker Compose:
+
+```sh
+npm ci --cache /workspace/.npm-cache --no-audit --no-fund
+npm run db:init
+npm run db:up
+npm run generate
+npm run db:migrate
+npm run db:seed
+npm run build
+npm start
+```
+
+`db:init` creates an ignored mode-0600 `.env` with randomly generated local database authentication and explicit local configuration; existing files are preserved. Never copy its values into context, chat or frontend settings. PostgreSQL is bound to 127.0.0.1:55432; data lives in Docker named volume `backend_checklist_pgdata`. `docker compose stop db` stops it without deletion; `npm run db:up` restarts. Do not use `down -v` if tasks should survive. The image is pinned by digest. Prisma migrations are additive/versioned, run explicitly; no reset or automatic seed on startup. `db:seed` only upserts synthetic identity/entities and preserves tasks; refuses non-local/production configurations.
+
+API: 127.0.0.1:3000. `GET /health/ready` checks database/schema and active seeded membership (not just port/PID). The fixed server user has two authorized entities returned by `GET /api/v1/entities`. No browser demo identity or arbitrary headers can authorize requests. Trusted local frontend origins default to http://127.0.0.1:5173 and http://localhost:5173. Mutations require JSON, including DELETE. No Origin is allowed for local CLI tools; browser requests must use an exact configured origin. Cross-origin credentials/cookies are not used. Forwarding headers, identity overrides, untrusted Host/Origin and caller Authorization are rejected in this local-only implementation.
+
+See `../contracts/openapi.yaml` (1.0.0) and `../contracts/README.md` for exact routes, examples and error semantics. Unknown input fields are rejected. Task creations retain a digest of canonical original payload for safe UUID retries. Transaction-scoped PostgreSQL advisory locks serialize ID claims and per-month capacity; at most 200 tasks per entity/month. Completion and deletion use optimistic version checks. The single feature table is ChecklistTask; shared identity/membership tables supply authorization. No workflow/event/financial tables were added.
+
+Checks from this directory:
+
+```sh
+npm run typecheck
+npm run lint
+npm run build
+npm test
+```
+
+Tests create a unique `test_<UUID>` PostgreSQL schema, apply real Prisma migrations twice, seed isolated synthetic tenants, start actual HTTP services, then remove only that test schema. They do not reset the application schema. DATABASE_URL must point to local PostgreSQL. Real tests cover CRUD, summaries, restart persistence, schema conformance, input constraints, entity/organisation permissions, forged identities/origins, safe retries, concurrent CAS/deletion, concurrent cap enforcement and production fail-closed configuration. See context/progress.md for actual run outcomes; do not equate written tests with passed tests.
+
+If Prisma engine downloads fail, allow `binaries.prisma.sh` in environment network settings, retain TLS/checksum verification and retry `npm run generate`. Never set checksum-ignore or TLS-disable variables. No seed/development identity may run publicly. Production requires separately implemented verified identity, membership lifecycle, security review, private database/deployment/migration/backup/restore gates and explicit deployment authorization.
+
+Dependency review: NestJS 11.2.7 and Prisma 6.19.3 are pinned. A scoped npm override pins @prisma/config → deepmerge-ts 8.0.2 to resolve its recursive-merge advisory; generation, migration deployment and full PostgreSQL tests validate this toolchain combination. No dependency advisories (including development tools) were reported by npm audit after the update.
