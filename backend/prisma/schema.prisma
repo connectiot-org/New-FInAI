@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organisation {
+  id          String       @id @db.Uuid
+  name        String       @db.VarChar(200)
+  entities    Entity[]
+  memberships Membership[]
+}
+
+model User {
+  id          String       @id @db.Uuid
+  memberships Membership[]
+}
+
+model Membership {
+  organisationId String         @map("organisation_id") @db.Uuid
+  userId         String         @map("user_id") @db.Uuid
+  active         Boolean        @default(true)
+  organisation   Organisation   @relation(fields: [organisationId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+  access         EntityAccess[]
+
+  @@id([organisationId, userId])
+}
+
+model Entity {
+  id             String          @id @db.Uuid
+  organisationId String          @map("organisation_id") @db.Uuid
+  name           String          @db.VarChar(200)
+  organisation   Organisation    @relation(fields: [organisationId], references: [id])
+  access         EntityAccess[]
+  tasks          ChecklistTask[]
+
+  @@unique([organisationId, id])
+}
+
+model EntityAccess {
+  organisationId String     @map("organisation_id") @db.Uuid
+  userId         String     @map("user_id") @db.Uuid
+  entityId       String     @map("entity_id") @db.Uuid
+  canWrite       Boolean    @default(false) @map("can_write")
+  membership     Membership @relation(fields: [organisationId, userId], references: [organisationId, userId])
+  entity         Entity     @relation(fields: [organisationId, entityId], references: [organisationId, id])
+
+  @@id([organisationId, userId, entityId])
+}
+
+model ChecklistTask {
+  id             String   @id @db.Uuid
+  organisationId String   @map("organisation_id") @db.Uuid
+  entityId       String   @map("entity_id") @db.Uuid
+  month          DateTime @db.Date
+  title          String   @db.VarChar(200)
+  completed      Boolean  @default(false)
+  version        Int      @default(1)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createDigest   String   @map("create_digest") @db.Char(64)
+  entity         Entity   @relation(fields: [organisationId, entityId], references: [organisationId, id])
+
+  @@index([organisationId, entityId, month, createdAt, id])
+}

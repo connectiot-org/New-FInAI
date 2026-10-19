@@ -1,0 +1,77 @@
+.checklist-filters {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.checklist-filters .field {
+  flex: 1;
+  min-width: 180px;
+  margin: 0;
+}
+.checklist-panel {
+  padding: 24px;
+}
+.checklist-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.checklist-add {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin-top: 24px;
+}
+.checklist-add .field {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+.checklist-add button {
+  flex-shrink: 0;
+}
+.checklist-tasks {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+.checklist-tasks li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--line, #e8e8ed);
+  padding: 14px 0;
+}
+.checklist-tasks li > label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  cursor: pointer;
+}
+.checklist-tasks input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #6845e8;
+}
+.checklist-tasks li span {
+  overflow-wrap: anywhere;
+}
+.checklist-done {
+  text-decoration: line-through;
+  color: #686872;
+}
+@media (max-width: 600px) {
+  .checklist-panel {
+    padding: 16px;
+  }
+  .checklist-add {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

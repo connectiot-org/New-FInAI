@@ -41,6 +41,7 @@ import {
   Schedules,
 } from "../features/Operations";
 import { Close } from "../features/Close";
+import { MonthlyChecklist } from "../features/checklist/MonthlyChecklist";
 import {
   Consolidation,
   Entities,
@@ -191,6 +192,7 @@ const router = createBrowserRouter([
       { path: "banking/accounts", element: <BankAccounts /> },
       { path: "banking/reconciliation", element: <Reconciliation /> },
       { path: "close", element: <Close /> },
+      { path: "close/checklist", element: <MonthlyChecklist /> },
       { path: "reports", element: <Reports /> },
       {
         path: "reports/profit-and-loss",

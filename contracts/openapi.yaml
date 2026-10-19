@@ -1,0 +1,656 @@
+openapi: 3.1.1
+info:
+  title: FinAI monthly checklist
+  version: 1.0.0
+  description: 'Prompt 02 local monthly checklist contract. Exactly one feature table.
+    Production identity is not implemented: local seed identity requires explicit
+    development/test configuration, loopback binding and trusted mutation origins.
+    Production startup fails closed. Existing financial/demo close workflows are separate.'
+servers:
+- url: http://127.0.0.1:3000
+  description: Proposed local-only API; no service currently implemented. Production
+    same-origin /api routing to be configured separately.
+security:
+- bearerAuth: []
+tags:
+- name: Checklist
+  description: Persistent monthly tasks and authorized entity discovery; separate
+    from close review/approval.
+paths:
+  /api/v1/entities:
+    get:
+      operationId: listAuthorizedEntities
+      tags:
+      - Checklist
+      summary: List entities accessible to the authenticated membership
+      responses:
+        '200':
+          description: Only authorized entities, ascending name/id.
+          headers:
+            X-Request-Id:
+              description: Server-generated UUID; matches error.requestId.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityList'
+              example:
+                items:
+                - id: 22222222-2222-4222-8222-222222222222
+                  name: Local entity A
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /api/v1/checklist-tasks:
+    get:
+      operationId: listChecklistTasks
+      tags:
+      - Checklist
+      summary: List bounded monthly tasks and consistent summary
+      description: Required entityId and month. Ascending createdAt/id order. A single
+        snapshot covers all active rows (max 200) and summary. Unknown query parameters
+        rejected. Empty summary is all zero.
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: month
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])$
+          minLength: 7
+          maxLength: 7
+          description: Calendar month from 0001-01 through 9999-12; reject year 0000.
+        example: 2026-09
+      responses:
+        '200':
+          description: Full bounded set and matching summary.
+          headers:
+            X-Request-Id:
+              description: Server-generated UUID; matches error.requestId.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistTaskList'
+              example:
+                items:
+                - id: 33333333-3333-4333-8333-333333333333
+                  entityId: 22222222-2222-4222-8222-222222222222
+                  month: 2026-09
+                  title: Reconcile September bank statement
+                  completed: false
+                  version: 1
+                  createdAt: '2026-10-19T06:00:00Z'
+                  updatedAt: '2026-10-19T06:00:00Z'
+                summary:
+                  total: 1
+                  completed: 0
+                  percent: 0
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+    post:
+      operationId: createChecklistTask
+      tags:
+      - Checklist
+      summary: Create or safely replay a task
+      description: Only id/entityId/month/title allowed. Canonical payload is normalized
+        UUIDs, exact month and trimmed title. Under consistent entity/month transaction
+        lock, recheck authorization, existing ID/digest and 200-task cap. New ID returns
+        201; identical authorized replay returns current task/200 even after completion
+        changes. Changed payload returns CREATE_CONFLICT/409; foreign ID returns safe
+        404 without payload disclosure. Cap returns CAPACITY_REACHED/409. Digest of
+        original canonical create is immutable. Replay guarantee covers existing rows;
+        deleting a task ends its identity lifetime (no tombstone in this slice).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChecklistTask'
+            example:
+              id: 33333333-3333-4333-8333-333333333333
+              entityId: 22222222-2222-4222-8222-222222222222
+              month: 2026-09
+              title: Reconcile September bank statement
+      responses:
+        '201':
+          description: Created incomplete version 1.
+          headers:
+            X-Request-Id:
+              description: Server-generated UUID; matches error.requestId.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistTask'
+              example:
+                id: 33333333-3333-4333-8333-333333333333
+                entityId: 22222222-2222-4222-8222-222222222222
+                month: 2026-09
+                title: Reconcile September bank statement
+                completed: false
+                version: 1
+                createdAt: '2026-10-19T06:00:00Z'
+                updatedAt: '2026-10-19T06:00:00Z'
+        '200':
+          description: Existing identical authorized create; current state.
+          headers:
+            X-Request-Id:
+              description: Server-generated UUID; matches error.requestId.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistTask'
+              example:
+                id: 33333333-3333-4333-8333-333333333333
+                entityId: 22222222-2222-4222-8222-222222222222
+                month: 2026-09
+                title: Reconcile September bank statement
+                completed: false
+                version: 1
+                createdAt: '2026-10-19T06:00:00Z'
+                updatedAt: '2026-10-19T06:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/checklist-tasks/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    patch:
+      operationId: setChecklistCompletion
+      tags:
+      - Checklist
+      summary: Set an absolute completion value
+      description: Only completed and expectedVersion allowed. Authorize by task entity/organisation;
+        conditional scoped version update increments version even for the same boolean.
+        Stale or exhausted version is 409; no mutation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetChecklistCompletion'
+            example:
+              completed: true
+              expectedVersion: 1
+      responses:
+        '200':
+          description: Committed task.
+          headers:
+            X-Request-Id:
+              description: Server-generated UUID; matches error.requestId.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChecklistTask'
+              example:
+                id: 33333333-3333-4333-8333-333333333333
+                entityId: 22222222-2222-4222-8222-222222222222
+                month: 2026-09
+                title: Reconcile September bank statement
+                completed: true
+                version: 2
+                createdAt: '2026-10-19T06:00:00Z'
+                updatedAt: '2026-10-19T06:05:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      operationId: deleteChecklistTask
+      tags:
+      - Checklist
+      summary: Delete one scoped task at the displayed version
+      description: Requires write permission and If-Match containing the quoted integer
+        version, e.g. "2". Stale version is 409. Missing or inaccessible id (including
+        repeated delete) is 404. No financial/demo records are touched.
+      parameters:
+      - name: If-Match
+        in: header
+        required: true
+        schema:
+          type: string
+          pattern: ^"[1-9][0-9]{0,9}"$
+          description: Quoted positive integer, at most 2147483647.
+        example: '"2"'
+      responses:
+        '204':
+          description: Deleted. No response body.
+          headers:
+            X-Request-Id:
+              description: Server-generated UUID; matches error.requestId.
+              schema:
+                type: string
+                format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '500':
+          $ref: '#/components/responses/InternalError'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+        '409':
+          $ref: '#/components/responses/Conflict'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Reserved production boundary: verified identity and entity membership
+        required. Production auth is not implemented and startup is refused. Explicit
+        loopback-only local/test seed bypass is the sole working mode; no caller identity
+        overrides.'
+  schemas:
+    ChecklistTask:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entityId
+      - month
+      - title
+      - completed
+      - version
+      - createdAt
+      - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        month:
+          type: string
+          pattern: ^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])$
+          minLength: 7
+          maxLength: 7
+          description: Calendar month from 0001-01 through 9999-12; reject year 0000.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^(?![\s\S]*[\u0000-\u001f\u007f])\S(?:[\s\S]*\S)?$
+          description: Trim before validation/storage; no control characters. Whitespace-only
+            is invalid.
+        completed:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    CreateChecklistTask:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        month:
+          type: string
+          pattern: ^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])$
+          minLength: 7
+          maxLength: 7
+          description: Calendar month from 0001-01 through 9999-12; reject year 0000.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Trimmed by server; canonical title must contain 1–200 Unicode
+            characters without control characters or unpaired surrogates.
+      required:
+      - id
+      - entityId
+      - month
+      - title
+    SetChecklistCompletion:
+      type: object
+      additionalProperties: false
+      required:
+      - completed
+      - expectedVersion
+      properties:
+        completed:
+          type: boolean
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      - requestId
+      properties:
+        code:
+          type: string
+          enum:
+          - BAD_REQUEST
+          - UNAUTHENTICATED
+          - FORBIDDEN
+          - NOT_FOUND
+          - VERSION_CONFLICT
+          - VALIDATION_FAILED
+          - INTERNAL_ERROR
+          - UNAVAILABLE
+          - CAPACITY_REACHED
+          - CREATE_CONFLICT
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        requestId:
+          type: string
+          format: uuid
+        fieldErrors:
+          type: array
+          maxItems: 20
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+                maxLength: 100
+              message:
+                type: string
+                maxLength: 200
+    ChecklistSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          maximum: 200
+        completed:
+          type: integer
+          minimum: 0
+          maximum: 200
+        percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Math.round(completed / total * 100), or zero if empty.
+      required:
+      - total
+      - completed
+      - percent
+    ChecklistTaskList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: '#/components/schemas/ChecklistTask'
+        summary:
+          $ref: '#/components/schemas/ChecklistSummary'
+      required:
+      - items
+      - summary
+    EntityList:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+                minLength: 1
+                maxLength: 200
+            required:
+            - id
+            - name
+      required:
+      - items
+  responses:
+    BadRequest:
+      description: Malformed JSON or syntactically invalid HTTP request.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: BAD_REQUEST
+            message: Malformed JSON or syntactically invalid HTTP request.
+            requestId: 44444444-4444-4444-8444-444444444444
+    Unauthenticated:
+      description: Missing, invalid or expired verified identity. Local/test seed
+        bypass is not a public auth mechanism.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAUTHENTICATED
+            message: Missing, invalid or expired verified identity. Local/test seed
+              bypass is not a public auth mechanism.
+            requestId: 44444444-4444-4444-8444-444444444444
+    Forbidden:
+      description: Active same-organisation identity lacks entity read/write permission;
+        no resource data returned.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: FORBIDDEN
+            message: Active same-organisation identity lacks entity read/write permission;
+              no resource data returned.
+            requestId: 44444444-4444-4444-8444-444444444444
+    NotFound:
+      description: Entity/task absent or outside authenticated organisation. Do not
+        reveal which.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: NOT_FOUND
+            message: Entity/task absent or outside authenticated organisation. Do
+              not reveal which.
+            requestId: 44444444-4444-4444-8444-444444444444
+    Conflict:
+      description: Stale version, changed canonical create payload, or capacity reached;
+        no mutation.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: VERSION_CONFLICT
+            message: expectedVersion is stale; no mutation. Refetch, then require
+              explicit retry.
+            requestId: 44444444-4444-4444-8444-444444444444
+    ValidationFailed:
+      description: Invalid fields, unsupported query/identity overrides, UUID/month/title/version,
+        or missing/invalid If-Match.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: VALIDATION_FAILED
+            message: Invalid fields, unknown properties, invalid calendar month, or
+              invalid/scope-mismatched cursor.
+            requestId: 44444444-4444-4444-8444-444444444444
+    InternalError:
+      description: Unexpected server error. No stack traces or internal details.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: INTERNAL_ERROR
+            message: Unexpected server error. No stack traces or internal details.
+            requestId: 44444444-4444-4444-8444-444444444444
+    Unavailable:
+      description: Persistence or required identity verification dependency unavailable.
+        Do not silently use fixtures.
+      headers:
+        X-Request-Id:
+          description: Server-generated UUID matching error.requestId when an error
+            is returned.
+          schema:
+            type: string
+            format: uuid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: UNAVAILABLE
+            message: Persistence or required identity verification dependency unavailable.
+              Do not silently use fixtures.
+            requestId: 44444444-4444-4444-8444-444444444444

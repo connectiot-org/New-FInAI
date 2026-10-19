@@ -1,6 +1,6 @@
 # FinAI frontend
 
-A standalone FinAI public website and accounting product demo for the fictional Northstar Analytics. React 19, TypeScript, Vite, Tailwind CSS, Radix dialogs/dropdowns, Redux Toolkit, TanStack Table, React Hook Form + Zod, Recharts, and Lucide. No backend, credentials, or external runtime services.
+A standalone FinAI public website and accounting product demo for the fictional Northstar Analytics. React 19, TypeScript, Vite, Tailwind CSS, Radix dialogs/dropdowns, Redux Toolkit, TanStack Table, React Hook Form + Zod, Recharts, and Lucide. The default demo requires no backend, credentials, or external runtime services. An optional local persistent monthly checklist is available separately; see [checklist setup](docs/checklist.md).
 
 ## Install and run
 
@@ -78,3 +78,7 @@ The latest comparison corrected the desktop logo/platform spacing, card proporti
 ## Content and UI review
 
 The latest review replaces the previously borrowed hero image with an original SVG cityscape, unifies the FinAI monogram, and uses independent marketing copy and integration category icons. Fictional companies and functional workflow stories provide examples without invented endorsements. Keyboard preview tabs, mobile solution navigation, readable secondary text and narrow-screen workspace controls have been improved. See [content and UI review](docs/content-ui-review.md) for validation scope, evidence, and reference-access limits.
+
+## Persistent monthly checklist
+
+`/close/checklist` is a separate, optional local PostgreSQL-backed feature. It does not change `/close` approval/evidence/locking or financial demo storage. See [checklist setup and verification](docs/checklist.md) for API mode, migrations and dedicated browser tests. Default builds use a clearly labeled session-only checklist demo and make no checklist API requests. No production identity or public API deployment is provided.
