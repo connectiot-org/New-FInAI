@@ -1,0 +1,199 @@
+{
+  "review_date": "2026-10-19",
+  "scope": "Frontend content and UI; public pages and local accounting demo",
+  "checks": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "production_build": "passed",
+    "git_diff_check": "passed",
+    "browser_tests": {
+      "status": "passed",
+      "total": 33,
+      "passed": 33,
+      "failed": 0,
+      "skipped": 0,
+      "duration_seconds": 38.6,
+      "server": "production preview on port 5173"
+    }
+  },
+  "accessibility": {
+    "tool": "@axe-core/playwright",
+    "version": "4.14.0",
+    "tags": ["wcag2a", "wcag2aa", "wcag21aa"],
+    "route_count": 54,
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 1000
+      },
+      {
+        "width": 390,
+        "height": 1000
+      }
+    ],
+    "route_viewport_checks": 108,
+    "automated_violations": 0,
+    "page_errors": 0,
+    "document_overflows": 0,
+    "all_http_200": true,
+    "states": "default rendered state for each route",
+    "routes": [
+      "/",
+      "/about",
+      "/accounting/accounts",
+      "/accounting/journals",
+      "/accounting/journals/J-INV-1001",
+      "/accounting/ledger",
+      "/accounting/trial-balance",
+      "/assistant",
+      "/audit-log",
+      "/automations",
+      "/automations/auto-1",
+      "/banking/accounts",
+      "/banking/reconciliation",
+      "/close",
+      "/customers",
+      "/entities",
+      "/entities/consolidation",
+      "/integrations",
+      "/overview",
+      "/payables/bills",
+      "/payables/bills/BILL-2041",
+      "/payables/vendors",
+      "/payables/vendors/ven-1",
+      "/product/accounts-payable",
+      "/product/accounts-receivable",
+      "/product/advanced-revenue-recognition",
+      "/product/assistant",
+      "/product/automated-general-ledger",
+      "/product/bank-reconciliation",
+      "/product/financial-reporting",
+      "/product/month-end-close",
+      "/product/multi-entity",
+      "/product/native-integrations",
+      "/product/real-time-reporting",
+      "/product/security-permissions",
+      "/receivables/customers",
+      "/receivables/customers/cus-1",
+      "/receivables/invoices",
+      "/receivables/invoices/INV-1001",
+      "/reports",
+      "/reports/balance-sheet",
+      "/reports/cash-flow",
+      "/reports/profit-and-loss",
+      "/resources",
+      "/revenue/contracts",
+      "/revenue/contracts/CON-301",
+      "/revenue/schedules",
+      "/settings/approvals",
+      "/settings/dimensions",
+      "/settings/members",
+      "/settings/notifications",
+      "/settings/preferences",
+      "/settings/workspace",
+      "/welcome"
+    ]
+  },
+  "rea": {
+    "repository": "https://github.com/morluto/rea",
+    "inspected_repository_commit": "e4c3d72396bf925a45724ce8b18b238b0d23d787",
+    "cli": "rea-agents@6.5.0",
+    "captures": [
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "evidence_id": "ev_f627c2832ed6fc5520425c670983fbcd000ff2fa71036431f0d92d0ae2dcb99d",
+        "completeness": {
+          "status": "complete",
+          "equality_eligible": true,
+          "missing_sections": [],
+          "truncated_sections": []
+        },
+        "page_errors": [],
+        "browser_cleanup": "terminated-owned-process",
+        "screenshot_sha256": "8c487331e2c37e8593fd8b07f06f22d966617ed4121ef09ee994696c68012b0a",
+        "screenshot": "screenshots/content-review-desktop.png"
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 1000
+        },
+        "evidence_id": "ev_bd69f72c0a277b24adf059c6736368022985937b9e73ef6a9bb7edb711486b1e",
+        "completeness": {
+          "status": "complete",
+          "equality_eligible": true,
+          "missing_sections": [],
+          "truncated_sections": []
+        },
+        "page_errors": [],
+        "browser_cleanup": "terminated-owned-process",
+        "screenshot_sha256": "6c232adbd64ab3753e4631fa0dfac765e726b94bc373a2f1fded29b696e7ff3c",
+        "screenshot": "screenshots/content-review-mobile.png"
+      }
+    ],
+    "comparisons": [
+      {
+        "viewport_width": 1440,
+        "evidence_id": "ev_a36e0b923e7cf2a6aea8f2d92b0b167cb999feacd88a2211b43ed3188ff14922",
+        "result": {
+          "before": {
+            "width": 1440,
+            "height": 1000
+          },
+          "after": {
+            "width": 1440,
+            "height": 1000
+          },
+          "channel_threshold": 12,
+          "limitations": [
+            "Pixel comparison does not perform OCR, semantic layout analysis, or perceptual color correction.",
+            "Only non-interlaced 8-bit RGB and RGBA PNG screenshots are accepted.",
+            "PNG tRNS transparency is accepted only as a six-byte RGB color key; tRNS on RGBA or with another length is rejected."
+          ],
+          "status": "different",
+          "compared_pixels": 1440000,
+          "changed_pixels": 407145,
+          "changed_ratio": 0.2827395833333333,
+          "maximum_channel_delta": 255,
+          "mean_absolute_channel_delta": 17.818473784722222
+        }
+      },
+      {
+        "viewport_width": 390,
+        "evidence_id": "ev_dcd7b1e7d7ac5b68e2fbae114bb9178c3f9073a2d72854975e716510e189aa61",
+        "result": {
+          "before": {
+            "width": 390,
+            "height": 1000
+          },
+          "after": {
+            "width": 390,
+            "height": 1000
+          },
+          "channel_threshold": 12,
+          "limitations": [
+            "Pixel comparison does not perform OCR, semantic layout analysis, or perceptual color correction.",
+            "Only non-interlaced 8-bit RGB and RGBA PNG screenshots are accepted.",
+            "PNG tRNS transparency is accepted only as a six-byte RGB color key; tRNS on RGBA or with another length is rejected."
+          ],
+          "status": "different",
+          "compared_pixels": 390000,
+          "changed_pixels": 62365,
+          "changed_ratio": 0.1599102564102564,
+          "maximum_channel_delta": 255,
+          "mean_absolute_channel_delta": 13.086546794871795
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Fresh Rillet capture failed with proxy 403 Forbidden; screenshot comparison uses retained attributed reference images.",
+    "Private competitor screens, unseen content and live backend behavior were not inspected.",
+    "Pixel differences are not semantic similarity scores; FinAI branding, wording, artwork and fictional data intentionally differ.",
+    "Automated accessibility results cover default states, not every interactive or error state.",
+    "Early development-server runs were invalidated by HMR during edits; final verification uses a stable production build."
+  ]
+}

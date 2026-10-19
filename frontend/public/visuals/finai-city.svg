@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <title>FinAI cityscape</title>
+  <desc>Original geometric city illustration in lavender, ink, and warm peach.</desc>
+  <defs>
+    <linearGradient id="sky" x1="800" y1="0" x2="800" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#ded6fb"/><stop offset=".6" stop-color="#efe5ef"/><stop offset="1" stop-color="#f2c6ad"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="350" y2="800" gradientUnits="userSpaceOnUse"><stop stop-color="#7864a3"/><stop offset="1" stop-color="#2b2246"/></linearGradient>
+    <linearGradient id="light" x1="0" y1="0" x2="0" y2="900" gradientUnits="userSpaceOnUse"><stop stop-color="#f7eee7"/><stop offset="1" stop-color="#b69ac4"/></linearGradient>
+    <pattern id="windows" width="27" height="34" patternUnits="userSpaceOnUse"><path d="M8 0v34M0 9h27" stroke="#e8ddf4" stroke-opacity=".32" stroke-width="2"/><path d="M10 12h9v14h-9z" fill="#f5dbc4" fill-opacity=".3"/></pattern>
+    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0H0v100" stroke="#fff" stroke-opacity=".13"/></pattern>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1600v900H0z"/>
+  <circle cx="1240" cy="220" r="110" fill="#fff1dc" opacity=".78"/>
+  <path d="M0 350C400 280 500 380 850 250s500-140 750-90M0 420c420-120 670 50 1000-70s430-90 600-40" stroke="#fff" stroke-opacity=".4" stroke-width="2"/>
+  <path d="M0 590h95V440h80v85h65V340h100v190h120V420h70v130h100V320h65v230h75V390h90v150h95V280h110v240h65V365h85v190h90V410h80v110h115V300h100v240h80V400h70v190h100v310H0z" fill="#b7a8cc"/>
+  <path d="M0 660h160V390l100-55 70 55v280h150V450h95v210h115V390l110-55 90 55v280h100V430h110v240h120V480h100v190h130V340l105 55v265h145v240H0z" fill="#9682b0"/>
+  <path d="M0 175 180 110l165 68v722H0z" fill="url(#glass)"/>
+  <path d="m180 110 165 68v722H180z" fill="#3d3158"/>
+  <path d="M0 175 180 110v790H0z" fill="url(#windows)"/>
+  <path d="m205 160 115 46v675H205z" fill="url(#windows)" opacity=".6"/>
+  <path d="M65 180v720M120 157v743" stroke="#c6b6d5" stroke-opacity=".4" stroke-width="4"/>
+  <path d="m1290 285 180-115 130 43v687h-310z" fill="url(#glass)"/>
+  <path d="m1470 170 130 43v687h-130z" fill="#342943"/>
+  <path d="m1290 285 180-115v730h-180z" fill="url(#windows)"/>
+  <path d="m1490 211 110 36v653h-110z" fill="url(#windows)" opacity=".55"/>
+  <path d="M1020 640V460l130-65 100 42v463h-230z" fill="url(#light)"/>
+  <path d="m1150 395 100 42v463h-100z" fill="#9d82b3"/>
+  <path d="M1038 479h93v421h-93zM1168 457h64v443h-64z" fill="url(#windows)"/>
+  <path d="M310 720V540l115-55 85 30v385H310z" fill="#d2b4c8"/>
+  <path d="m425 485 85 30v385h-85z" fill="#7c618f"/>
+  <path d="M328 552h80v348h-80zM443 537h50v363h-50z" fill="url(#windows)"/>
+  <path d="M0 790c300-80 390 90 680 0s610-80 920-10v120H0z" fill="#3c2d4c"/>
+  <path d="M0 0h1600v900H0z" fill="url(#grid)"/>
+</svg>

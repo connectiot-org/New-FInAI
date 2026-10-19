@@ -1,3 +1,4 @@
+import { BrandMark } from "../components/shared/BrandMark";
 import { useEffect, useState } from "react";
 import {
   NavLink,
@@ -38,6 +39,21 @@ export function Shell() {
     [notice, setNotice] = useState(false);
   useEffect(() => {
     setMobile(false);
+    const title =
+      routeTitles[location.pathname] ||
+      location.pathname
+        .split("/")
+        .filter(Boolean)
+        .at(-1)
+        ?.replaceAll("-", " ") ||
+      "Workspace";
+    document.title = `${title} · FinAI`;
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute(
+        "content",
+        "Explore the fictional Northstar Analytics workspace in FinAI. Browser-local accounting records, reports, and review workflows.",
+      );
     document.querySelector<HTMLElement>("main")?.focus({ preventScroll: true });
   }, [location.pathname]);
   useEffect(() => {
@@ -55,7 +71,8 @@ export function Shell() {
   const sidebar = (
     <>
       <Link className="brand" to="/overview">
-        <span className="brand-symbol">F</span>FinAI
+        <BrandMark />
+        FinAI
         <span className="brand-dot" />
       </Link>
       <div className="workspace-selector">

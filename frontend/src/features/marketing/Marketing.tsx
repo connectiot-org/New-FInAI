@@ -1,3 +1,4 @@
+import { BrandMark } from "../../components/shared/BrandMark";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useParams } from "react-router-dom";
 import * as Dropdown from "@radix-ui/react-dropdown-menu";
@@ -31,6 +32,65 @@ const coreSlugs = [
   "month-end-close",
   "native-integrations",
   "financial-reporting",
+];
+const solutionGroups = [
+  {
+    title: "By role",
+    items: [
+      {
+        label: "Finance leaders",
+        description: "Explore financial statements",
+        to: "/reports",
+      },
+      {
+        label: "Accountants",
+        description: "Follow the ledger and journals",
+        to: "/accounting/ledger",
+      },
+      {
+        label: "Reviewers",
+        description: "Bring approvals into view",
+        to: "/close",
+      },
+    ],
+  },
+  {
+    title: "By workspace",
+    items: [
+      {
+        label: "Growing teams",
+        description: "Connected demo workflows",
+        to: "/welcome",
+      },
+      {
+        label: "Multiple entities",
+        description: "Separate books and a group view",
+        to: "/entities",
+      },
+      {
+        label: "SaaS business",
+        description: "Customers, contracts, and revenue",
+        to: "/revenue/contracts",
+      },
+    ],
+  },
+];
+const partnerGroups = [
+  {
+    title: "Explore together",
+    items: [
+      {
+        label: "About this prototype",
+        description: "The idea behind FinAI",
+        to: "/about",
+      },
+      {
+        label: "Workflow guides",
+        description: "A useful starting point",
+        to: "/resources",
+      },
+    ],
+  },
 ];
 function PublicMenu({
   label,
@@ -129,6 +189,30 @@ export function MarketingLayout() {
       );
     } else window.scrollTo(0, 0);
   }, [location.pathname, location.hash]);
+  useEffect(() => {
+    const product = products.find(
+      (p) => location.pathname === `/product/${p.slug}`,
+    );
+    const page =
+      product?.name ||
+      (
+        {
+          "/": "Connected accounting workflows",
+          "/resources": "Workflow guides",
+          "/customers": "Fictional demo companies",
+          "/about": "About FinAI",
+        } as Record<string, string>
+      )[location.pathname] ||
+      "Page unavailable";
+    document.title = `${page} · FinAI`;
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute(
+        "content",
+        product?.description ||
+          "Explore connected accounting workflows in FinAI. Interactive demo with fictional records, local reviews, and traceable financial statements.",
+      );
+  }, [location.pathname]);
   const groups = [
     {
       title: "Core features",
@@ -159,76 +243,14 @@ export function MarketingLayout() {
       </a>
       <header className="marketing-header">
         <Link className="marketing-brand" to="/" aria-label="FinAI home">
+          <BrandMark />
           FinAI
         </Link>
         <nav aria-label="Public navigation">
           <PublicMenu label="Product" groups={groups} />
-          <PublicMenu
-            label="Solutions"
-            groups={[
-              {
-                title: "By role",
-                items: [
-                  {
-                    label: "Finance leaders",
-                    description: "Explore financial statements",
-                    to: "/reports",
-                  },
-                  {
-                    label: "Accountants",
-                    description: "Follow the ledger and journals",
-                    to: "/accounting/ledger",
-                  },
-                  {
-                    label: "Reviewers",
-                    description: "Bring approvals into view",
-                    to: "/close",
-                  },
-                ],
-              },
-              {
-                title: "By workspace",
-                items: [
-                  {
-                    label: "Growing teams",
-                    description: "Connected demo workflows",
-                    to: "/welcome",
-                  },
-                  {
-                    label: "Multiple entities",
-                    description: "Separate books and a group view",
-                    to: "/entities",
-                  },
-                  {
-                    label: "SaaS business",
-                    description: "Customers, contracts, and revenue",
-                    to: "/revenue/contracts",
-                  },
-                ],
-              },
-            ]}
-          />
+          <PublicMenu label="Solutions" groups={solutionGroups} />
           <Link to="/customers">Customers</Link>
-          <PublicMenu
-            label="Partners"
-            groups={[
-              {
-                title: "Explore together",
-                items: [
-                  {
-                    label: "About this prototype",
-                    description: "The idea behind FinAI",
-                    to: "/about",
-                  },
-                  {
-                    label: "Workflow guides",
-                    description: "A useful starting point",
-                    to: "/resources",
-                  },
-                ],
-              },
-            ]}
-          />
+          <PublicMenu label="Partners" groups={partnerGroups} />
           <PublicMenu
             label="Resources"
             groups={[
@@ -277,7 +299,7 @@ export function MarketingLayout() {
         </nav>
         <div className="marketing-header-actions">
           <Link className="marketing-login" to="/welcome">
-            Log in <span className="sr-only">to demo</span>
+            Open workspace
           </Link>
           <Link className="marketing-button dark small" to="/welcome">
             Explore the demo
@@ -337,6 +359,7 @@ export function MarketingLayout() {
         </div>
         <div className="marketing-footer-bottom">
           <Link className="marketing-brand" to="/" aria-label="FinAI home">
+            <BrandMark />
             FinAI
           </Link>
           <span>
@@ -368,6 +391,20 @@ export function MarketingLayout() {
               {group.items.map((p) => (
                 <Link key={p.to} to={p.to}>
                   {p.label}
+                  <ArrowRight size={13} />
+                </Link>
+              ))}
+            </details>
+          ))}
+          {[...solutionGroups, ...partnerGroups].map((group) => (
+            <details key={group.title}>
+              <summary>
+                {group.title}
+                <ChevronDown size={15} />
+              </summary>
+              {group.items.map((item) => (
+                <Link key={item.to} to={item.to}>
+                  {item.label}
                   <ArrowRight size={13} />
                 </Link>
               ))}

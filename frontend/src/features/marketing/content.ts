@@ -15,7 +15,7 @@ export const products = [
     short: "Books that tell the whole story.",
     icon: BookOpen,
     view: "ledger" as PreviewView,
-    title: "Your accounting on auto-pilot",
+    title: "Your ledger, with every detail connected",
     description:
       "Follow every number from the financial statement to the journal that created it. Keep entries, reviews, and the full story together.",
     benefits: [

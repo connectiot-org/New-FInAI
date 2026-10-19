@@ -119,6 +119,6 @@ git status --short
 git diff -- frontend
 ```
 
-After reviewing the intended frontend changes and their checks, stage those exact paths and commit them. Push to the user's selected branch only when that publication is authorized. For this FinAI task the user explicitly requested pushing the completed work to the connected GitHub repository; the project workflow publishes the reviewed commit with `git push origin HEAD:main`. Confirm the remote commit matches the local one. Do not commit `node_modules`, temporary reference downloads or unreviewed raw evidence.
+After reviewing the intended frontend changes and their checks, stage those exact paths and commit them. Push to the user's selected branch only when that publication is authorized. The current content/UI review does not authorize publication. Do not infer push permission from historical workflow notes. If a later request authorizes a push, confirm its target branch and verify the resulting remote commit. Do not commit `node_modules`, temporary reference downloads or unreviewed raw evidence.
 
 Stop the temporary reference server and preview with Ctrl-C when inspection is finished. Successful REA launch-mode evidence should report `browser.cleanup: "terminated-owned-process"`; this is separate from stopping the two servers you started.

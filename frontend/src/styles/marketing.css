@@ -192,7 +192,7 @@
   font:
     500 13px/1.4 "DM Sans",
     sans-serif;
-  color: #71717a;
+  color: #62626d;
   margin: 0 0 13px 12px;
 }
 .marketing-mega a {
@@ -210,7 +210,7 @@
   text-decoration: none;
 }
 .marketing-mega a > span {
-  color: #71717a;
+  color: #62626d;
   margin-top: 2px;
   display: grid;
   place-items: center;
@@ -223,7 +223,7 @@
 .marketing-mega small {
   display: block;
   font-size: 11px;
-  color: #71717a;
+  color: #62626d;
   line-height: 1.4;
   margin-top: 4px;
 }
@@ -302,7 +302,7 @@
 .marketing-product-note {
   display: block;
   font-size: 12px;
-  color: #71717a;
+  color: #62626d;
   margin-top: 16px;
 }
 .marketing-product-page-preview {
@@ -319,7 +319,7 @@
 }
 .marketing-benefits > div > span {
   font-size: 13px;
-  color: #71717a;
+  color: #62626d;
 }
 .marketing-site .marketing-benefits h2 {
   font-size: 28px;
@@ -372,7 +372,7 @@
 .marketing-guide-bar span {
   display: block;
   font-size: 12px;
-  color: #71717a;
+  color: #62626d;
   margin-top: 5px;
 }
 .marketing-guide-bar a,
@@ -420,7 +420,7 @@
   border-top: 1px solid #e4e4e7;
   padding: 28px 0;
   font-size: 11px;
-  color: #71717a;
+  color: #62626d;
 }
 .marketing-footer-bottom > span:last-child {
   display: flex;
@@ -458,7 +458,7 @@
 }
 .marketing-resource-guides ol {
   font-size: 13px;
-  color: #71717a;
+  color: #62626d;
   list-style: decimal;
   line-height: 1.8;
   margin: 0 0 24px;
@@ -536,7 +536,7 @@
 .marketing-faq summary > span {
   font-size: 20px;
   font-weight: 300;
-  color: #71717a;
+  color: #62626d;
 }
 .marketing-faq details[open] summary > span {
   transform: rotate(45deg);
@@ -607,7 +607,7 @@
 }
 .marketing-customers-grid p {
   font-size: 13px;
-  color: #71717a;
+  color: #62626d;
 }
 .marketing-customers-grid strong {
   font-size: 14px;
@@ -654,7 +654,7 @@
   padding: 0 14px;
   border-bottom: 1px solid #e4e4e7;
   background: #f8f8fa;
-  color: #71717a;
+  color: #62626d;
   font-size: 8px;
 }
 .window-chrome > div {
@@ -737,7 +737,7 @@
 .preview-workspace small {
   display: block;
   font-size: 6px;
-  color: #71717a;
+  color: #62626d;
   margin-top: 3px;
 }
 .preview-nav-label {
@@ -745,7 +745,7 @@
   letter-spacing: 0.6px;
   padding: 0 9px;
   margin-bottom: 9px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-sidebar > button {
   display: flex;
@@ -779,7 +779,7 @@
 .preview-sidebar-bottom small {
   display: block;
   font-size: 6px;
-  color: #71717a;
+  color: #62626d;
   margin-top: 3px;
 }
 .preview-avatar {
@@ -806,7 +806,7 @@
   border-bottom: 1px solid #ededf0;
   padding: 0 25px;
   font-size: 8px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-breadcrumb > b {
   font-weight: 400;
@@ -831,7 +831,7 @@
 .preview-heading > div > span {
   font-size: 6px;
   letter-spacing: 1px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-heading h3 {
   font:
@@ -870,7 +870,7 @@
   justify-content: space-between;
   align-items: center;
   font-size: 8px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-metrics strong {
   display: block;
@@ -884,7 +884,7 @@
 }
 .preview-metrics small {
   font-size: 6px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-analysis {
   display: grid;
@@ -938,7 +938,7 @@
 .preview-bars span,
 .preview-bars small {
   font-size: 6px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-close > strong {
   font-size: 10px;
@@ -951,12 +951,12 @@
 }
 .preview-close-number > span {
   font-size: 20px;
-  color: #a1a1aa;
+  color: #62626d;
   margin-left: 4px;
 }
 .preview-close > span {
   font-size: 7px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-task {
   display: flex;
@@ -964,7 +964,7 @@
   gap: 7px;
   margin-top: 13px;
   font-size: 7px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-task > i,
 .preview-close-list > a > i {
@@ -1022,7 +1022,7 @@
   border: 1px solid #e4e4e7;
   padding: 0 7px;
   border-radius: 3px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-table-tools input {
   border: 0;
@@ -1037,7 +1037,7 @@
   align-items: center;
   gap: 6px;
   font-size: 8px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-table-scroll {
   overflow-x: auto;
@@ -1054,7 +1054,7 @@
   padding: 10px 12px;
   height: 34px;
   border-top: 0;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-table-scroll td {
   font-size: 8px;
@@ -1082,13 +1082,13 @@
   gap: 10px;
   padding-top: 13px;
   font-size: 7px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-no-results {
   text-align: center;
   padding: 30px;
   font-size: 10px;
-  color: #71717a;
+  color: #62626d;
 }
 .preview-close-list {
   padding: 0 15px;
@@ -1115,7 +1115,7 @@
 .preview-close-list small {
   display: block;
   font-size: 7px;
-  color: #71717a;
+  color: #62626d;
   margin-top: 4px;
 }
 .preview-assistant {
@@ -1145,7 +1145,7 @@
 }
 .preview-assistant p {
   font-size: 11px;
-  color: #71717a;
+  color: #62626d;
   margin-bottom: 17px;
 }
 .preview-assistant > a {
@@ -1160,7 +1160,7 @@
 }
 .preview-assistant > div {
   font-size: 8px;
-  color: #71717a;
+  color: #62626d;
   margin-top: 18px;
 }
 .preview-assistant .preview-ask {
@@ -1622,4 +1622,40 @@
   .product-window {
     box-shadow: none;
   }
+}
+
+.marketing-brand {
+  gap: 9px;
+  letter-spacing: -0.75px;
+}
+.preview-brand > .finai-mark {
+  width: 24px;
+  height: 24px;
+}
+.reference-rail-logo > .finai-mark {
+  width: 100%;
+  height: 100%;
+}
+.orbit-art > strong > .finai-mark {
+  width: 38px;
+  height: 38px;
+}
+.mini-ledger-head > b > .finai-mark {
+  width: 19px;
+  height: 19px;
+}
+.reference-integration-grid > .integration-tile {
+  background: #eee9ff;
+  color: #582efd;
+}
+.reference-integration-grid > .integration-tile:hover {
+  background: #582efd;
+  color: #fff;
+}
+.ai-example-answer > div > p {
+  color: #62626d;
+}
+.mini-waterfall section p {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

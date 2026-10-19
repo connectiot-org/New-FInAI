@@ -32,7 +32,7 @@ Desktop shared heading weight is 500; body text is DM Sans with 18/24 px leading
 
 ## Deliberate differences and limits
 
-FinAI's name, working controls, synthetic Northstar data, demo labels and local persistence remain. No real Rillet customer endorsement, G2 rating or certification is asserted for FinAI. Workflow stories and demo badges occupy those structural positions. Product artwork is self-rendered, except the attributed decorative city background described in `reference-assets.md`. No Rillet screenshot serves as the functioning app.
+FinAI's name, working controls, synthetic Northstar data, demo labels and local persistence remain. No real Rillet customer endorsement, G2 rating or certification is asserted for FinAI. Workflow stories and demo badges occupy those structural positions. Application artwork is original, including the replacement geometric city illustration described in `reference-assets.md`. Historical captures may show the previously borrowed city photograph. No Rillet screenshot serves as the functioning app.
 
 The workspace palette, compact rail and overview composition follow visible public previews. Private Rillet accounting screens, hidden states, authenticated interactions, live animations and all source-site integrations were not verified. The complete site and every private screen are not claimed pixel-identical.
 
@@ -43,3 +43,9 @@ The user selected [morluto/rea](https://github.com/morluto/rea) and its [reverse
 A separate Playwright geometry audit measured full-section layouts, distinguishing those measurements from REA's pixel comparisons. `rea-section-comparison.json` includes before/after/reference values. It identified the single-column mobile platform layout, 24px gaps, larger source cards/section insets, the 20%/80% AI rail and product-page structure. The implementation now follows these observations. The public general-ledger source showed a gray-gradient hero, three boxed benefits, four large cards in two columns, a lavender split panel, related features and purple CTA; FinAI recreates that hierarchy with canonical local records. Product-specific reference images were absent from the retained homepage asset cache, so absolute product-page positions are not claimed identical.
 
 The scripts and complete clone-to-compare commands are in [rea-workflow.md](rea-workflow.md). A new standard-library reference preparer verified all 116 assets and the declared CSS integrity. Its isolated render compared with the earlier static reference at zero changed pixels in the 1440×1000 viewport. FinAI's intentional branding, copy, records and honest demo labels still differ from Rillet; the actual comparison status is `different`.
+
+## Content and UI review — 2026-10-19
+
+The current revision preserves the reference-informed layout while using the FinAI monogram, original geometric city art, independent headline and ledger copy, fictional company marks, integration category icons, and interactive workflow stories in place of endorsement/review content. No competitor testimonial, rating, customer logo or certification is presented as FinAI proof. Product categories remain available through twelve public product pages; local demonstrations are described according to their actual capabilities.
+
+A fresh verified-HTTPS reference capture was attempted but the proxy returned `403 Forbidden`. This review therefore uses the existing attributed reference captures for visual context, rather than claiming a new live inspection or complete parity with current competitor content. REA CLI browser observations and the frontend route audit are recorded in `content-ui-review.md`.

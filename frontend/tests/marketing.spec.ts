@@ -16,14 +16,14 @@ test("public navigation, product pages and demo entry work on direct refresh", a
   });
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    /Zero-Day Close\s*starts here/,
+    /Clearer books\.\s*Closer together\./,
   );
   await page.getByRole("button", { name: "Product", exact: true }).click();
   await expect(page.getByRole("menu")).toBeVisible();
   await page.getByRole("menuitem", { name: /General ledger/ }).click();
   await expect(page).toHaveURL("/product/automated-general-ledger");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Your accounting on auto-pilot",
+    "Your ledger, with every detail connected",
   );
   for (const path of [
     "/customers",
@@ -93,7 +93,7 @@ test("guided walkthrough, FAQ keyboard behavior and missing product recovery", a
 }) => {
   await page.goto("/");
   await page
-    .getByRole("button", { name: "Watch the demo", exact: true })
+    .getByRole("button", { name: "Take a guided tour", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page
@@ -161,20 +161,12 @@ for (const width of [1440, 1280, 1024, 390])
     ).toBe(true);
   });
 
-test("measured hero geometry and fonts follow the captured public reference", async ({
+test("original hero artwork and typography remain responsive", async ({
   page,
 }) => {
   for (const target of [
-    {
-      width: 1440,
-      headline: { x: 51.69, y: 182.73, size: 59.08 },
-      art: { x: 51.69, y: 371.02, width: 1336.63, height: 703.72 },
-    },
-    {
-      width: 390,
-      headline: { x: 24, y: 210, size: 40 },
-      art: { x: 0, y: 475.59, width: 390, height: 223.75 },
-    },
+    { width: 1440, size: 59.08 },
+    { width: 390, size: 40 },
   ]) {
     await page.setViewportSize({ width: target.width, height: 1000 });
     await page.goto("/");
@@ -196,12 +188,13 @@ test("measured hero geometry and fonts follow the captured public reference", as
     });
     expect(measured.font).toContain("Space Grotesk");
     expect(measured.image).toBeGreaterThan(1000);
-    for (const key of ["x", "y", "size"] as const)
-      expect(
-        Math.abs(measured.headline[key] - target.headline[key]),
-      ).toBeLessThan(4);
-    for (const key of ["x", "y", "width", "height"] as const)
-      expect(Math.abs(measured.art[key] - target.art[key])).toBeLessThan(4);
+    expect(Math.abs(measured.headline.size - target.size)).toBeLessThan(1);
+    expect(measured.art.y).toBeGreaterThan(measured.headline.y + 80);
+    expect(measured.art.x).toBeGreaterThanOrEqual(0);
+    expect(measured.art.x + measured.art.width).toBeLessThanOrEqual(
+      target.width + 1,
+    );
+    expect(measured.art.height).toBeGreaterThan(200);
   }
 });
 test("public workflow carousel, local guide bookmark and workspace navigation rail work", async ({
@@ -240,8 +233,8 @@ test("platform sections preserve measured desktop spacing and stack full cards o
   page,
 }) => {
   for (const target of [
-    { width: 1440, headingY: 1664.69, gridY: 1843.75, columns: 4 },
-    { width: 390, headingY: 1348.34, gridY: 1568.34, columns: 1 },
+    { width: 1440, columns: 4 },
+    { width: 390, columns: 1 },
   ]) {
     await page.setViewportSize({ width: target.width, height: 1000 });
     await page.goto("/");
@@ -261,8 +254,8 @@ test("platform sections preserve measured desktop spacing and stack full cards o
         cards,
       };
     });
-    expect(Math.abs(layout.headingY - target.headingY)).toBeLessThan(4);
-    expect(Math.abs(layout.gridY - target.gridY)).toBeLessThan(4);
+    expect(layout.gridY - layout.headingY).toBeGreaterThan(100);
+    expect(layout.gridY - layout.headingY).toBeLessThan(300);
     expect(layout.columns).toBe(target.columns);
     if (target.width === 390) {
       for (const card of layout.cards) {
@@ -311,4 +304,97 @@ test("product feature cards, source story and related-workflow carousel remain f
     .click();
   await expect(page).toHaveURL(/\/accounting\/journals\//);
   await expect(page.locator("main h1")).toBeVisible();
+});
+
+test("FinAI identity, fictional companies and owned artwork replace endorsement cues", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page).toHaveTitle("Connected accounting workflows · FinAI");
+  await expect(page.locator("h1")).toHaveText("Clearer books.Closer together.");
+  await expect(page.locator(".marketing-header .finai-mark")).toBeVisible();
+  await expect(page.locator(".reference-companies")).toContainText(
+    "not customer endorsements",
+  );
+  await expect(page.locator(".reference-hero-art > img")).toHaveAttribute(
+    "src",
+    "/visuals/finai-city.svg",
+  );
+  await expect(page.locator("main")).not.toContainText(
+    /Rillet|Zero-Day Close|trusted by|five.star|5.star/i,
+  );
+  await expect(page.locator(".reference-integration-grid a")).toHaveCount(6);
+  await expect(
+    page.getByRole("link", { name: "Explore Banking demo integrations" }),
+  ).toHaveAttribute("href", "/integrations");
+  await page.locator(".reference-company-grid a").first().click();
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page).toHaveURL(/receivables\/customers\//);
+  await page.goto("/product/accounts-payable");
+  await expect(page).toHaveTitle("Accounts payable · FinAI");
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Open workspace", exact: true })
+    .click();
+  await expect(page).toHaveTitle("Welcome · FinAI");
+  await page.getByRole("button", { name: "Enter demo workspace" }).click();
+  await expect(page).toHaveTitle("Overview · FinAI");
+});
+
+test("preview tabs support arrow keys, Home and End without leaking searches", async ({
+  page,
+}) => {
+  await page.goto("/resources#interactive-preview");
+  const tabs = page.getByRole("tablist", { name: "Product preview views" });
+  await tabs.getByRole("tab", { name: "Overview", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    tabs.getByRole("tab", { name: "General ledger", exact: true }),
+  ).toBeFocused();
+  await expect(page.getByRole("tabpanel")).toHaveAccessibleName(
+    "General ledger",
+  );
+  await page
+    .getByRole("textbox", { name: "Search product preview" })
+    .fill("no matching record");
+  await tabs.getByRole("tab", { name: "Receivables", exact: true }).click();
+  await expect(
+    page.getByRole("textbox", { name: "Search product preview" }),
+  ).toHaveValue("");
+  await expect(page.getByRole("tabpanel").locator("tbody tr")).toHaveCount(5);
+  await page.keyboard.press("End");
+  await expect(
+    tabs.getByRole("tab", { name: "FinAI Assistant", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(
+    tabs.getByRole("tab", { name: "Overview", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("ArrowLeft");
+  await expect(
+    tabs.getByRole("tab", { name: "FinAI Assistant", exact: true }),
+  ).toBeFocused();
+  await expect(tabs.locator('[tabindex="0"]')).toHaveCount(1);
+});
+
+test("small-screen navigation exposes solution links and the workspace fits at 320px", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open public navigation" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.locator("summary").filter({ hasText: "By workspace" }).click();
+  await dialog.getByRole("link", { name: "Multiple entities" }).click();
+  await expect(page).toHaveURL("/entities");
+  await expect(dialog).toHaveCount(0);
+  for (const route of ["/", "/resources", "/overview"]) {
+    await page.goto(route);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(320);
+  }
+  await expect(
+    page.getByRole("button", { name: "Ask FinAI" }),
+  ).toBeInViewport();
 });

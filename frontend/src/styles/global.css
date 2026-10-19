@@ -152,7 +152,7 @@ small {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.8px;
-  color: #84918a;
+  color: #5c6861;
   margin-bottom: 10px;
 }
 .tag {
@@ -382,7 +382,7 @@ small {
   align-items: center;
   gap: 14px;
   font-size: 11px;
-  color: #8b958f;
+  color: #5c6861;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -509,7 +509,7 @@ main {
   justify-content: space-between;
   border-top: 1px solid var(--border);
   padding: 14px 34px;
-  color: #9ca69e;
+  color: #5c6861;
 }
 .page-header {
   display: flex;
@@ -836,7 +836,7 @@ main {
 }
 .activity-item time {
   font-size: 10px;
-  color: #98a391;
+  color: #5c6861;
   margin-left: auto;
 }
 .badge {
@@ -862,7 +862,7 @@ main {
 }
 .badge.warning {
   background: #f7f2e7;
-  color: #a68b4b;
+  color: #80671e;
 }
 .badge.neutral {
   background: #f0f2ee;
@@ -968,7 +968,7 @@ td {
 }
 td small {
   display: block;
-  color: #9ba590;
+  color: #5c6861;
   font-size: 9px;
   margin-top: 4px;
 }
@@ -1007,7 +1007,7 @@ tbody tr:hover {
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  color: #96a08c;
+  color: #5c6861;
   font-size: 9px;
   border-top: 1px solid var(--border);
 }
@@ -1076,7 +1076,7 @@ textarea {
   gap: 7px;
   font-size: 11px;
   margin: 15px 0;
-  color: #6a7b5e;
+  color: #5c6861;
 }
 .field > span {
   font-weight: 500;
@@ -1090,7 +1090,7 @@ textarea {
   gap: 9px;
   font-size: 12px;
   margin: 17px 0;
-  color: #6f7d65;
+  color: #5c6861;
 }
 .form-grid {
   display: grid;
@@ -1154,7 +1154,7 @@ textarea {
   flex-wrap: wrap;
   padding: 17px 0;
   font-size: 11px;
-  color: #829274;
+  color: #5c6861;
 }
 .totals strong {
   color: #405638;
@@ -1262,7 +1262,7 @@ textarea {
   gap: 6px;
   align-items: center;
   font-size: 11px;
-  color: #869578;
+  color: #5c6861;
   margin-bottom: 17px;
 }
 .detail-grid {
@@ -1303,7 +1303,7 @@ textarea {
 }
 .detail-row small {
   display: block;
-  color: #9ba68d;
+  color: #5c6861;
   margin-top: 5px;
 }
 .detail-row strong {
@@ -1337,7 +1337,7 @@ textarea {
 .document-paper .wordmark span {
   font-size: 9px;
   font-weight: 400;
-  color: #88977b;
+  color: #5c6861;
 }
 .document-paper .eyebrow {
   font-size: 8px;
@@ -1489,7 +1489,7 @@ hr {
   font-weight: 500;
 }
 .close-summary strong span {
-  color: #a1ad94;
+  color: #5c6861;
   font-size: 22px;
 }
 .close-summary p {
@@ -1652,7 +1652,7 @@ hr {
   font-size: 10px;
 }
 .assistant-disclaimer > span {
-  color: #98a78c;
+  color: #5c6861;
 }
 .assistant-intro {
   text-align: center;
@@ -1714,7 +1714,7 @@ hr {
 }
 .assistant-footnote {
   text-align: center;
-  color: #9ba98d;
+  color: #5c6861;
   font-size: 9px;
   margin-top: 11px;
 }
@@ -1745,7 +1745,7 @@ hr {
 }
 .assistant-label span {
   font-weight: 400;
-  color: #9ba98d;
+  color: #5c6861;
   font-size: 9px;
 }
 .answer-bubble > p {
@@ -2029,7 +2029,7 @@ hr {
   display: flex;
   gap: 10px;
   align-items: center;
-  color: #9ca88d;
+  color: #5c6861;
   border-top: 1px solid var(--border);
   padding-top: 22px;
 }
@@ -2712,5 +2712,24 @@ tfoot {
   }
   .statement-note {
     font-size: 9px;
+  }
+}
+
+/* Shared original FinAI identity, including compact workspace previews. */
+.finai-mark {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.brand > .finai-mark {
+  width: 29px;
+  height: 29px;
+}
+@media (max-width: 359px) {
+  .app .context-right {
+    flex-wrap: wrap;
+    gap: 10px;
   }
 }

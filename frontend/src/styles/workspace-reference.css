@@ -4,7 +4,7 @@
   --surface: #fff;
   --sidebar: #f8f8fa;
   --text: #18181b;
-  --muted: #71717a;
+  --muted: #62626d;
   --border: #e4e4e7;
   --accent: #582efd;
   --accent-light: #f0edff;
@@ -19,7 +19,7 @@
 .app .sidebar {
   background: #f8f8fa;
   border-right: 1px solid #ededf1;
-  color: #71717a;
+  color: #62626d;
 }
 .app .brand {
   color: #240257;
@@ -39,14 +39,14 @@
   color: #3f3f46;
 }
 .app .workspace-selector span:not(.workspace-avatar) {
-  color: #71717a;
+  color: #62626d;
 }
 .app .workspace-avatar {
   background: #ede9fe;
   color: #582efd;
 }
 .app .nav-group-label {
-  color: #71717a;
+  color: #62626d;
 }
 .app .nav-group-label:hover {
   color: #582efd;
@@ -74,7 +74,7 @@
 }
 .app .sidebar-footer button,
 .app .sidebar-footer a {
-  color: #71717a;
+  color: #62626d;
 }
 .app .sidebar nav {
   scrollbar-color: #d4d4d8 transparent;
@@ -92,7 +92,7 @@
   border-color: #ededf0;
 }
 .app .demo-indicator {
-  color: #71717a;
+  color: #62626d;
 }
 .app .assistant-button {
   background: #f0edff;
@@ -122,10 +122,10 @@
   letter-spacing: -0.6px;
 }
 .app .page-header p {
-  color: #71717a;
+  color: #62626d;
 }
 .app .tabs button {
-  color: #71717a;
+  color: #62626d;
 }
 .app .tabs button.active {
   border-bottom-color: #582efd;
@@ -136,7 +136,7 @@
 }
 .app th {
   background: #fafafa;
-  color: #71717a;
+  color: #62626d;
   border-color: #ededf0;
   font-size: 11px;
 }
@@ -168,14 +168,14 @@
 }
 .app .badge.positive {
   background: #edf8f1;
-  color: #38815d;
+  color: #2f7150;
 }
 .app .badge.positive:before {
   background: #68aa87;
 }
 .app .badge.neutral {
   background: #f4f4f5;
-  color: #71717a;
+  color: #62626d;
 }
 .app .permission {
   color: #8d869b;
@@ -194,11 +194,11 @@
 }
 .app .notice.success {
   background: #f1f8f4;
-  color: #54836a;
+  color: #3f7057;
 }
 .app .mini-metrics small,
 .app .detail-row > span:first-child {
-  color: #71717a;
+  color: #62626d;
 }
 .app .bank-logo,
 .app .integration-logo {
@@ -215,10 +215,10 @@
   background: #aa9ad6;
 }
 .app .activity-item p {
-  color: #71717a;
+  color: #62626d;
 }
 .app .section-heading > .muted {
-  color: #71717a;
+  color: #62626d;
 }
 .app .close-summary .progress-track {
   background: #f2eef8;
@@ -241,7 +241,7 @@
   color: #7e55de;
 }
 .app .assistant-intro p {
-  color: #71717a;
+  color: #62626d;
 }
 .app .question-bubble {
   background: #ede8ff;
@@ -269,7 +269,7 @@
   color: #18181b !important;
 }
 .reference-app-overview .finance-section-label {
-  color: #71717a;
+  color: #62626d;
 }
 .reference-app-overview .finance-snapshot h2 {
   font-family: "DM Sans", sans-serif !important;
@@ -359,7 +359,7 @@
   .app:not(.nav-expanded) .sidebar-footer button:before {
     content: "?";
     font-size: 15px;
-    color: #71717a;
+    color: #62626d;
   }
 }
 @media (max-width: 850px) {
@@ -368,10 +368,10 @@
   }
   .app .mobile-sidebar {
     background: #f8f8fa;
-    color: #71717a;
+    color: #62626d;
   }
   .app .mobile-sidebar .nav-group-label {
-    color: #71717a;
+    color: #62626d;
   }
   .app .mobile-sidebar .brand {
     color: #240257;
@@ -383,7 +383,7 @@
     color: #52525b;
   }
   .app .mobile-sidebar .workspace-selector span:not(.workspace-avatar) {
-    color: #71717a;
+    color: #62626d;
   }
 }
 @media (max-width: 600px) {
@@ -405,7 +405,7 @@
 }
 :root {
   --text: #18181b;
-  --muted: #71717a;
+  --muted: #62626d;
   --border: #e4e4e7;
   --accent: #582efd;
   --accent-light: #f0edff;

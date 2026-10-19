@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { BrandMark } from "../../components/shared/BrandMark";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -64,9 +65,9 @@ const platform = [
   {
     title: (
       <>
-        Advanced
+        Revenue
         <br />
-        revenue recognition
+        recognition
       </>
     ),
     description: "Contracts, schedules, and posted revenue",
@@ -89,7 +90,7 @@ const platform = [
     title: (
       <>
         Multi-entity &<br />
-        global-ready
+        group reporting
       </>
     ),
     description: "Separate books. Shared view.",
@@ -123,9 +124,9 @@ const platform = [
   {
     title: (
       <>
-        Security and
+        Roles and
         <br />
-        permissions
+        review controls
       </>
     ),
     description: "Local roles, reviews, and audit activity",
@@ -175,8 +176,8 @@ export function ReferenceWalkthrough({
       onOpenChange={onOpenChange}
     >
       <p className="reference-tour-note">
-        An interactive walkthrough with fictional records. No video, external
-        service, or live account is connected.
+        Choose a workflow and follow its records, reviews, and next steps in the
+        fictional Northstar Analytics workspace.
       </p>
       <div className="reference-tour-tabs">
         {journeys.map((j, i) => (
@@ -214,7 +215,7 @@ function HeroWorkspace() {
           className="reference-rail-logo"
           aria-label="Open FinAI overview"
         >
-          Fi
+          <BrandMark />
         </Link>
         {[
           {
@@ -295,9 +296,18 @@ function PlatformArt({ kind }: { kind: string }) {
         <i />
         <i />
         <i />
-        <strong>Fi</strong>
+        <strong>
+          <BrandMark />
+        </strong>
         {(kind === "integrations"
-          ? ["Mercury", "Stripe", "Ramp", "Gusto", "Slack", "Salesforce"]
+          ? [
+              "Banking",
+              "Payments",
+              "Expenses",
+              "Payroll",
+              "Notifications",
+              "CRM",
+            ]
           : ["Alex · Admin", "Taylor · Accountant", "Jordan · Reviewer"]
         ).map((name, i) => (
           <span key={name} className={`orbit-node node-${i}`}>
@@ -313,7 +323,9 @@ function PlatformArt({ kind }: { kind: string }) {
     return (
       <div className="platform-art mini-ledger">
         <div className="mini-ledger-head">
-          <b>Fi</b>
+          <b>
+            <BrandMark />
+          </b>
           <span>Welcome</span>
         </div>
         <div className="mini-ledger-metrics">
@@ -578,12 +590,16 @@ function WorkflowStories() {
       <div className="reference-heading">
         <span>04 WORKFLOWS</span>
         <h2>
-          See how the work
+          Workflows you can
           <br />
-          comes together
+          try for yourself
         </h2>
       </div>
-      <div className="reference-story-window">
+      <div
+        className="reference-story-window"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <div className="reference-story-art">
           <story.icon size={64} />
           <div className="story-trail">
@@ -644,9 +660,9 @@ export function ReferenceHome() {
             </div>
             <div className="reference-hero-columns">
               <h1>
-                Zero-Day Close
+                Clearer books.
                 <br />
-                starts here
+                Closer together.
               </h1>
               <div>
                 <p>
@@ -660,11 +676,7 @@ export function ReferenceHome() {
             </div>
           </div>
           <div className="reference-hero-art">
-            <img
-              src="/visuals/city-reference.avif"
-              alt=""
-              fetchPriority="high"
-            />
+            <img src="/visuals/finai-city.svg" alt="" fetchPriority="high" />
             <div className="reference-hero-panel">
               <HeroWorkspace />
             </div>
@@ -672,7 +684,7 @@ export function ReferenceHome() {
         </div>
       </section>
       <section className="reference-companies reference-container">
-        <h2>Meet the demo companies</h2>
+        <h2>Explore our fictional demo companies</h2>
         <div className="reference-company-grid">
           {companies.map((c, i) => (
             <Link
@@ -700,7 +712,10 @@ export function ReferenceHome() {
             </Link>
           ))}
         </div>
-        <p>All company names and records are synthetic.</p>
+        <p>
+          Fictional names and original marks for sample records, not customer
+          endorsements.
+        </p>
       </section>
       <section
         className="reference-platform reference-grid-background"
@@ -747,7 +762,7 @@ export function ReferenceHome() {
         </div>
         <button className="reference-button" onClick={() => setTour(true)}>
           <CirclePlay size={15} />
-          Watch the demo
+          Take a guided tour
         </button>
       </section>
       <section className="reference-ai" id="why-finai">
@@ -807,27 +822,26 @@ export function ReferenceHome() {
         </div>
         <div className="reference-integration-grid">
           {Array.from({ length: 51 }, (_, i) => {
-            const names: Record<number, string> = {
-              2: "Mercury",
-              9: "Stripe",
-              15: "Ramp",
-              29: "Gusto",
-              38: "Salesforce",
-              46: "Slack",
+            const categories: Record<
+              number,
+              { name: string; icon: typeof Wallet }
+            > = {
+              2: { name: "Banking", icon: Building2 },
+              9: { name: "Payments", icon: Wallet },
+              15: { name: "Expenses", icon: Receipt },
+              29: { name: "Payroll", icon: FileCheck2 },
+              38: { name: "CRM", icon: Layers },
+              46: { name: "Notifications", icon: Bell },
             };
-            const name = names[i];
-            return name ? (
+            const category = categories[i];
+            return category ? (
               <Link
                 key={i}
                 to="/integrations"
-                className={`integration-tile integration-${name.toLowerCase()}`}
-                aria-label={`Explore ${name} demo integration`}
+                className="integration-tile"
+                aria-label={`Explore ${category.name} demo integrations`}
               >
-                {name === "Mercury"
-                  ? "M"
-                  : name === "Salesforce"
-                    ? "salesforce"
-                    : name.toLowerCase()}
+                <category.icon size={22} aria-hidden="true" />
               </Link>
             ) : (
               <div key={i} aria-hidden="true" />
@@ -895,6 +909,14 @@ export function ReferenceHome() {
 
 export function PreviewExplorer() {
   const [preview, setPreview] = useState<PreviewView>("overview");
+  const tabs = useRef<HTMLDivElement>(null);
+  const views = [
+    { key: "overview", label: "Overview" },
+    { key: "ledger", label: "General ledger" },
+    { key: "receivables", label: "Receivables" },
+    { key: "close", label: "Month-end close" },
+    { key: "assistant", label: "FinAI Assistant" },
+  ] as const;
   return (
     <section
       className="reference-preview-explorer reference-container"
@@ -910,20 +932,34 @@ export function PreviewExplorer() {
       </div>
       <div
         className="reference-preview-tabs"
+        ref={tabs}
         role="tablist"
         aria-label="Product preview views"
       >
-        {(
-          [
-            { key: "overview", label: "Overview" },
-            { key: "ledger", label: "General ledger" },
-            { key: "receivables", label: "Receivables" },
-            { key: "close", label: "Month-end close" },
-            { key: "assistant", label: "FinAI Assistant" },
-          ] as const
-        ).map((v) => (
+        {views.map((v, index) => (
           <button
             role="tab"
+            id={`preview-tab-${v.key}`}
+            tabIndex={preview === v.key ? 0 : -1}
+            onKeyDown={(event) => {
+              const last = views.length - 1;
+              const next =
+                event.key === "ArrowRight"
+                  ? (index + 1) % views.length
+                  : event.key === "ArrowLeft"
+                    ? (index + last) % views.length
+                    : event.key === "Home"
+                      ? 0
+                      : event.key === "End"
+                        ? last
+                        : -1;
+              if (next < 0) return;
+              event.preventDefault();
+              setPreview(views[next].key);
+              const buttons =
+                tabs.current?.querySelectorAll<HTMLButtonElement>("[role=tab]");
+              buttons?.[next]?.focus();
+            }}
             aria-selected={preview === v.key}
             aria-controls="reference-product-preview"
             key={v.key}
@@ -933,7 +969,12 @@ export function PreviewExplorer() {
           </button>
         ))}
       </div>
-      <div id="reference-product-preview">
+      <div
+        id="reference-product-preview"
+        role="tabpanel"
+        aria-labelledby={`preview-tab-${preview}`}
+        tabIndex={0}
+      >
         <ProductPreview view={preview} onViewChange={setPreview} />
       </div>
     </section>

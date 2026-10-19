@@ -1,4 +1,5 @@
-import { Component, type ReactNode } from "react";
+import { BrandMark } from "../components/shared/BrandMark";
+import { Component, useEffect, type ReactNode } from "react";
 import {
   createBrowserRouter,
   Navigate,
@@ -54,6 +55,15 @@ import {
   Settings,
 } from "../features/Administration";
 function Welcome() {
+  useEffect(() => {
+    document.title = "Welcome · FinAI";
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute(
+        "content",
+        "Enter the FinAI accounting demo with fictional Northstar Analytics records. No sign-in or credentials required.",
+      );
+  }, []);
   const s = useDemo(),
     dispatch = useAppDispatch(),
     navigate = useNavigate();
@@ -61,7 +71,8 @@ function Welcome() {
     <div className="welcome">
       <div className="welcome-story">
         <Link to="/welcome" className="brand">
-          <span className="brand-symbol">F</span>FinAI
+          <BrandMark />
+          FinAI
         </Link>
         <div>
           <span className="eyebrow">THE BIG PICTURE. THE SMALL DETAILS.</span>

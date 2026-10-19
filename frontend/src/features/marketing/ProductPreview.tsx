@@ -1,3 +1,4 @@
+import { BrandMark } from "../../components/shared/BrandMark";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -39,14 +40,15 @@ export function ProductPreview({
 }) {
   const s = useDemo(),
     m = metrics(s),
-    [query, setQuery] = useState("");
+    [search, setSearch] = useState({ view, value: "" });
+  const query = search.view === view ? search.value : "";
   const tasks = s.tasks.filter(
     (t) =>
       t.entity === s.entity &&
       t.due.startsWith(s.period === "all" ? "2026-09" : s.period),
   );
   const change = (v: PreviewView) => {
-    setQuery("");
+    setSearch({ view: v, value: "" });
     onViewChange(v);
   };
   const title = views.find((v) => v.key === view)?.name;
@@ -78,7 +80,8 @@ export function ProductPreview({
       <div className="product-window-body">
         <aside className="preview-sidebar">
           <Link to="/" className="preview-brand">
-            <span>F</span>FinAI
+            <BrandMark />
+            FinAI
           </Link>
           <div className="preview-workspace">
             <b>N</b>
@@ -229,7 +232,9 @@ export function ProductPreview({
                           : "Search invoices…"
                       }
                       value={query}
-                      onChange={(e) => setQuery(e.target.value)}
+                      onChange={(e) =>
+                        setSearch({ view, value: e.target.value })
+                      }
                     />
                   </label>
                   <span>
