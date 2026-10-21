@@ -12,11 +12,13 @@ model Organisation {
   name        String       @db.VarChar(200)
   entities    Entity[]
   memberships Membership[]
+  sessions Session[]
 }
 
 model User {
   id          String       @id @db.Uuid
   memberships Membership[]
+  account Account?
 }
 
 model Membership {
@@ -66,4 +68,29 @@ model ChecklistTask {
   entity         Entity   @relation(fields: [organisationId, entityId], references: [organisationId, id])
 
   @@index([organisationId, entityId, month, createdAt, id])
+}
+
+model Account {
+  userId String @id @db.Uuid
+  username String @unique @db.VarChar(100)
+  passwordHash String
+  disabled Boolean @default(false)
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sessions Session[]
+}
+model Session {
+  tokenHash String @id @db.Char(64)
+  userId String @db.Uuid
+  organisationId String @db.Uuid
+  csrfHash String @db.Char(64)
+  expiresAt DateTime @db.Timestamptz(3)
+  account Account @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  @@index([userId])
+  @@index([expiresAt])
+}
+model RateLimit {
+  key String @id @db.Char(64)
+  window DateTime @db.Timestamptz(3)
+  count Int
 }

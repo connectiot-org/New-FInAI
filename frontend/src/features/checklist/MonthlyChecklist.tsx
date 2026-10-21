@@ -6,6 +6,8 @@ import { Confirm, Field, useToast } from "../../components/ui";
 import {
   checklistClient as client,
   checklistMode,
+  sessionEnabled,
+  previousMonth,
   monthPattern,
   ChecklistError,
   type ChecklistEntity,
@@ -15,7 +17,7 @@ import {
 } from "./api";
 import "./checklist.css";
 
-export function MonthlyChecklist() {
+function ChecklistBody() {
   const [params, setParams] = useSearchParams();
   const [entities, setEntities] = useState<ChecklistEntity[]>([]);
   const [entityError, setEntityError] = useState("");
@@ -28,6 +30,11 @@ export function MonthlyChecklist() {
   const [pending, setPending] = useState(false);
   const [revision, setRevision] = useState(0);
   const [title, setTitle] = useState("");
+  const [copying, setCopying] = useState(false);
+  const [copyMessage, setCopyMessage] = useState<{
+    scope: string;
+    message: string;
+  }>();
   const [deleting, setDeleting] = useState<ChecklistTask>();
   const retryCreate = useRef<CreateTask | undefined>(undefined);
   const inFlight = useRef(false);
@@ -108,6 +115,8 @@ export function MonthlyChecklist() {
     setTitle("");
     setSaveError("");
     setDeleting(undefined);
+    setCopying(false);
+    setCopyMessage(undefined);
     // Keep an ambiguous creation bound to its original scope; never reuse it in a new month.
   }
   async function write(
@@ -150,6 +159,37 @@ export function MonthlyChecklist() {
         setSaveError(message);
       }
     } finally {
+      inFlight.current = false;
+      setPending(false);
+    }
+  }
+  async function copy() {
+    if (inFlight.current) return;
+    const startedScope = scope;
+    inFlight.current = true;
+    setPending(true);
+    setCopying(false);
+    setSaveError("");
+    setCopyMessage(undefined);
+    try {
+      const result = await client.copyPreviousMonth(entityId, month);
+      if (activeScope.current !== startedScope) return;
+      setCopyMessage({
+        scope: startedScope,
+        message: result.copiedCount
+          ? `Copied ${result.copiedCount} tasks from ${result.sourceMonth} to ${result.destinationMonth}.`
+          : `No tasks in ${result.sourceMonth}. Nothing was copied.`,
+      });
+    } catch (error) {
+      if (activeScope.current !== startedScope) return;
+      setSaveError(
+        `${error instanceof Error ? error.message : "Copy could not be confirmed."} Reloading the destination before any retry. Review the checklist first.`,
+      );
+    } finally {
+      if (activeScope.current === startedScope) {
+        setData(undefined);
+        setRevision((v) => v + 1);
+      }
       inFlight.current = false;
       setPending(false);
     }
@@ -203,14 +243,18 @@ export function MonthlyChecklist() {
         description="Your tasks for one entity and month. Completion is separate from close approval."
         action={
           <span className="tag">
-            {checklistMode === "demo" ? "Demo checklist" : "Local backend"}
+            {checklistMode === "demo"
+              ? "Demo checklist"
+              : sessionEnabled
+                ? "Connected backend"
+                : "Local backend"}
           </span>
         }
       />
       <p className="notice">
         {checklistMode === "demo"
           ? "Session-only checklist demo. Tasks clear on page refresh."
-          : "Tasks are saved to your local backend. Demo workspace controls and persona changes do not change checklist access."}
+          : "Tasks are saved to the connected backend. Demo workspace controls and persona changes do not change checklist access."}
       </p>
       {entityError && (
         <div role="alert" className="notice error">
@@ -253,6 +297,26 @@ export function MonthlyChecklist() {
           />
         </Field>
       </div>
+      <button
+        type="button"
+        disabled={disabled || !!visible?.items.length || month === "0001-01"}
+        onClick={() => setCopying(true)}
+      >
+        {pending ? "Copying…" : "Copy last month’s tasks"}
+      </button>
+      {copyMessage?.scope === scope && (
+        <p role="status" className="notice">
+          {copyMessage.message}
+        </p>
+      )}
+      <Confirm
+        open={copying}
+        title="Copy last month’s tasks"
+        description={`Copy titles from ${previousMonth(month)} into ${month}? New tasks start incomplete. The destination must be empty.`}
+        label="Copy tasks"
+        onConfirm={() => void copy()}
+        onOpenChange={setCopying}
+      />
       {entityLoading && <p role="status">Loading checklist entities…</p>}
       {!entityLoading && !entityError && !entities.length && (
         <p className="notice">
@@ -387,6 +451,144 @@ export function MonthlyChecklist() {
             );
         }}
       />
+    </>
+  );
+}
+
+export function MonthlyChecklist() {
+  const [authenticated, setAuthenticated] = useState(!sessionEnabled);
+  const [checking, setChecking] = useState(sessionEnabled);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (!sessionEnabled) return;
+    let active = true;
+    fetch("/auth/session", {
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(10000),
+    })
+      .then((r) => {
+        if (active) setAuthenticated(r.ok);
+      })
+      .catch(() => {
+        if (active) setError("Cannot reach sign-in service.");
+      })
+      .finally(() => {
+        if (active) setChecking(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  if (checking) return <p role="status">Checking session…</p>;
+  if (!authenticated)
+    return (
+      <section className="panel">
+        <h1>Sign in to your checklist</h1>
+        <p>Accounts are provided by your administrator.</p>
+        {error && <p role="alert">{error}</p>}
+        <form
+          onSubmit={async (event) => {
+            event.preventDefault();
+            if (busy) return;
+            const form = event.currentTarget;
+            const fields = new FormData(form);
+            setBusy(true);
+            setError("");
+            try {
+              const r = await fetch("/auth/login", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  username: fields.get("username"),
+                  password: fields.get("password"),
+                  organisationId: fields.get("organisationId"),
+                }),
+                signal: AbortSignal.timeout(10000),
+              });
+              if (!r.ok)
+                throw new Error(
+                  "Sign-in failed. Check your details or try again later.",
+                );
+              form.reset();
+              setAuthenticated(true);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Sign-in failed.");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <Field label="Account name">
+            <input
+              name="username"
+              autoComplete="username"
+              required
+              maxLength={100}
+            />
+          </Field>
+          <Field label="Organisation ID">
+            <input name="organisationId" required autoComplete="off" />
+          </Field>
+          <Field label="Password">
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              maxLength={1024}
+            />
+          </Field>
+          <button className="primary" disabled={busy}>
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+      </section>
+    );
+  return (
+    <>
+      {sessionEnabled && (
+        <>
+          <button
+            disabled={busy}
+            onClick={async () => {
+              if (busy) return;
+              setBusy(true);
+              setError("");
+              try {
+                const r = await fetch("/auth/session", {
+                  credentials: "same-origin",
+                });
+                if (r.ok) {
+                  const session = await r.json();
+                  const result = await fetch("/auth/logout", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "X-CSRF-Token": session.csrfToken,
+                    },
+                    body: "{}",
+                    signal: AbortSignal.timeout(10000),
+                  });
+                  if (!result.ok)
+                    throw new Error("Sign out failed. Try again.");
+                }
+                setAuthenticated(false);
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "Sign out failed.");
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            Sign out
+          </button>
+          {error && <p role="alert">{error}</p>}
+        </>
+      )}
+      <ChecklistBody />
     </>
   );
 }

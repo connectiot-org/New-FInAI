@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/proxy?route=api/$1" },
+    { "src": "/auth/(.*)", "dest": "/api/proxy?route=auth/$1" },
+    { "handle": "filesystem" },
+    { "src": "/((?!api(?:/|$)|auth(?:/|$)).*)", "dest": "/index.html" }
+  ]
+}

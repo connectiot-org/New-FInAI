@@ -1,6 +1,6 @@
-# Monthly checklist contract 1.0.0
+# Monthly checklist contract 1.1.0
 
-OpenAPI **3.1.1**, contract **1.0.0**, URI `/api/v1`. Reconciled with supplied Prompt 02, replacing 0.1.0-proposal.1 before implementation. Coordinator owns shared schema/examples. Application roles propose deltas before edits; no silent drift. Production identity remains a separate release gate; local/test identity is server-owned, explicit and loopback-only.
+OpenAPI **3.1.1**, contract **1.1.0**, URI `/api/v1`. Reconciled with supplied Prompt 02, replacing 0.1.0-proposal.1 before implementation. Coordinator owns shared schema/examples. Application roles propose deltas before edits; no silent drift. Contract 1.1.0 adds administrative session authentication; target infrastructure and public-release verification remain gated. Local/test identity is still server-owned, explicit and loopback-only.
 
 | Operation | Input | Response |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Tasks expose id/entityId/month/title/completed/version/createdAt/updatedAt only.
 
 One entity/month has at most 200 active tasks, enforced transactionally with consistent PostgreSQL advisory locks. GET returns all rows sorted by createdAt/id; summary uses precisely those rows, percent rounded to nearest integer, empty = zero. No cursors or pagination. POST normalizes UUIDs/month/title and stores immutable original create digest. Same authorized ID/payload returns current task; changed payload is CREATE_CONFLICT/409, capacity is CAPACITY_REACHED/409. Foreign IDs return safe 404. Deletion ends retry lifetime; no tombstones. PATCH is absolute assignment with version CAS; accepted same-value updates increment version. DELETE requires If-Match version; stale →409; missing/repeated/foreign →404. No demo/ledger records are touched.
 
-All responses carry server-generated X-Request-Id; errors use `{code,message,requestId,fieldErrors?}`. 400 malformed JSON; 401 missing/invalid identity; 403 forbidden action/untrusted origin; 404 absent/inaccessible record; 409 version/create/capacity conflict; 422 invalid input; 500 safe internal failure; 503 unavailable dependency. No traces/SQL/secrets. All mutations require JSON Content-Type (including DELETE) and reject untrusted Origin/forwarding/identity override headers in local mode. Exact local frontend origins are configured server-side; curl with no Origin is local-only and cannot select identity. OPTIONS preflights advertise only allowed methods/headers. CORS is not authentication. Public operation is disabled until verified identity and membership integration exists.
+All responses carry server-generated X-Request-Id; errors use `{code,message,requestId,fieldErrors?}`. 400 malformed JSON; 401 missing/invalid identity; 403 forbidden action/untrusted origin; 404 absent/inaccessible record; 409 version/create/capacity conflict; 422 invalid input; 500 safe internal failure; 503 unavailable dependency. No traces/SQL/secrets. All mutations require JSON Content-Type (including DELETE) and reject untrusted Origin/forwarding/identity override headers in local mode. Exact local frontend origins are configured server-side; curl with no Origin is local-only and cannot select identity. OPTIONS preflights advertise only allowed methods/headers. CORS is not authentication. Production mode requires database sessions, exact configured hosts/origin and the authenticated same-origin proxy; public deployment remains unauthorized until the release gates are completed.
 
 ## Local examples
 
@@ -42,3 +42,8 @@ Separate `/close/checklist`; feature-specific typed/validated client and server 
 ## Validation
 
 From repository root: `python contracts/validate_examples.py` (PyYAML/jsonschema versions in requirements.txt). OpenAPI: install `@redocly/cli@2.8.0` outside application manifests then `redocly lint contracts/openapi.yaml --extends minimal`. Backend tests must validate real response JSON against schemas as well as persistence/isolation/concurrency. Schema checks alone do not establish runtime correctness. See context/progress.md for actual evidence.
+
+## Contract 1.1.0 — copy and session release
+POST `/api/v1/checklist-tasks/copy-previous-month` accepts only entityId and destination month. Server computes previous month (January crosses years; 0001-01 rejected). 201 returns sourceMonth/destinationMonth/copiedCount; empty source returns 200/zero. Occupied destination returns 409 DESTINATION_NOT_EMPTY. Titles only, new UUIDs, incomplete/version 1, atomic batch, source unchanged. Reload destination after uncertain responses; repeat against occupied destination conflicts.
+
+Production identity uses administratively provisioned Argon2id accounts and PostgreSQL opaque sessions. GET /auth/session supplies a CSRF token; all authenticated mutations require exact Origin and X-CSRF-Token. Login accepts username/password/organisationId; never persist credentials in browser storage. No signup or email recovery. Existing CRUD contracts remain unchanged.
