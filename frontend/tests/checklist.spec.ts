@@ -390,3 +390,211 @@ test("a rejected completion stays unchecked and does not claim success", async (
   await page.getByRole("button", { name: "Delete task", exact: true }).click();
   await expect(page.getByText("0/0 completed", { exact: true })).toBeVisible();
 });
+
+async function clearMonths(months: string[]) {
+  for (const selected of months) {
+    const r = await fetch(
+      `${api}/checklist-tasks?entityId=${entities[0].id}&month=${selected}`,
+    );
+    const list = await r.json();
+    for (const task of list.items)
+      await fetch(`${api}/checklist-tasks/${task.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "If-Match": `"${task.version}"`,
+        },
+      });
+  }
+}
+async function seedCopySource(selected: string) {
+  const r = await fetch(`${api}/checklist-tasks`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: crypto.randomUUID(),
+      entityId: entities[0].id,
+      month: selected,
+      title: "Carry bank review",
+    }),
+  });
+  expect(r.status).toBe(201);
+  return r.json();
+}
+test("copy confirmation, cancellation, incomplete progress, source preservation, refresh and mobile keyboard", async ({
+  page,
+}) => {
+  const year = 6000 + Math.floor(Math.random() * 1000),
+    source = `${year}-09`,
+    destination = `${year}-10`;
+  try {
+    const original = await seedCopySource(source);
+    await fetch(`${api}/checklist-tasks/${original.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ completed: true, expectedVersion: 1 }),
+    });
+    await open(page, destination);
+    const button = page.getByRole("button", {
+      name: "Copy last month’s tasks",
+      exact: true,
+    });
+    await button.click();
+    await expect(page.getByRole("dialog")).toContainText(
+      `${source} into ${destination}`,
+    );
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(
+      page.getByText("0/0 completed", { exact: true }),
+    ).toBeVisible();
+    await button.focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("button", { name: "Copy tasks", exact: true }).click();
+    await expect(
+      page.getByText(`Copied 1 tasks from ${source} to ${destination}.`, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(row(page, "Carry bank review")).not.toBeChecked();
+    await expect(
+      page.getByText("0/1 completed", { exact: true }),
+    ).toBeVisible();
+    await expect(button).toBeDisabled();
+    await page.reload();
+    await expect(row(page, "Carry bank review")).not.toBeChecked();
+    const sourceList = await (
+      await fetch(
+        `${api}/checklist-tasks?entityId=${entities[0].id}&month=${source}`,
+      )
+    ).json();
+    expect(sourceList.items[0].completed).toBe(true);
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  } finally {
+    await clearMonths([source, destination]);
+  }
+});
+test("copy empty source, occupied conflict, uncertain persisted response, pending guard and changed scope", async ({
+  page,
+}) => {
+  const year = 7100 + Math.floor(Math.random() * 1000),
+    source = `${year}-03`,
+    destination = `${year}-04`;
+  try {
+    await open(page, destination);
+    const button = page.getByRole("button", {
+      name: "Copy last month’s tasks",
+      exact: true,
+    });
+    await button.click();
+    await page.getByRole("button", { name: "Copy tasks", exact: true }).click();
+    await expect(
+      page.getByText(`No tasks in ${source}. Nothing was copied.`, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await seedCopySource(source);
+    // Another client fills the previously empty destination before confirmation.
+    await seedCopySource(destination);
+    await button.click();
+    await page.getByRole("button", { name: "Copy tasks", exact: true }).click();
+    await expect(page.getByRole("alert")).toContainText(
+      "destination month already contains tasks",
+    );
+    await expect(button).toBeDisabled();
+    await clearMonths([destination]);
+    await page.reload();
+    await expect(button).toBeEnabled();
+    let calls = 0;
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(
+      "**/checklist-tasks/copy-previous-month",
+      async (route) => {
+        calls++;
+        await route.fetch();
+        await gate;
+        await route.abort("failed");
+      },
+    );
+    await button.click();
+    await page.getByRole("button", { name: "Copy tasks", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Copying…", exact: true }),
+    ).toBeDisabled();
+    release();
+    await expect(page.getByRole("alert")).toContainText(
+      "Reloading the destination",
+    );
+    await expect(row(page, "Carry bank review")).toBeVisible();
+    expect(calls).toBe(1);
+    await expect(button).toBeDisabled();
+    await expect(
+      page.getByText(`Copied 1 tasks from ${source} to ${destination}.`, {
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await page.unroute("**/checklist-tasks/copy-previous-month");
+    await page.reload();
+    await expect(row(page, "Carry bank review")).toBeVisible();
+  } finally {
+    await clearMonths([source, destination]);
+  }
+});
+
+test("copy response after browser-back cannot overwrite a different month", async ({
+  page,
+}) => {
+  const year = 8200 + Math.floor(Math.random() * 500),
+    source = `${year}-07`,
+    destination = `${year}-08`;
+  let release: () => void = () => {};
+  try {
+    await seedCopySource(source);
+    await page.goto(
+      `/close/checklist?entity=${entities[0].id}&month=${source}`,
+    );
+    await expect(row(page, "Carry bank review")).toBeVisible();
+    await page.getByLabel("Checklist month").fill(destination);
+    const button = page.getByRole("button", {
+      name: "Copy last month’s tasks",
+      exact: true,
+    });
+    await expect(button).toBeEnabled();
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(
+      "**/checklist-tasks/copy-previous-month",
+      async (route) => {
+        const r = await route.fetch();
+        await gate;
+        await route.fulfill({ response: r });
+      },
+    );
+    await button.click();
+    await page.getByRole("button", { name: "Copy tasks", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Copying…", exact: true }),
+    ).toBeDisabled();
+    await page.goBack();
+    await expect(page.getByLabel("Checklist month")).toHaveValue(source);
+    release();
+    await expect(row(page, "Carry bank review")).toBeVisible();
+    await expect(
+      page.getByText(`Copied 1 tasks from ${source} to ${destination}.`, {
+        exact: true,
+      }),
+    ).toHaveCount(0);
+  } finally {
+    release();
+    await clearMonths([source, destination]);
+  }
+});

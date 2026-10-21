@@ -1,6 +1,19 @@
 import { z } from "zod";
 
 export const checklistMode = import.meta.env.VITE_CHECKLIST_MODE || "demo";
+export const sessionEnabled = import.meta.env.VITE_AUTH_MODE === "session";
+export function previousMonth(value: string) {
+  const [y, m] = value.split("-").map(Number);
+  return m === 1
+    ? `${String(y - 1).padStart(4, "0")}-12`
+    : `${String(y).padStart(4, "0")}-${String(m - 1).padStart(2, "0")}`;
+}
+const copySchema = z.strictObject({
+  sourceMonth: z.string(),
+  destinationMonth: z.string(),
+  copiedCount: z.number().int().min(0).max(200),
+});
+export type CopyResult = z.infer<typeof copySchema>;
 export const monthPattern = /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/;
 const taskSchema = z.strictObject({
   id: z.uuid(),
@@ -57,6 +70,7 @@ export interface ChecklistClient {
     month: string,
     signal?: AbortSignal,
   ): Promise<ChecklistList>;
+  copyPreviousMonth(entityId: string, month: string): Promise<CopyResult>;
   create(input: CreateTask): Promise<ChecklistTask>;
   complete(
     id: string,
@@ -85,7 +99,8 @@ class ApiClient implements ChecklistClient {
     if (checklistMode !== "api")
       throw new ChecklistError("Checklist mode is not configured correctly.");
     const base =
-      import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:3000/api/v1";
+      import.meta.env.VITE_API_BASE_URL ||
+      (import.meta.env.PROD ? "/api/v1" : "http://127.0.0.1:3000/api/v1");
     let url: URL;
     try {
       url = new URL(base.replace(/\/$/, "") + path, window.location.origin);
@@ -95,11 +110,35 @@ class ApiClient implements ChecklistClient {
         "The checklist API address is not configured correctly.",
       );
     }
+    if (
+      import.meta.env.PROD &&
+      (url.origin !== window.location.origin ||
+        url.pathname.indexOf("/api/v1") !== 0)
+    )
+      throw new ChecklistError(
+        "Production requires the same-origin API proxy.",
+      );
+    if (sessionEnabled && method !== "GET") {
+      const session = await fetch("/auth/session", {
+        credentials: "same-origin",
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!session.ok)
+        throw new ChecklistError(
+          "Your session expired. Sign in again.",
+          401,
+          "UNAUTHENTICATED",
+        );
+      const body = z
+        .strictObject({ csrfToken: z.string().regex(/^[a-f0-9]{64}$/) })
+        .parse(await session.json());
+      headers = { ...headers, "X-CSRF-Token": body.csrfToken };
+    }
     let response: Response;
     try {
       response = await fetch(url, {
         method,
-        credentials: "omit",
+        credentials: sessionEnabled ? "same-origin" : "omit",
         headers: {
           ...(method !== "GET" ? { "Content-Type": "application/json" } : {}),
           ...headers,
@@ -184,6 +223,23 @@ class ApiClient implements ChecklistClient {
       );
     return result;
   }
+  async copyPreviousMonth(entityId: string, month: string) {
+    const result = this.decode(
+      copySchema,
+      await this.request("/checklist-tasks/copy-previous-month", "POST", {
+        entityId,
+        month,
+      }),
+    );
+    if (
+      result.sourceMonth !== previousMonth(month) ||
+      result.destinationMonth !== month
+    )
+      throw new ChecklistError(
+        "The backend returned an inconsistent copy result.",
+      );
+    return result;
+  }
   async create(input: CreateTask) {
     const task = this.decode(
       taskSchema,
@@ -246,6 +302,42 @@ class DemoClient implements ChecklistClient {
           a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
       );
     return { items, summary: summaryFor(items) };
+  }
+  async copyPreviousMonth(entityId: string, month: string) {
+    if (month === "0001-01")
+      throw new ChecklistError(
+        "Previous month is outside the supported range.",
+        422,
+      );
+    const sourceMonth = previousMonth(month);
+    // Synchronous snapshot and insert: no per-row awaits or partial batches.
+    const destination = [...demoTasks.values()].filter(
+      (t) => t.entityId === entityId && t.month === month,
+    );
+    if (destination.length)
+      throw new ChecklistError(
+        "The destination month already contains tasks.",
+        409,
+        "DESTINATION_NOT_EMPTY",
+      );
+    const source = [...demoTasks.values()].filter(
+      (t) => t.entityId === entityId && t.month === sourceMonth,
+    );
+    const now = new Date().toISOString();
+    for (const task of source) {
+      const id = crypto.randomUUID();
+      demoTasks.set(id, {
+        id,
+        entityId,
+        month,
+        title: task.title,
+        completed: false,
+        version: 1,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    return { sourceMonth, destinationMonth: month, copiedCount: source.length };
   }
   async create(input: CreateTask) {
     const existing = demoTasks.get(input.id);
