@@ -39,3 +39,7 @@ Prompt 02 endpoint/field semantics; chosen identity provider and membership life
 ## Prompt 02 implementation update
 
 Backend and the separate frontend checklist were completed on 2026-10-19. Contract 1.0.0 supersedes the provisional design. Verified stack: NestJS 11.2.7, Prisma 6.19.3, PostgreSQL 17.6 with pinned image digest, existing React/Vite frontend. Prisma access is restored. Gates A–C passed: 8 backend, 11 checklist browser and 33 original tests. The original demo remains independent; API mode enables only the new screen. No public deployment/identity or Gate D readiness is claimed. Baseline inventory above describes the original commit, not the later implementation. See progress.md and review.md for exact current evidence.
+
+## Copy/session release update — 2026-10-21
+
+Starting checkout a285efa93bcf8918958b13139dabd9857edd0e72 was clean and revalidated. Contract 1.1.0 adds atomic previous-month title copying into empty destinations. Shared administrative Argon2id accounts, database sessions/rate limits, secure cookies, CSRF and same-origin proxy foundations are now implemented. Public deployment remains unverified/unauthorized. See `copy-release.md` for current verification, source inventory and gates; historical baseline descriptions above remain historical.

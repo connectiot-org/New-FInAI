@@ -42,3 +42,11 @@ The user authorized review, commit and push to GitHub after verification. Commit
 ## Historical milestones
 
 Prompt 01 initially created a provisional design because Prompt 02 was absent. Prompt 02 then superseded its nested routes, cursor pagination, no-delete policy and proposed event table. A proxy denial at binaries.prisma.sh initially blocked generation; the network requirement was saved and later access succeeded. Earlier blocked-state reports are superseded by the completed evidence above.
+
+## Copy previous month / release foundations — 2026-10-21
+
+Implemented sequentially from clean a285efa93bcf8918958b13139dabd9857edd0e72. Baseline backend 8 tests rerun successfully. New actual checks: backend 12 tests; checklist API browser 14; original browser regression 33; session-only demo copy 1; production-build HTTPS session/proxy browser 1. Both applications typecheck/lint/build; contract validator 23 examples and Redocly 2.8.0 lint pass; both full npm audits report zero known vulnerabilities. Synthetic migrated application database dump/restore verifies task state, auth tables and migration history. No production/paid-resource deployment or GitHub CI execution claimed. See `copy-release.md` for final container evidence, exact next commands and outstanding target gates.
+
+## Verification and GitHub handoff
+
+User authorized commit/push after fresh verification. Reran 12 backend + 34 standalone browser + 14 API checklist + 1 HTTPS session/proxy = 61 passing tests, with typechecks/lint/builds, contracts, zero-vulnerability application audits, asset scan and synthetic restore passing. Backend review additionally fixed and tested a concurrent login/password-reset race by locking/rechecking the account before minting a session. Push the role-scoped commits to the existing work branch without force; main/public deployment remain separate. See copy-release.md and Git history.
