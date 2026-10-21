@@ -1,3 +1,4 @@
+import { request as httpRequest } from "node:http";
 import { after, before, test } from "node:test";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
@@ -574,4 +575,405 @@ test("dependency outage returns safe 503 and readiness is not a PID check", asyn
   assert.equal(unavailable.status, 503);
   assert.ok(!JSON.stringify(unavailable.data).includes("postgresql"));
   assert.equal((await fetch(down.url + "/health/ready")).status, 503);
+});
+
+test("copy snapshot, boundaries, unchanged source, new IDs, empty/conflict, restart and validation", async () => {
+  const sourceMonth = "2039-12",
+    month = "2040-01";
+  const a = await create({ month: sourceMonth, title: "Carry title" });
+  await request("PATCH", `/checklist-tasks/${a.data.id}`, {
+    completed: true,
+    expectedVersion: 1,
+  });
+  const before = await request("GET", listPath(LOCAL.entityId, sourceMonth));
+  const copy = () =>
+    request("POST", "/checklist-tasks/copy-previous-month", {
+      entityId: LOCAL.entityId,
+      month,
+    });
+  const result = await copy();
+  assert.equal(result.status, 201);
+  validate("CopyPreviousMonthResult", result.data);
+  assert.deepEqual(result.data, {
+    sourceMonth,
+    destinationMonth: month,
+    copiedCount: 1,
+  });
+  const list = await request("GET", listPath(LOCAL.entityId, month)),
+    task = list.data.items[0];
+  assert.notEqual(task.id, a.data.id);
+  assert.equal(task.title, "Carry title");
+  assert.equal(task.completed, false);
+  assert.equal(task.version, 1);
+  assert.deepEqual(
+    (await request("GET", listPath(LOCAL.entityId, sourceMonth))).data,
+    before.data,
+  );
+  assert.equal((await copy()).status, 409);
+  const restarted = await start();
+  assert.equal(
+    (
+      await request(
+        "GET",
+        listPath(LOCAL.entityId, month),
+        undefined,
+        {},
+        restarted.url,
+      )
+    ).data.items[0].id,
+    task.id,
+  );
+  for (const bad of [
+    { entityId: "bad", month },
+    { entityId: LOCAL.entityId, month: "0001-01" },
+    { entityId: LOCAL.entityId, month: "0000-12" },
+    { entityId: LOCAL.entityId, month, extra: true },
+  ])
+    assert.equal(
+      (await request("POST", "/checklist-tasks/copy-previous-month", bad))
+        .status,
+      422,
+    );
+  const empty = await request("POST", "/checklist-tasks/copy-previous-month", {
+    entityId: LOCAL.entityId,
+    month: "0001-02",
+  });
+  assert.equal(empty.status, 200);
+  assert.equal(empty.data.copiedCount, 0);
+});
+
+test("copy concurrent batches/create, maximum count, permissions and atomic rollback", async () => {
+  await create({ month: "2041-02", title: "Snapshot" });
+  const copy = (month: string, entityId = LOCAL.entityId, url = base) =>
+    request(
+      "POST",
+      "/checklist-tasks/copy-previous-month",
+      { entityId, month },
+      {},
+      url,
+    );
+  const results = await Promise.all([copy("2041-03"), copy("2041-03")]);
+  assert.deepEqual(results.map((r) => r.status).sort(), [201, 409]);
+  await create({ month: "2042-02" });
+  const race = await Promise.all([
+    copy("2042-03"),
+    create({ month: "2042-03", title: "Ordinary" }),
+  ]);
+  assert.equal(race[1].status, 201);
+  assert.ok([201, 409].includes(race[0].status));
+  const tasks = (await request("GET", listPath(LOCAL.entityId, "2042-03"))).data
+    .items;
+  assert.equal(tasks.length, race[0].status === 201 ? 2 : 1);
+  // Existing capacity test creates 200 rows in 2027-01; use an independent batch here.
+  const { creationDigest } = await import("../src/checklist.repository");
+  await db.checklistTask.createMany({
+    data: Array.from({ length: 200 }, (_, i) => ({
+      id: randomUUID(),
+      organisationId: LOCAL.organisationId,
+      entityId: LOCAL.entityId,
+      month: new Date("2043-01-01T00:00:00Z"),
+      title: `Max ${i}`,
+      createDigest: creationDigest({
+        entityId: LOCAL.entityId,
+        month: "2043-01",
+        title: `Max ${i}`,
+      }),
+    })),
+  });
+  assert.equal((await copy("2043-02")).data.copiedCount, 200);
+  assert.equal((await copy("2043-02")).status, 409);
+  assert.equal((await copy("2044-01", foreign.entityId)).status, 404);
+  assert.equal((await copy("2044-01", hiddenId)).status, 404);
+  const reader = await start({
+    organisationId: LOCAL.organisationId,
+    userId: readerId,
+  });
+  assert.equal((await copy("2044-01", LOCAL.entityId, reader.url)).status, 403);
+  await db.membership.update({
+    where: {
+      organisationId_userId: {
+        organisationId: LOCAL.organisationId,
+        userId: readerId,
+      },
+    },
+    data: { active: false },
+  });
+  assert.equal((await copy("2044-01", LOCAL.entityId, reader.url)).status, 401);
+  await db.membership.update({
+    where: {
+      organisationId_userId: {
+        organisationId: LOCAL.organisationId,
+        userId: readerId,
+      },
+    },
+    data: { active: true },
+  });
+  await create({ month: "2045-01", title: "Good" });
+  await create({ month: "2045-01", title: "Rollback" });
+  await db.$executeRawUnsafe(
+    `CREATE FUNCTION "${schema}".reject_copy() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.month='2045-02-01' AND NEW.title='Rollback' THEN RAISE EXCEPTION 'synthetic failure'; END IF; RETURN NEW; END $$`,
+  );
+  await db.$executeRawUnsafe(
+    `CREATE TRIGGER reject_copy BEFORE INSERT ON "ChecklistTask" FOR EACH ROW EXECUTE FUNCTION "${schema}".reject_copy()`,
+  );
+  try {
+    assert.ok((await copy("2045-02")).status >= 500);
+    assert.equal(
+      (await request("GET", listPath(LOCAL.entityId, "2045-02"))).data.items
+        .length,
+      0,
+    );
+  } finally {
+    await db.$executeRawUnsafe(`DROP TRIGGER reject_copy ON "ChecklistTask"`);
+  }
+});
+
+test("production sessions: generic login, proxy, CSRF, permissions, expiry, logout, revocation and membership removal", async () => {
+  const { passwordOptions, digest } = await import("../src/auth");
+  const argon = await import("argon2");
+  await db.account.create({
+    data: {
+      userId: LOCAL.userId,
+      username: "synthetic",
+      passwordHash: await argon.hash(
+        "synthetic-test-password",
+        passwordOptions,
+      ),
+    },
+  });
+  const proxyToken = randomUUID() + randomUUID(),
+    origin = "https://finai.example";
+  const instance = await createApplication({
+    env: {
+      ...env,
+      NODE_ENV: "production",
+      CHECKLIST_IDENTITY: "session",
+      PUBLIC_ORIGIN: origin,
+      API_TRUSTED_HOST: "finai.example",
+      API_PROXY_TOKEN: proxyToken,
+    },
+    quiet: true,
+  });
+  apps.push(instance);
+  const url = await instance.getUrl();
+  let cookie = "",
+    csrf = "";
+  const call = async (
+    path: string,
+    method = "GET",
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ) => {
+    return new Promise<{ r: { status: number; headers: Headers }; data: any }>(
+      (resolve, reject) => {
+        const request = httpRequest(
+          url + path,
+          {
+            method,
+            headers: {
+              Host: "finai.example",
+              "X-Forwarded-Proto": "https",
+              "X-Finai-Public-Host": "finai.example",
+              "X-Finai-Proxy-Token": proxyToken,
+              Origin: origin,
+              "Content-Type": "application/json",
+              Cookie: cookie,
+              ...headers,
+            },
+          },
+          (response) => {
+            let text = "";
+            response.on("data", (chunk) => (text += chunk));
+            response.on("end", () => {
+              const h = new Headers();
+              for (const [key, value] of Object.entries(response.headers))
+                if (value)
+                  h.set(key, Array.isArray(value) ? value.join(",") : value);
+              resolve({
+                r: { status: response.statusCode!, headers: h },
+                data: JSON.parse(text),
+              });
+            });
+          },
+        );
+        request.on("error", reject);
+        request.end(body === undefined ? undefined : JSON.stringify(body));
+      },
+    );
+  };
+  assert.equal((await call("/api/v1/entities")).r.status, 401);
+  assert.equal((await call("/health/ready")).r.status, 200);
+  assert.equal(
+    (
+      await call("/api/v1/entities", "GET", undefined, {
+        "X-Finai-Proxy-Token": "wrong",
+      })
+    ).r.status,
+    403,
+  );
+  const login = async (password = "synthetic-test-password") =>
+    call("/auth/login", "POST", {
+      username: "synthetic",
+      password,
+      organisationId: LOCAL.organisationId,
+    });
+  assert.equal((await login("wrong")).r.status, 401);
+  const logged = await login();
+  assert.equal(logged.r.status, 200);
+  cookie = logged.r.headers.get("set-cookie")!.split(";")[0];
+  csrf = logged.data.csrfToken;
+  assert.match(
+    logged.r.headers.get("set-cookie")!,
+    /HttpOnly; Secure; SameSite=Strict/,
+  );
+  assert.equal((await call("/api/v1/entities")).r.status, 200);
+  assert.equal(
+    (
+      await call("/api/v1/checklist-tasks/copy-previous-month", "POST", {
+        entityId: LOCAL.entityId,
+        month: "2050-01",
+      })
+    ).r.status,
+    403,
+  );
+  assert.equal(
+    (
+      await call(
+        "/api/v1/checklist-tasks/copy-previous-month",
+        "POST",
+        { entityId: foreign.entityId, month: "2050-01" },
+        { "X-CSRF-Token": csrf },
+      )
+    ).r.status,
+    404,
+  );
+  assert.equal(
+    (
+      await call(
+        "/api/v1/checklist-tasks/copy-previous-month",
+        "POST",
+        { entityId: LOCAL.entityId, month: "2050-01" },
+        { "X-CSRF-Token": csrf },
+      )
+    ).r.status,
+    200,
+  );
+  const priorCookie = cookie;
+  const rotated = await login();
+  assert.equal(rotated.r.status, 200);
+  cookie = rotated.r.headers.get("set-cookie")!.split(";")[0];
+  csrf = rotated.data.csrfToken;
+  assert.notEqual(cookie, priorCookie);
+  assert.equal(
+    (await call("/auth/session", "GET", undefined, { Cookie: priorCookie })).r
+      .status,
+    401,
+  );
+  await db.membership.update({
+    where: {
+      organisationId_userId: {
+        organisationId: LOCAL.organisationId,
+        userId: LOCAL.userId,
+      },
+    },
+    data: { active: false },
+  });
+  assert.equal((await call("/api/v1/entities")).r.status, 401);
+  await db.membership.update({
+    where: {
+      organisationId_userId: {
+        organisationId: LOCAL.organisationId,
+        userId: LOCAL.userId,
+      },
+    },
+    data: { active: true },
+  });
+  assert.equal(
+    (await call("/auth/logout", "POST", {}, { "X-CSRF-Token": csrf })).r.status,
+    200,
+  );
+  assert.equal((await call("/api/v1/entities")).r.status, 401);
+  const again = await login();
+  cookie = again.r.headers.get("set-cookie")!.split(";")[0];
+  await db.session.updateMany({
+    where: { userId: LOCAL.userId },
+    data: { expiresAt: new Date(0) },
+  });
+  assert.equal((await call("/auth/session")).r.status, 401);
+  const third = await login();
+  cookie = third.r.headers.get("set-cookie")!.split(";")[0];
+  await db.session.deleteMany({
+    where: { tokenHash: digest(cookie.split("=")[1]) },
+  });
+  assert.equal((await call("/auth/session")).r.status, 401);
+  // Hold a reset's row lock while a login verifies the old password. The
+  // login must wait and then reject the now-obsolete password proof.
+  const changedHash = await argon.hash(
+    "new-synthetic-test-password",
+    passwordOptions,
+  );
+  let unlocked!: () => void, announceLock!: () => void;
+  const locked = new Promise<void>((resolve) => {
+    announceLock = resolve;
+  });
+  const unlock = new Promise<void>((resolve) => {
+    unlocked = resolve;
+  });
+  const resetting = db.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`SELECT "userId" FROM "Account" WHERE "userId"=${LOCAL.userId}::uuid FOR UPDATE`;
+      announceLock();
+      await unlock;
+      await tx.account.update({
+        where: { userId: LOCAL.userId },
+        data: { passwordHash: changedHash },
+      });
+      await tx.session.deleteMany({ where: { userId: LOCAL.userId } });
+    },
+    { timeout: 10000 },
+  );
+  await locked;
+  const duringReset = login();
+  let waiting = false;
+  try {
+    for (let i = 0; i < 100; i++) {
+      const rows = await db.$queryRaw<
+        { waiting: boolean }[]
+      >`SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE pid<>pg_backend_pid() AND wait_event_type='Lock' AND query LIKE '%FROM "Account"%FOR SHARE%') AS waiting`;
+      if (rows[0].waiting) {
+        waiting = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    assert.equal(waiting, true, "Login must serialize with password reset");
+  } finally {
+    unlocked();
+  }
+  await resetting;
+  assert.equal(
+    (await duringReset).r.status,
+    401,
+    "Old password proof cannot survive reset",
+  );
+  let limited = false;
+  for (let i = 0; i < 12; i++) {
+    if ((await login("wrong")).r.status === 429) {
+      limited = true;
+      break;
+    }
+  }
+  assert.equal(limited, true, "HTTP login rate limit must apply");
+});
+
+test("database rate limiter is shared across instances", async () => {
+  const { Auth } = await import("../src/auth");
+  const first = new Auth(db as any),
+    second = new Auth(db as any),
+    key = `synthetic:${randomUUID()}`;
+  await first.limit(key, 1, 3600);
+  await assert.rejects(
+    second.limit(key, 1, 3600),
+    (e: any) => e.status === 429,
+  );
 });

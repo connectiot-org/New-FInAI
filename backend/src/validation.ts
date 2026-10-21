@@ -32,12 +32,10 @@ export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
       422,
       "VALIDATION_FAILED",
       "Please check the request fields.",
-      result.error.issues
-        .slice(0, 20)
-        .map((i) => ({
-          field: i.path.join(".").slice(0, 100),
-          message: i.message.slice(0, 200),
-        })),
+      result.error.issues.slice(0, 20).map((i) => ({
+        field: i.path.join(".").slice(0, 100),
+        message: i.message.slice(0, 200),
+      })),
     );
   return result.data;
 }
@@ -54,3 +52,17 @@ export function parseVersion(value: unknown) {
   );
 }
 export type CreateInput = z.infer<typeof createInput>;
+
+export const copyInput = z.strictObject({
+  entityId: uuid,
+  month: month.refine(
+    (v) => v !== "0001-01",
+    "Previous month is outside the supported range.",
+  ),
+});
+export function previousMonth(value: string) {
+  const [year, m] = value.split("-").map(Number);
+  return m === 1
+    ? `${String(year - 1).padStart(4, "0")}-12`
+    : `${String(year).padStart(4, "0")}-${String(m - 1).padStart(2, "0")}`;
+}

@@ -1,6 +1,6 @@
 # FinAI local checklist API
 
-NestJS 11 / TypeScript / Prisma 6.19.3 / PostgreSQL 17.6. Local-only persistent monthly checklist; existing frontend financial workflows remain simulations. Production identity is not implemented, and startup refuses production/deployment flags, non-loopback binding or implicit identity. No cloud account or third-party key is required.
+NestJS 11 / TypeScript / Prisma 6.19.3 / PostgreSQL 17.6. Persistent monthly checklist with previous-month title copying; existing frontend financial workflows remain simulations. Local identity requires explicit development/test configuration and loopback binding. Administratively provisioned session authentication and production proxy configuration are documented in [RELEASE.md](RELEASE.md); public deployment remains gated. No paid authentication provider or third-party key is required.
 
 From `backend/`, with Node 24/npm 11 and Docker Compose:
 
@@ -35,3 +35,5 @@ Tests create a unique `test_<UUID>` PostgreSQL schema, apply real Prisma migrati
 If Prisma engine downloads fail, allow `binaries.prisma.sh` in environment network settings, retain TLS/checksum verification and retry `npm run generate`. Never set checksum-ignore or TLS-disable variables. No seed/development identity may run publicly. Production requires separately implemented verified identity, membership lifecycle, security review, private database/deployment/migration/backup/restore gates and explicit deployment authorization.
 
 Dependency review: NestJS 11.2.7 and Prisma 6.19.3 are pinned. A scoped npm override pins @prisma/config → deepmerge-ts 8.0.2 to resolve its recursive-merge advisory; generation, migration deployment and full PostgreSQL tests validate this toolchain combination. No dependency advisories (including development tools) were reported by npm audit after the update.
+
+Copy/session verification and exact next commands: [current handover](../context/copy-release.md). The new additive migration creates only shared Account/Session/RateLimit tables. Production releases must use session identity and the exact configured backend/frontend hosts; local identity remains prohibited in production.

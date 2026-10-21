@@ -1,10 +1,18 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { Database } from "./database";
 import { Identity } from "./config";
 import { ApiError } from "./errors";
-import { CreateInput } from "./validation";
+import { CreateInput, previousMonth } from "./validation";
+export const creationDigest = (input: {
+  entityId: string;
+  month: string;
+  title: string;
+}) =>
+  createHash("sha256")
+    .update(JSON.stringify([input.entityId, input.month, input.title]))
+    .digest("hex");
 type Tx = Prisma.TransactionClient;
 const notFound = () => new ApiError(404, "NOT_FOUND", "Resource not found.");
 @Injectable()
@@ -51,9 +59,7 @@ export class ChecklistRepository {
     );
   }
   async create(identity: Identity, input: CreateInput) {
-    const digest = createHash("sha256")
-      .update(JSON.stringify([input.entityId, input.month, input.title]))
-      .digest("hex");
+    const digest = creationDigest(input);
     // Serialize ID claims first and monthly capacity second. Locks are transaction-scoped.
     return this.db.$transaction(
       async (tx) => {
@@ -101,7 +107,60 @@ export class ChecklistRepository {
           created: true,
         };
       },
-      { timeout: 15000, maxWait: 15000 },
+      { isolationLevel: "ReadCommitted", timeout: 15000, maxWait: 15000 },
+    );
+  }
+  async copyPreviousMonth(identity: Identity, entityId: string, month: string) {
+    const sourceMonth = previousMonth(month);
+    return this.db.$transaction(
+      async (tx) => {
+        await this.authorize(tx, identity, entityId, true);
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`month:${identity.organisationId}:${entityId}:${month}`},0))`;
+        // READ COMMITTED gives this query a fresh snapshot after a lock wait.
+        const where = {
+          organisationId: identity.organisationId,
+          entityId,
+          month: new Date(`${month}-01T00:00:00Z`),
+        };
+        if (await tx.checklistTask.count({ where }))
+          throw new ApiError(
+            409,
+            "DESTINATION_NOT_EMPTY",
+            "The destination month already contains tasks.",
+          );
+        const source = await tx.checklistTask.findMany({
+          where: { ...where, month: new Date(`${sourceMonth}-01T00:00:00Z`) },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+          take: 201,
+        });
+        if (source.length > 200)
+          throw new ApiError(
+            409,
+            "CAPACITY_REACHED",
+            "The source exceeds the supported task limit.",
+          );
+        if (source.length)
+          await tx.checklistTask.createMany({
+            data: source.map((task) => ({
+              ...where,
+              id: randomUUID(),
+              title: task.title,
+              completed: false,
+              version: 1,
+              createDigest: creationDigest({
+                entityId,
+                month,
+                title: task.title,
+              }),
+            })),
+          });
+        return {
+          sourceMonth,
+          destinationMonth: month,
+          copiedCount: source.length,
+        };
+      },
+      { isolationLevel: "ReadCommitted", timeout: 15000, maxWait: 15000 },
     );
   }
   async change(

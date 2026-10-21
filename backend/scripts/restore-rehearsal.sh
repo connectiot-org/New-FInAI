@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+# Only disposable synthetic databases; never dump application data during this rehearsal.
+source_db="rehearsal_$(date +%s)_$RANDOM"
+restore_db="${source_db}_restore"
+archive=$(mktemp /tmp/finai-rehearsal.XXXXXX)
+cleanup() {
+ docker compose exec -T db dropdb -U finai --if-exists "$source_db"
+ docker compose exec -T db dropdb -U finai --if-exists "$restore_db"
+ rm -f "$archive"
+}
+trap cleanup EXIT
+docker compose exec -T db createdb -U finai "$source_db"
+docker compose exec -T db createdb -U finai "$restore_db"
+FINAI_REHEARSAL_DB="$source_db" node --env-file=.env --input-type=module <<'JS'
+import {spawnSync} from 'node:child_process';
+import {PrismaClient} from '@prisma/client';
+import {randomUUID,createHash} from 'node:crypto';
+const url=new URL(process.env.DATABASE_URL);
+if(!['localhost','127.0.0.1'].includes(url.hostname)||!/^rehearsal_\d+_\d+$/.test(process.env.FINAI_REHEARSAL_DB))throw new Error('Disposable local database required');
+url.pathname='/'+process.env.FINAI_REHEARSAL_DB;
+process.env.DATABASE_URL=url.toString();
+const migrated=spawnSync(process.execPath,['node_modules/prisma/build/index.js','migrate','deploy'],{env:process.env,stdio:'ignore'});
+if(migrated.status!==0)throw new Error('Rehearsal migrations failed');
+const db=new PrismaClient();
+try {
+ const org=randomUUID(),entity=randomUUID(),id=randomUUID();
+ await db.organisation.create({data:{id:org,name:'Restore rehearsal'}});
+ await db.entity.create({data:{id:entity,organisationId:org,name:'Synthetic entity'}});
+ const source={entityId:entity,month:'2060-10',title:'Synthetic copied task'};
+ await db.checklistTask.create({data:{id,organisationId:org,entityId:entity,month:new Date('2060-10-01T00:00:00Z'),title:source.title,completed:false,version:1,createDigest:createHash('sha256').update(JSON.stringify([entity,source.month,source.title])).digest('hex')}});
+} finally {await db.$disconnect();}
+JS
+docker compose exec -T db pg_dump -U finai -Fc "$source_db" > "$archive"
+docker compose exec -T db pg_restore -U finai -d "$restore_db" --exit-on-error < "$archive"
+result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"ChecklistTask\" WHERE title='Synthetic copied task' AND completed=false AND version=1")
+test "$result" = 1
+schema_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('Account','Session','RateLimit')")
+test "$schema_result" = 3
+migration_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c 'SELECT count(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL')
+test "$migration_result" = 2
+printf 'PASS: migrated synthetic application database restored; task state, auth schema and migration history verified\n'

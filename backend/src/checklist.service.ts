@@ -36,6 +36,9 @@ export class ChecklistService {
     const result = await this.repo.create(identity, input);
     return { task: serialize(result.task), created: result.created };
   }
+  copyPreviousMonth(identity: Identity, entityId: string, month: string) {
+    return this.repo.copyPreviousMonth(identity, entityId, month);
+  }
   async change(
     identity: Identity,
     id: string,

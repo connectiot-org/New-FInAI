@@ -26,11 +26,13 @@ import {
   parse,
   uuid,
   createInput,
+  copyInput,
   listInput,
   updateInput,
   parseVersion,
 } from "./validation";
 import { z } from "zod";
+import { Auth, digest, equal } from "./auth";
 type AuthRequest = Request & { identity: Identity };
 const empty = z.strictObject({});
 @Controller("api/v1")
@@ -59,6 +61,21 @@ class ChecklistController {
       parse(createInput, body),
     );
     res.status(result.created ? 201 : 200).json(result.task);
+  }
+  @Post("checklist-tasks/copy-previous-month") async copyPreviousMonth(
+    @Req() req: AuthRequest,
+    @Query() query: unknown,
+    @Body() body: unknown,
+    @Res() res: Response,
+  ) {
+    parse(empty, query);
+    const input = parse(copyInput, body);
+    const result = await this.service.copyPreviousMonth(
+      req.identity,
+      input.entityId,
+      input.month,
+    );
+    res.status(result.copiedCount ? 201 : 200).json(result);
   }
   @Patch("checklist-tasks/:id") change(
     @Req() req: AuthRequest,
@@ -121,6 +138,11 @@ export async function createApplication(
   });
   app.enableShutdownHooks();
   const db = app.get(Database);
+  const auth = new Auth(db);
+  const server = app.getHttpServer();
+  server.requestTimeout = 15000;
+  server.headersTimeout = 10000;
+  server.keepAliveTimeout = 5000;
   app.use((req: AuthRequest, res: Response, next: NextFunction) => {
     const requestId = randomUUID();
     res.setHeader("X-Request-Id", requestId);
@@ -140,6 +162,43 @@ export async function createApplication(
         ),
       );
     try {
+      if (config.mode === "session") {
+        if (
+          !equal(
+            req.headers["x-finai-proxy-token"]?.toString() || "",
+            config.proxyToken,
+          ) ||
+          req.headers.host !== config.trustedHost ||
+          req.headers["x-finai-public-host"] !== config.publicHost ||
+          req.headers["x-forwarded-proto"] !== "https"
+        )
+          throw new ApiError(403, "FORBIDDEN", "Untrusted proxy or host.");
+        if (
+          req.headers.authorization ||
+          Object.keys(req.headers).some((k) =>
+            /^(x-(user|role|tenant|organisation|organization|entity|auth)|forwarded$)/.test(
+              k,
+            ),
+          )
+        )
+          throw new ApiError(403, "FORBIDDEN", "Identity overrides forbidden.");
+        if (req.headers.origin && req.headers.origin !== config.origins[0])
+          throw new ApiError(403, "FORBIDDEN", "Untrusted request origin.");
+        if (
+          !["GET", "HEAD"].includes(req.method) &&
+          (req.headers.origin !== config.origins[0] ||
+            !/^application\/json(?:\s*;|$)/i.test(
+              req.headers["content-type"] || "",
+            ))
+        )
+          throw new ApiError(
+            403,
+            "FORBIDDEN",
+            "Exact origin and JSON required.",
+          );
+        next();
+        return;
+      }
       if (
         !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(
           req.socket.remoteAddress || "",
@@ -202,6 +261,43 @@ export async function createApplication(
   app.use(express.json({ limit: "16kb" }));
   app.use(async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
+      if (req.path === "/health/live" && req.method === "GET") {
+        res.json({ status: "alive" });
+        return;
+      }
+      if (config.mode === "session") {
+        if (req.path === "/health/ready" && req.method === "GET") {
+          await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "Session" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "Account" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "RateLimit" LIMIT 1`;
+          res.json({ status: "ready", mode: "session" });
+          return;
+        }
+        if (req.path === "/auth/login" && req.method === "POST") {
+          await auth.login(req, res);
+          return;
+        }
+        const session = await auth.session(req);
+        if (!["GET", "HEAD"].includes(req.method)) {
+          auth.csrf(req, session);
+          await auth.limit(`mutation:${session.userId}`, 120, 60);
+        }
+        if (req.path === "/auth/session" && req.method === "GET") {
+          res.json({ csrfToken: digest(`csrf:${auth.token(req)}`) });
+          return;
+        }
+        if (req.path === "/auth/logout" && req.method === "POST") {
+          await auth.logout(req, res);
+          return;
+        }
+        req.identity = {
+          organisationId: session.organisationId,
+          userId: session.userId,
+        };
+        next();
+        return;
+      }
       if (req.path === "/health/ready") {
         await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
         const membership = await db.membership.findUnique({
