@@ -4,7 +4,7 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 doc = yaml.safe_load(Path(__file__).with_name('openapi.yaml').read_text())
-assert doc['openapi'] == '3.1.1' and doc['info']['version'] == '1.0.0'
+assert doc['openapi'] == '3.1.1' and doc['info']['version'] == '1.1.0'
 
 def validator(schema):
     root = {**schema, 'components': doc['components']}
@@ -26,6 +26,9 @@ s = doc['components']['schemas']
 validator(s['ChecklistTaskList']).validate({'items': [], 'summary': {'total': 0, 'completed': 0, 'percent': 0}})
 for value in [{'completed':'true','expectedVersion':1}, {'completed':True,'expectedVersion':0}, {'completed':True,'expectedVersion':1,'role':'Admin'}]:
     assert list(validator(s['SetChecklistCompletion']).iter_errors(value))
-assert set(doc['paths']) == {'/api/v1/entities', '/api/v1/checklist-tasks', '/api/v1/checklist-tasks/{id}'}
+assert set(doc['paths']) == {'/api/v1/entities', '/api/v1/checklist-tasks', '/api/v1/checklist-tasks/{id}', '/api/v1/checklist-tasks/copy-previous-month', '/auth/login', '/auth/session', '/auth/logout'}
 assert 'delete' in doc['paths']['/api/v1/checklist-tasks/{id}']
 print(f'PASS: {count} examples, empty summary, rejected patch payloads, frozen routes')
+
+for value in [{"entityId":"bad","month":"2026-10"},{"entityId":"22222222-2222-4222-8222-222222222222","month":"0001-01"},{"entityId":"22222222-2222-4222-8222-222222222222","month":"2026-10","title":"bad"}]:
+    assert list(validator(s["CopyPreviousMonth"]).iter_errors(value))
