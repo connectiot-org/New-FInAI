@@ -5,15 +5,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:product",
     "typecheck": "tsc -b --pretty false",
     "lint": "eslint .",
     "test": "playwright test",
     "preview": "vite preview --host 0.0.0.0",
     "format": "prettier --write src tests docs *.ts *.js *.json *.html README.md",
     "test:checklist": "playwright test --config playwright.checklist.config.ts",
-    "test:session": "VITE_CHECKLIST_MODE=api VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 vite build --outDir artifacts/session-dist && playwright test --config playwright.session.config.ts",
-    "test:subscriptions": "playwright test --config playwright.subscriptions.config.ts"
+    "test:session": "VITE_APP_MODE=product VITE_CHECKLIST_MODE=api VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 vite build --outDir artifacts/session-dist && playwright test --config playwright.session.config.ts",
+    "test:subscriptions": "playwright test --config playwright.subscriptions.config.ts",
+    "test:payment-due-date": "playwright test --config playwright.payment-due-date.config.ts",
+    "build:product": "tsc -b && VITE_APP_MODE=product VITE_AUTH_MODE=session VITE_CHECKLIST_MODE=api VITE_API_BASE_URL=/api/v1 vite build",
+    "test:proxy": "node --test scripts/proxy.test.ts scripts/session.test.ts",
+    "check:product": "node scripts/check-product-build.ts && node scripts/check-assets.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

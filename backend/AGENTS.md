@@ -1,5 +1,7 @@
 # Backend engineer
 
+Current product design: `../context/architecture.md` and `../context/production-review.md`. The default frontend is now the session-authenticated product; older absence-of-auth/default-demo/test-count notes below describe historical milestones. Preserve the product asset boundary and existing API permissions.
+
 Read root `AGENTS.md`, `context/README.md`, `context/backend-design.md`, `context/progress.md`, `context/roadmap.md`, and `contracts/README.md` first. Own API, persistence, migrations, tests and infrastructure under `backend/`; do not edit `frontend/` or shared contracts/instructions in this role. Propose contract changes to the coordinator before implementing them.
 
 Prompt 02 backend is implemented and its PostgreSQL/HTTP gate passed (8 tests). Read `context/progress.md`, `context/review.md`, `backend/HANDOFF.md` and README.md for exact evidence/commands. Production identity remains unimplemented; startup refuses public/production local identity.

@@ -1,5 +1,7 @@
 # Frontend integrator
 
+Current product design: `../context/architecture.md` and `../context/production-review.md`. The default frontend is now the session-authenticated product; older absence-of-auth/default-demo/test-count notes below describe historical milestones. Preserve the product asset boundary and existing API permissions.
+
 Read root `AGENTS.md`, `context/README.md`, `context/progress.md`, `context/agent-boundaries.md`, and `contracts/README.md` first. Root ownership rules apply; only the coordinator changes shared instructions/contracts. Frontend role owns application code and tests under `frontend/`, not `backend/`.
 
 Use Node 24/npm 11. From this directory: `npm ci`, `npm run typecheck`, `npm run lint`, `npm run build`, `npm test`. Playwright uses system Chromium if installed and starts Vite automatically. Do not run the formatting command across unrelated files.

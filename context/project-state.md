@@ -47,3 +47,15 @@ Starting checkout a285efa93bcf8918958b13139dabd9857edd0e72 was clean and revalid
 ## Subscription renewals — 2026-10-22
 
 Implemented `/tools/subscriptions` with one additive SubscriptionRenewal table, scoped CRUD/archive, bounded search/pagination, server organisation-timezone date indicators, existing sessions/permissions, and shared sign-in UI. No automatic billing/reminders or new auth platform. See `subscriptions.md` for current verification, files, migration/startup commands and production limits.
+
+## Payment due-date calculator — 2026-10-22
+
+`/tools/payment-due-date` and POST `/api/v1/payment-due-date-checks` are implemented on `feature/payment-due-date` from7c918477. Existing production sessions/CSRF/entity read authorization reused unchanged; explicit supplied as-of date, Gregorian calendar-day arithmetic and real0001–9999 dates, with clear422 on overflow. No business persistence/schema/dependency additions. Fresh local checks total85 passing tests plus typecheck/lint/build/contracts/audits/asset scan/synthetic restore/container build. Earlier inventory descriptions remain historical. No push, hosted CI, public deployment or production configuration verification is claimed. See [payment-due-date.md](payment-due-date.md) for the complete handover.
+
+
+Subsequent user authorization: calculator commit/push to `feature/payment-due-date` is now requested after fresh verification. All85 tests and both application build/typecheck/lint, contract, asset and audit checks passed again. Main merge and deployment remain outside scope. GitHub-hosted CI status is unverified because API requests return Forbidden; remote publication is verified separately through Git.
+
+
+## Current authenticated product — 2026-10-22
+
+The default frontend now ships only the three live tools behind the shared session gate. Legacy financial demonstrations remain explicit local test/development sources, excluded from product imports, public assets and navigation. The backend retains server-owned tenant/entity authority; production local identity remains rejected. Current accepted architecture is architecture.md; production-review.md records the scoped review, concrete safeguards and93 fresh passing tests plus build/security/recovery checks. No whole-platform accounting, target deployment, zero-defect or independent-audit claim is made. Public proxy/TLS/database/account/backup/capacity/monitoring gates still need operator evidence.

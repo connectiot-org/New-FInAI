@@ -57,11 +57,9 @@ async function fill(page: Page, name: string) {
     .fill("Manually reviewed");
 }
 const row = (page: Page, name: string) =>
-  page
-    .getByRole("row")
-    .filter({
-      has: page.getByRole("button", { name: `Edit ${name}`, exact: true }),
-    });
+  page.getByRole("row").filter({
+    has: page.getByRole("button", { name: `Edit ${name}`, exact: true }),
+  });
 test("subscription add/edit/archive/unarchive, refresh/restart and mobile keyboard", async ({
   page,
 }) => {
@@ -265,5 +263,81 @@ test("a delayed earlier entity response cannot replace the selected entity", asy
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Edit Pagination 20", exact: true }),
+  ).toHaveCount(0);
+});
+
+test("a mismatched successful subscription response never shows a saved notification", async ({
+  page,
+}) => {
+  const name = "Response verification renewal";
+  await open(page, name);
+  await fill(page, name);
+  await page.route("**/subscription-renewals", async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({
+      response,
+      json: {
+        ...(await response.json()),
+        entityId: "22222222-2222-4222-8222-222222222223",
+      },
+    });
+  });
+  await page
+    .getByRole("button", { name: "Save subscription", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("inconsistent records");
+  await expect(
+    page.locator(".toast").filter({ hasText: "Subscription saved" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(row(page, name)).toBeVisible();
+});
+
+test("a late save response after leaving the subscription screen cannot show a notification", async ({
+  page,
+}) => {
+  const name = "Late response renewal";
+  await open(page, name);
+  await fill(page, name);
+  let release: () => void = () => {};
+  let received: () => void = () => {};
+  const ready = new Promise<void>((resolve) => {
+    received = resolve;
+  });
+  let finished: () => void = () => {};
+  const settled = new Promise<void>((resolve) => {
+    finished = resolve;
+  });
+  await page.route("**/subscription-renewals", async (route) => {
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    try {
+      const response = await route.fetch();
+      received();
+      await gate;
+      await route.fulfill({ response });
+    } finally {
+      finished();
+    }
+  });
+  await page
+    .getByRole("button", { name: "Save subscription", exact: true })
+    .click();
+  await ready;
+  await page.evaluate(() => {
+    history.pushState({}, "", "/tools/payment-due-date");
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  });
+  await expect(
+    page.getByRole("heading", {
+      name: "Payment due-date calculator",
+      exact: true,
+    }),
+  ).toBeVisible();
+  release();
+  await settled;
+  await expect(
+    page.locator(".toast").filter({ hasText: "Subscription saved" }),
   ).toHaveCount(0);
 });

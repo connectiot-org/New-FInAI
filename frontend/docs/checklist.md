@@ -1,3 +1,5 @@
+> Current product startup/build boundary: [product.md](product.md). The product defaults to real API/session mode; legacy demo instructions below apply only to explicit local regression builds.
+
 # Local monthly checklist
 
 The separate `/close/checklist` screen lists user-created tasks for an authorized entity and explicit YYYY-MM. Add, mark done/undone, confirm deletion and see completed/total and rounded progress. API data survives refresh and API restart. This feature has no approval, evidence, locking, finance calculation, AI or bank integration. Existing `/close`, Approved counts, persona controls and financial localStorage stay unchanged.

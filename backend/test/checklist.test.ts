@@ -811,6 +811,17 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
     ).r.status,
     403,
   );
+  const calculation = {
+    entityId: LOCAL.entityId,
+    invoiceDate: "2026-10-01",
+    termsDays: 30,
+    asOfDate: "2026-11-02",
+  };
+  assert.equal(
+    (await call("/api/v1/payment-due-date-checks", "POST", calculation)).r
+      .status,
+    401,
+  );
   const login = async (password = "synthetic-test-password") =>
     call("/auth/login", "POST", {
       username: "synthetic",
@@ -858,6 +869,19 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
     ).r.status,
     200,
   );
+  assert.equal(
+    (await call("/api/v1/payment-due-date-checks", "POST", calculation)).r
+      .status,
+    403,
+  );
+  const calculated = await call(
+    "/api/v1/payment-due-date-checks",
+    "POST",
+    calculation,
+    { "X-CSRF-Token": csrf },
+  );
+  assert.equal(calculated.r.status, 200);
+  assert.equal(calculated.data.dueDate, "2026-10-31");
   const priorCookie = cookie;
   const rotated = await login();
   assert.equal(rotated.r.status, 200);
@@ -1342,4 +1366,211 @@ test("subscription timezone fallback and separate inclusive renewal/deadline ind
     "UTC",
   );
   await configured.close();
+});
+
+test("payment calculator exact HTTP contract, read-only permission, entity/tenant isolation and no business writes", async () => {
+  const input = {
+      entityId: LOCAL.entityId,
+      invoiceDate: "2026-10-01",
+      termsDays: 30,
+      asOfDate: "2026-11-02",
+    },
+    path = "/payment-due-date-checks";
+  const before = [
+    await db.checklistTask.count(),
+    await db.subscriptionRenewal.count(),
+  ];
+  const result = await request("POST", path, input);
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.data, {
+    ...input,
+    dueDate: "2026-10-31",
+    daysUntilDue: -2,
+    status: "overdue",
+  });
+  const raw = await fetch(base + "/api/v1" + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  assert.equal(raw.status, 200);
+  assert.equal(raw.headers.get("cache-control"), "no-store");
+  assert.match(raw.headers.get("x-request-id")!, /^[a-f0-9-]{36}$/);
+  const reader = await start({
+    organisationId: LOCAL.organisationId,
+    userId: readerId,
+  });
+  try {
+    assert.equal(
+      (await request("POST", path, input, {}, reader.url)).status,
+      200,
+    );
+    await db.membership.update({
+      where: {
+        organisationId_userId: {
+          organisationId: LOCAL.organisationId,
+          userId: readerId,
+        },
+      },
+      data: { active: false },
+    });
+    try {
+      assert.equal(
+        (await request("POST", path, input, {}, reader.url)).status,
+        401,
+      );
+    } finally {
+      await db.membership.update({
+        where: {
+          organisationId_userId: {
+            organisationId: LOCAL.organisationId,
+            userId: readerId,
+          },
+        },
+        data: { active: true },
+      });
+    }
+  } finally {
+    await reader.instance.close();
+  }
+  for (const entityId of [hiddenId, foreign.entityId])
+    assert.equal(
+      (await request("POST", path, { ...input, entityId })).status,
+      404,
+    );
+  const other = await start({
+    organisationId: foreign.organisationId,
+    userId: foreign.userId,
+  });
+  try {
+    assert.equal(
+      (await request("POST", path, input, {}, other.url)).status,
+      404,
+    );
+  } finally {
+    await other.instance.close();
+  }
+  assert.equal(
+    (await request("POST", path, input, { "X-User-Id": LOCAL.userId })).status,
+    403,
+  );
+  assert.deepEqual(
+    [await db.checklistTask.count(), await db.subscriptionRenewal.count()],
+    before,
+  );
+});
+
+test("payment calculator HTTP rejects query/extra fields, invalid dates/IDs/terms and overflow with safe 422", async () => {
+  const input = {
+    entityId: LOCAL.entityId,
+    invoiceDate: "2026-10-01",
+    termsDays: 30,
+    asOfDate: "2026-11-02",
+  };
+  for (const extra of [
+    { entityId: "bad" },
+    { invoiceDate: "1900-02-29" },
+    { invoiceDate: "0000-01-01" },
+    { asOfDate: "2026-02-29" },
+    { termsDays: "30" },
+    { termsDays: 30.5 },
+    { termsDays: -1 },
+    { termsDays: 366 },
+    { userId: LOCAL.userId },
+    { organisationId: LOCAL.organisationId },
+    { invoiceDate: "9999-12-31", termsDays: 1 },
+  ])
+    assert.equal(
+      (
+        await request("POST", "/payment-due-date-checks", {
+          ...input,
+          ...extra,
+        })
+      ).status,
+      422,
+    );
+  assert.equal(
+    (await request("POST", "/payment-due-date-checks?timezone=UTC", input))
+      .status,
+    422,
+  );
+});
+
+test("readiness rejects incomplete migration history and missing auth columns without exposing schema details", async () => {
+  const probe = async () => {
+    const r = await fetch(base + "/health/ready");
+    assert.equal(r.headers.get("x-powered-by"), null);
+    return { status: r.status, body: (await r.json()) as { code?: string } };
+  };
+  assert.equal((await probe()).status, 200);
+  const [migration] = await db.$queryRaw<{ finished_at: Date }[]>`
+    SELECT finished_at FROM "_prisma_migrations"
+    WHERE migration_name='202610220001_subscription_renewals'`;
+  await db.$executeRaw`UPDATE "_prisma_migrations" SET finished_at=NULL
+    WHERE migration_name='202610220001_subscription_renewals'`;
+  try {
+    assert.equal((await probe()).status, 503);
+  } finally {
+    await db.$executeRaw`UPDATE "_prisma_migrations" SET finished_at=${migration.finished_at}
+      WHERE migration_name='202610220001_subscription_renewals'`;
+  }
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "Session" RENAME COLUMN "csrfHash" TO "missing_csrf_hash"',
+  );
+  try {
+    const failed = await probe();
+    assert.equal(failed.status, 503);
+    assert.equal(failed.body.code, "UNAVAILABLE");
+    assert.doesNotMatch(JSON.stringify(failed.body), /csrfHash|SELECT|Prisma/);
+  } finally {
+    await db.$executeRawUnsafe(
+      'ALTER TABLE "Session" RENAME COLUMN "missing_csrf_hash" TO "csrfHash"',
+    );
+  }
+  assert.equal((await probe()).status, 200);
+});
+
+test("global login cost budget rejects rotating accounts before password hashing across instances", async (context) => {
+  context.mock.timers.enable({
+    apis: ["Date"],
+    now: new Date("2030-01-01T00:00:30Z"),
+  });
+  const { Auth, digest } = await import("../src/auth");
+  const key = digest("login-global"),
+    window = new Date(Math.floor(Date.now() / 60000) * 60000);
+  const previous = await db.rateLimit.findUnique({ where: { key } });
+  await db.rateLimit.upsert({
+    where: { key },
+    create: { key, window, count: 60 },
+    update: { window, count: 60 },
+  });
+  const { Readable } = await import("node:stream");
+  const req = Object.assign(Readable.from([]), {
+    body: {
+      username: "rotating-unknown-account",
+      password: "synthetic-never-hashed-password",
+      organisationId: LOCAL.organisationId,
+    },
+    headers: { "x-finai-client-ip": "192.0.2.55" },
+  });
+  try {
+    const first = new Auth(db),
+      second = new Auth(db);
+    for (const auth of [first, second])
+      await assert.rejects(
+        auth.login(req as any, {} as any),
+        (e: any) => e.status === 429,
+      );
+    assert.equal(
+      (await db.rateLimit.findUniqueOrThrow({ where: { key } })).count,
+      62,
+    );
+  } finally {
+    if (previous)
+      await db.rateLimit.update({
+        where: { key },
+        data: { window: previous.window, count: previous.count },
+      });
+    else await db.rateLimit.delete({ where: { key } });
+  }
 });
