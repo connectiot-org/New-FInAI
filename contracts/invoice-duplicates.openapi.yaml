@@ -9,7 +9,7 @@ info:
     Required CSV headers in any order: supplier_id,supplier_name,invoice_number,invoice_date,amount,currency.
     Matching uses exact trimmed supplier ID and trimmed Unicode-uppercase invoice number.
     Flags every row in repeated groups regardless of date, amount or currency.
-    No history, database writes, invoice mutations or external API calls.
+    No uploaded invoice/result persistence, invoice mutations or external API calls; existing auth rate-limit counters still apply.
     See context/invoice-duplicates.md for CSV grammar, field normalization and limits.
 servers:
   - url: /
