@@ -128,53 +128,6 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
       exact: true,
     }),
   ).toBeVisible();
-  await page.goto(
-    `${info.origin}/tools/invoice-duplicates?entity=${info.entityId}`,
-  );
-  const csv =
-    "supplier_id,supplier_name,invoice_number,invoice_date,amount,currency\n" +
-    Array.from(
-      { length: 300 },
-      (_, i) => `V001,Synthetic session supplier,INV-${i},2060-10-01,12.50,USD`,
-    ).join("\n");
-  expect(Buffer.byteLength(csv)).toBeGreaterThan(16384);
-  await page.getByLabel("Invoice CSV file", { exact: true }).setInputFiles({
-    name: "session-invoices.csv",
-    mimeType: "text/csv",
-    buffer: Buffer.from(csv),
-  });
-  await page
-    .getByRole("button", { name: "Check for duplicates", exact: true })
-    .click();
-  await expect(
-    page.getByRole("region", { name: "Invoice check results" }),
-  ).toContainText("300");
-  await expect(
-    page.getByText(
-      "No possible duplicates found in this file using the matching rule.",
-      { exact: true },
-    ),
-  ).toBeVisible();
-  expect(
-    await page.evaluate(async (entityId) => {
-      const response = await fetch("/api/v1/invoice-duplicate-checks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ entityId, csv: "bad" }),
-      });
-      return response.status;
-    }, info.entityId),
-  ).toBe(403);
-  expect(
-    await page.evaluate(async () => {
-      const response = await fetch("/api/v1/checklist-tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "x".repeat(20000) }),
-      });
-      return response.status;
-    }),
-  ).toBe(422);
   await page.goto(`${info.origin}/tools/payment-due-date`);
   await page.getByLabel("Invoice date", { exact: true }).fill("2026-10-01");
   await page.getByLabel("As-of date", { exact: true }).fill("2026-11-02");
@@ -183,9 +136,6 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
     page.getByRole("region", { name: "Payment due-date result", exact: true }),
   ).toContainText("2 days overdue");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(
-    page.getByRole("region", { name: "Invoice check results" }),
-  ).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();
@@ -251,11 +201,10 @@ test("product navigation excludes simulated finance, preserves legacy storage un
   );
   await signIn(page);
   const navigation = page.getByRole("navigation", { name: "Finance tools" });
-  await expect(navigation.getByRole("link")).toHaveCount(4);
+  await expect(navigation.getByRole("link")).toHaveCount(3);
   for (const name of [
     "Monthly checklist",
     "Subscription renewals",
-    "Invoice duplicate checker",
     "Payment due-date calculator",
   ]) {
     await navigation.getByRole("link", { name, exact: true }).click();
@@ -365,52 +314,4 @@ test("malformed sign-in and failed sign-out never confirm success; expired API s
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();
-});
-
-test("authenticated invoice checker discards uploads/results on logout, re-login and refresh", async ({
-  page,
-}) => {
-  await page.goto(info.origin + "/tools/invoice-duplicates");
-  await signIn(page);
-  const csv =
-    "supplier_id,supplier_name,invoice_number,invoice_date,amount,currency\nV001,Synthetic supplier,INV-1,2026-10-01,10,USD\nV001,Synthetic supplier,inv-1,2026-10-02,12,EUR\n";
-  await page
-    .getByLabel("Invoice CSV file", { exact: true })
-    .setInputFiles({
-      name: "synthetic.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
-  await page
-    .getByRole("button", { name: "Check for duplicates", exact: true })
-    .click();
-  const results = page.getByRole("region", {
-    name: "Invoice check results",
-    exact: true,
-  });
-  await expect(results).toContainText("Group 1 · 2 invoices");
-  await page.setViewportSize({ width: 390, height: 844 });
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Sign in to FinAI", exact: true }),
-  ).toBeVisible();
-  await expect(results).toHaveCount(0);
-  await signIn(page);
-  await expect(
-    page.getByRole("button", { name: "Check for duplicates", exact: true }),
-  ).toBeDisabled();
-  await expect(
-    page.getByLabel("Invoice CSV file", { exact: true }),
-  ).toHaveValue("");
-  await expect(results).toHaveCount(0);
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Check for duplicates", exact: true }),
-  ).toBeDisabled();
-  await expect(results).toHaveCount(0);
 });

@@ -59,13 +59,3 @@ Subsequent user authorization: calculator commit/push to `feature/payment-due-da
 ## Current authenticated product — 2026-10-22
 
 The default frontend now ships only the three live tools behind the shared session gate. Legacy financial demonstrations remain explicit local test/development sources, excluded from product imports, public assets and navigation. The backend retains server-owned tenant/entity authority; production local identity remains rejected. Current accepted architecture is architecture.md; production-review.md records the scoped review, concrete safeguards and93 fresh passing tests plus build/security/recovery checks. No whole-platform accounting, target deployment, zero-defect or independent-audit claim is made. Public proxy/TLS/database/account/backup/capacity/monitoring gates still need operator evidence.
-
-
-## Invoice duplicate checker — 2026-10-22
-
-New transient CSV checker at `/tools/invoice-duplicates`, POST `/api/v1/invoice-duplicate-checks`, independent contract 1.0.0. Reuses existing auth/entity read access; no new dependency, paid API, table or invoice mutation. Locally 23 backend tests pass; both application builds/lint/typechecks, contracts and audits pass. Browser tests are blocked locally by forbidden Chrome startup Unix sockets, but full GitHub CI run 39750248107 subsequently passed on application commit 395aef4: **80 tests**, both builds/checks, contracts/audits, asset scan, Docker build and synthetic restore. See `invoice-duplicates.md` for the exact breakdown and evidence. Live subscription route currently reports "API proxy is not configured." See `invoice-duplicates.md` for exact behavior, limits, test evidence and deployment blocker.
-
-
-## PR #4 conflict resolution and integrated verification — 2026-10-22
-
-The user now authorizes resolving and merging feat/invoice-duplicate-checker into main. Reconciled all15 conflicts against maincbc7dc6, preserving calculator/product/session/readiness behavior and both complete contract/test sets. Fixed the missing authenticated product route and demo-dependent header imports; added session upload/logout/re-login/refresh coverage. Fresh local verification:104 tests passed,0 skipped (29 backend,34 legacy,14 checklist,6 subscriptions,11 calculator,4 invoice,4 HTTPS product,2 proxy/session). Both applications typecheck/lint/build, all4 contract validators/lints, both0-vulnerability audits, build guards/assets, container build and synthetic restore passed. No schema/dependency/data reset. GitHub APIs return403; hosted CI/PR UI/deployment state remain unverified. See invoice-merge.md for the scope, exact evidence, operating/rollback notes and final publication procedure. OpenRouter remains a separate branch.

@@ -3,7 +3,6 @@
 FinAI provides authenticated tools for finance teams:
 
 - **Monthly checklist** — saved tasks, completion, deletion and atomic copying of the previous month's titles into an empty month.
-- **Invoice duplicate checker** — transient CSV analysis of repeated supplier/invoice references, with a downloadable review report; no stored uploads or invoice changes.
 - **Subscription renewals** — manually entered renewals/cancellation deadlines, search, archive and optimistic version conflicts.
 - **Payment due-date calculator** — validated calendar-day calculation from invoice date, terms and explicit as-of date. No payment-status check or stored calculation history.
 
@@ -40,7 +39,7 @@ cd frontend
 VITE_APP_MODE=product VITE_AUTH_MODE=local VITE_CHECKLIST_MODE=api VITE_API_BASE_URL=http://127.0.0.1:3000/api/v1 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-Open `/tools/payment-due-date`, `/tools/subscriptions`, `/close/checklist` or `/tools/invoice-duplicates`. This is explicit loopback-only development identity. It must never authorize remote access or run in production. Fresh disposable local setup and separate dependency installs are documented in the operating notes. Never seed/reset an unknown or production database.
+Open `/tools/payment-due-date`, `/tools/subscriptions` or `/close/checklist`. This is explicit loopback-only development identity. It must never authorize remote access or run in production. Fresh disposable local setup and separate dependency installs are documented in the operating notes. Never seed/reset an unknown or production database.
 
 ## Product build and release
 
@@ -51,5 +50,3 @@ The repository contains deployment/recovery instructions, not evidence of a veri
 ## Verification
 
 Run the separate backend typecheck/lint/build/test/audit commands and the frontend checks listed in [product.md](frontend/docs/product.md). The production HTTPS suite uses the actual product build, proxy, NestJS service and isolated synthetic PostgreSQL schema; legacy suites explicitly use development-only demo builds to preserve regression coverage. No real customer data is needed. Exact current results and review limitations are recorded in [production-review.md](context/production-review.md).
-
-PR #4 merge verification and combined release evidence: [invoice integration review](context/invoice-merge.md).

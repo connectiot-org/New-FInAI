@@ -1,6 +1,6 @@
 # Current FinAI architecture — 2026-10-22
 
-This is the current implementation design, superseding the original proposals in backend-design.md. Source, contracts and executed verification remain authoritative. Product scope is the four implemented tools; financial accounting, banking and assistant simulations are excluded from the product build and are not approved accounting specifications.
+This is the current implementation design, superseding the original proposals in backend-design.md. Source, contracts and executed verification remain authoritative. Product scope is the three implemented tools; financial accounting, banking and assistant simulations are excluded from the product build and are not approved accounting specifications.
 
 ## System and trust boundary
 
@@ -22,7 +22,7 @@ Database sessions authenticate each request. Account disabled/expiry, active org
 ```text
 frontend/src/main.tsx
   product (default, build-time constant)
-    app/ProductApp.tsx -> shared SessionGate, pure UI, four live tools
+    app/ProductApp.tsx -> shared SessionGate, pure UI, three live tools
     lib/api.ts + checklist transport -> same-origin proxy
     no demo store/seeds/legacy router or fixture public assets
   demo (explicit local/test only)
@@ -47,7 +47,6 @@ Pure UI lives in `components/ui/primitives.tsx` and PageHeader.tsx. Legacy Commo
 | `/close/checklist` | `/api/v1/checklist-tasks` and `/copy-previous-month` | ChecklistTask; entity read for list, write for mutations |
 | `/tools/subscriptions` | `/api/v1/subscription-renewals` | SubscriptionRenewal; entity read for list, write/version for changes |
 | `/tools/payment-due-date` | `/api/v1/payment-due-date-checks` | Stateless calculation; entity read permission |
-| `/tools/invoice-duplicates` | `/api/v1/invoice-duplicate-checks` | Transient CSV/result memory only; entity read permission and CSRF |
 | Shared session gate | `/auth/login`, `/auth/session`, `/auth/logout` | Account/Session/RateLimit; server identity, active membership and CSRF |
 
 ## Persistence and concurrency
@@ -79,7 +78,7 @@ Payment calculation has no business persistence. Strict real Gregorian dates0001
 - Separate frontend/backend manifests and deployment artifacts; one service and one database. No Redis, queues, paid APIs or microservices.
 - Build-time product separation is enforced by asset scans and negative configuration checks, not by hiding demo navigation alone.
 - Liveness is process-only. Readiness requires all three completed migrations, no unfinished migration and critical business/auth columns; it reads no business records. Session-mode health still requires trusted proxy headers.
-- JSON limit16KiB (512KiB only for POST invoice-duplicate-checks; CSV itself128KiB/500 records), upstream deadline15s, proxy platform duration20s, backend request/header/keepalive limits and graceful shutdown are configured. Target ingress/TLS and replica/connection/hash capacity must be verified.
+- Small JSON limit16KiB, upstream deadline15s, proxy platform duration20s, backend request/header/keepalive limits and graceful shutdown are configured. Target ingress/TLS and replica/connection/hash capacity must be verified.
 - Safe JSON errors/request IDs, no-store, bounded metadata logs and frontend CSP/anti-framing/security headers are implemented. Monitoring retention/alerts and production OS/container scanning remain operational gates.
 - Backup, synthetic restore, additive migration/rollback and administrative procedures are in backend/RELEASE.md. Production restore rehearsal, session revocation after restore and RPO/RTO acceptance must precede release.
 - No public deployment is performed by this work. A separately authorized preview must prove routing/static assets/API JSON, cookies/CSRF/tenant denial, readiness, persistence/restarts, operational limits and rollback on the actual target.
@@ -91,5 +90,3 @@ Payment calculation has no business persistence. Strict real Gregorian dates0001
 3. Reuse administratively provisioned self-hosted sessions and entity grants; no paid identity service or browser-selected role authority.
 4. Preserve additive data compatibility and existing transaction/version semantics; separate calendar-date deadlines from payment/financial events.
 5. Release on evidence: application correctness checks and local HTTPS verification do not establish target deployment readiness or absence of every defect.
-
-The invoice duplicate checker uses pure product UI imports and the shared authenticated product entry. It compares references only within the submitted file, stores no uploads/history and never mutates invoices. Result downloads quote/neutralize spreadsheet formula-like text. Old legacy-router fixtures remain separate. PR #4 reconciliation and combined verification: [invoice-merge.md](invoice-merge.md).

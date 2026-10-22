@@ -39,10 +39,6 @@ import { PaymentDueDateService } from "./payment-due-date.service";
 import { SubscriptionRepository } from "./subscription.repository";
 import { SubscriptionController } from "./subscription.controller";
 import {
-  InvoiceDuplicateController,
-  InvoiceDuplicateService,
-} from "./invoice-duplicates";
-import {
   SubscriptionService,
   organisationTimezones,
 } from "./subscription.service";
@@ -128,7 +124,6 @@ class ChecklistController {
     ChecklistController,
     SubscriptionController,
     PaymentDueDateController,
-    InvoiceDuplicateController,
   ],
   providers: [
     Database,
@@ -137,7 +132,6 @@ class ChecklistController {
     SubscriptionService,
     SubscriptionRepository,
     PaymentDueDateService,
-    InvoiceDuplicateService,
   ],
 })
 class AppModule {}
@@ -289,13 +283,7 @@ export async function createApplication(
       sendError(e, req, res);
     }
   });
-  const ordinaryJson = express.json({ limit: "16kb" });
-  const csvJson = express.json({ limit: "512kb" });
-  app.use((req: Request, res: Response, next: NextFunction) =>
-    (req.method === "POST" && req.path === "/api/v1/invoice-duplicate-checks"
-      ? csvJson
-      : ordinaryJson)(req, res, next),
-  );
+  app.use(express.json({ limit: "16kb" }));
   app.use(async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       if (req.path === "/health/live" && req.method === "GET") {
