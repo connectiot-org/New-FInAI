@@ -30,6 +30,7 @@ try {
  await db.entity.create({data:{id:entity,organisationId:org,name:'Synthetic entity'}});
  const source={entityId:entity,month:'2060-10',title:'Synthetic copied task'};
  await db.checklistTask.create({data:{id,organisationId:org,entityId:entity,month:new Date('2060-10-01T00:00:00Z'),title:source.title,completed:false,version:1,createDigest:createHash('sha256').update(JSON.stringify([entity,source.month,source.title])).digest('hex')}});
+ await db.subscriptionRenewal.create({data:{id:randomUUID(),organisationId:org,entityId:entity,supplierName:'Synthetic supplier',subscriptionName:'Synthetic renewal',renewalDate:new Date('2060-11-01T00:00:00Z')}});
 } finally {await db.$disconnect();}
 JS
 docker compose exec -T db pg_dump -U finai -Fc "$source_db" > "$archive"
@@ -39,5 +40,7 @@ test "$result" = 1
 schema_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('Account','Session','RateLimit')")
 test "$schema_result" = 3
 migration_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c 'SELECT count(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL')
-test "$migration_result" = 2
+test "$migration_result" = 3
+renewal_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"SubscriptionRenewal\" WHERE \"supplierName\"='Synthetic supplier' AND archived=false AND version=1")
+test "$renewal_result" = 1
 printf 'PASS: migrated synthetic application database restored; task state, auth schema and migration history verified\n'

@@ -43,3 +43,7 @@ Backend and the separate frontend checklist were completed on 2026-10-19. Contra
 ## Copy/session release update — 2026-10-21
 
 Starting checkout a285efa93bcf8918958b13139dabd9857edd0e72 was clean and revalidated. Contract 1.1.0 adds atomic previous-month title copying into empty destinations. Shared administrative Argon2id accounts, database sessions/rate limits, secure cookies, CSRF and same-origin proxy foundations are now implemented. Public deployment remains unverified/unauthorized. See `copy-release.md` for current verification, source inventory and gates; historical baseline descriptions above remain historical.
+
+## Subscription renewals — 2026-10-22
+
+Implemented `/tools/subscriptions` with one additive SubscriptionRenewal table, scoped CRUD/archive, bounded search/pagination, server organisation-timezone date indicators, existing sessions/permissions, and shared sign-in UI. No automatic billing/reminders or new auth platform. See `subscriptions.md` for current verification, files, migration/startup commands and production limits.

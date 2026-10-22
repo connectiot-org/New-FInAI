@@ -80,6 +80,11 @@ export const navigation = [
   {
     group: "Manage",
     items: [
+      {
+        label: "Subscription renewals",
+        path: "/tools/subscriptions",
+        icon: Layers,
+      },
       { label: "Automations", path: "/automations", icon: Zap },
       { label: "Integrations", path: "/integrations", icon: Plug },
       { label: "Audit log", path: "/audit-log", icon: History },
@@ -88,6 +93,7 @@ export const navigation = [
   },
 ];
 export const routeTitles: Record<string, string> = {
+  "/tools/subscriptions": "Subscription renewals",
   "/overview": "Overview",
   "/accounting/ledger": "General ledger",
   "/accounting/journals": "Journal entries",

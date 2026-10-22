@@ -37,7 +37,8 @@ jobs:
           python3 -m venv /tmp/finai-contracts
           /tmp/finai-contracts/bin/pip install -r contracts/requirements.txt
           /tmp/finai-contracts/bin/python contracts/validate_examples.py
-          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml --extends minimal
+          /tmp/finai-contracts/bin/python contracts/validate_subscriptions.py
+          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml --extends minimal
       - name: Browser and production session checks
         working-directory: frontend
         run: |
@@ -47,6 +48,7 @@ jobs:
           npm run build
           npm test
           npm run test:checklist
+          npm run test:subscriptions
           npm run test:session
           node scripts/check-assets.ts
           npm audit

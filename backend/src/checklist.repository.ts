@@ -28,7 +28,7 @@ export class ChecklistRepository {
       throw new ApiError(
         403,
         "FORBIDDEN",
-        "You cannot change this entity’s checklist.",
+        "You cannot change records for this entity.",
       );
   }
   async entities(identity: Identity) {

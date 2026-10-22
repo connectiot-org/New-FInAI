@@ -100,12 +100,42 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
       Object.keys(localStorage).some((k) => /password|token|session/i.test(k)),
     ),
   ).toBe(false);
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.goto(`${info.origin}/tools/subscriptions?entity=${info.entityId}`);
   await expect(
-    page.getByRole("heading", { name: "Sign in to your checklist" }),
+    page.getByRole("heading", { name: "Subscription renewals", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Add subscription", exact: true })
+    .click();
+  await page
+    .getByLabel("Supplier name", { exact: true })
+    .fill("Session supplier");
+  await page
+    .getByLabel("Subscription name", { exact: true })
+    .fill("Authenticated renewal");
+  await page.getByLabel("Renewal date", { exact: true }).fill("2060-12-01");
+  await page
+    .getByRole("button", { name: "Save subscription", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: "Edit Authenticated renewal",
+      exact: true,
+    }),
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Sign in to your checklist" }),
+    page.getByRole("button", {
+      name: "Edit Authenticated renewal",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Sign in to FinAI" }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();
 });

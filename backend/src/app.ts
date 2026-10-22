@@ -33,6 +33,12 @@ import {
 } from "./validation";
 import { z } from "zod";
 import { Auth, digest, equal } from "./auth";
+import { SubscriptionRepository } from "./subscription.repository";
+import { SubscriptionController } from "./subscription.controller";
+import {
+  SubscriptionService,
+  organisationTimezones,
+} from "./subscription.service";
 type AuthRequest = Request & { identity: Identity };
 const empty = z.strictObject({});
 @Controller("api/v1")
@@ -111,8 +117,14 @@ class ChecklistController {
   }
 }
 @Module({
-  controllers: [ChecklistController],
-  providers: [Database, ChecklistRepository, ChecklistService],
+  controllers: [ChecklistController, SubscriptionController],
+  providers: [
+    Database,
+    ChecklistRepository,
+    ChecklistService,
+    SubscriptionService,
+    SubscriptionRepository,
+  ],
 })
 class AppModule {}
 export async function createApplication(
@@ -122,6 +134,9 @@ export async function createApplication(
     quiet?: boolean;
   } = {},
 ) {
+  const timezones = organisationTimezones(
+    (options.env || process.env).ORGANISATION_TIMEZONES,
+  );
   const config = readConfig(options.env);
   if (
     options.identity &&
@@ -137,6 +152,7 @@ export async function createApplication(
     bodyParser: false,
   });
   app.enableShutdownHooks();
+  app.get(SubscriptionService).timezones = timezones;
   const db = app.get(Database);
   const auth = new Auth(db);
   const server = app.getHttpServer();
@@ -268,6 +284,7 @@ export async function createApplication(
       if (config.mode === "session") {
         if (req.path === "/health/ready" && req.method === "GET") {
           await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "Session" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "Account" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "RateLimit" LIMIT 1`;
@@ -300,6 +317,7 @@ export async function createApplication(
       }
       if (req.path === "/health/ready") {
         await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
+        await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
         const membership = await db.membership.findUnique({
           where: { organisationId_userId: identity },
         });
