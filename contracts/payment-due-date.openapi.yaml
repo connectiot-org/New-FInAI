@@ -1,0 +1,212 @@
+openapi: 3.1.1
+info:
+  title: FinAI payment due-date calculator
+  version: 1.0.0
+servers:
+- url: /
+security:
+- sessionCookie: []
+paths:
+  /api/v1/payment-due-date-checks:
+    post:
+      operationId: calculatePaymentDueDate
+      summary: Calculate a payment due date from entered dates and calendar-day terms
+      description: Read permission on the selected entity is sufficient. No business
+        records or history are stored. Gregorian calendar arithmetic only; no weekends/holidays/month
+        additions. The supplied asOfDate is authoritative. Invalid input or a due
+        date beyond 9999-12-31 returns 422. Existing session/CSRF, trusted proxy/origin,
+        rate-limit, request-ID/no-store and loopback-local identity restrictions apply.
+        Unknown query parameters and body properties are rejected. Overdue does not
+        imply payment was checked or determine legal obligations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentDueDateInput'
+            example:
+              entityId: 22222222-2222-4222-8222-222222222222
+              invoiceDate: '2026-10-01'
+              termsDays: 30
+              asOfDate: '2026-11-02'
+      responses:
+        '200':
+          description: 'Exact calculation result; X-Request-Id and Cache-Control:
+            no-store.'
+          headers:
+            X-Request-Id:
+              schema:
+                type: string
+                format: uuid
+              description: Server-generated request identifier.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDueDateResult'
+              examples:
+                overdue:
+                  value:
+                    entityId: 22222222-2222-4222-8222-222222222222
+                    invoiceDate: '2026-10-01'
+                    termsDays: 30
+                    asOfDate: '2026-11-02'
+                    dueDate: '2026-10-31'
+                    daysUntilDue: -2
+                    status: overdue
+                today:
+                  value:
+                    entityId: 22222222-2222-4222-8222-222222222222
+                    invoiceDate: '2026-10-01'
+                    termsDays: 30
+                    asOfDate: '2026-10-31'
+                    dueDate: '2026-10-31'
+                    daysUntilDue: 0
+                    status: due_today
+                future:
+                  value:
+                    entityId: 22222222-2222-4222-8222-222222222222
+                    invoiceDate: '2026-10-01'
+                    termsDays: 30
+                    asOfDate: '2026-10-30'
+                    dueDate: '2026-10-31'
+                    daysUntilDue: 1
+                    status: not_due
+        '400':
+          description: Malformed JSON
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '401':
+          description: Missing, expired or inactive identity
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '403':
+          description: Forbidden origin/CSRF/proxy
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '404':
+          description: Entity absent or inaccessible
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '422':
+          description: Invalid input/calendar result outside supported range
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '429':
+          description: Existing shared request limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '500':
+          description: Safe internal failure
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '503':
+          description: Authorization database unavailable
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+      description: Existing PostgreSQL sessions; exact Origin and X-CSRF-Token required
+        on POST. Explicit local/test mode remains loopback-only.
+  schemas:
+    PaymentDueDateInput:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - invoiceDate
+      - termsDays
+      - asOfDate
+      properties:
+        entityId: &id002
+          type: string
+          format: uuid
+        invoiceDate: &id001
+          type: string
+          format: date
+          pattern: ^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])-[0-9]{2}$
+          minLength: 10
+          maxLength: 10
+          description: "Real Gregorian calendar date, years 0001\u20139999."
+        termsDays: &id003
+          type: integer
+          minimum: 0
+          maximum: 365
+        asOfDate: *id001
+    PaymentDueDateResult:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - invoiceDate
+      - termsDays
+      - asOfDate
+      - dueDate
+      - daysUntilDue
+      - status
+      properties:
+        entityId: *id002
+        invoiceDate: *id001
+        termsDays: *id003
+        asOfDate: *id001
+        dueDate: *id001
+        daysUntilDue:
+          type: integer
+          minimum: -3652058
+          maximum: 3652058
+        status:
+          enum:
+          - not_due
+          - due_today
+          - overdue
+      # Partial conditionals permit parent keys; the result object above remains strict.
+      allOf:
+      - if:
+          additionalProperties: true
+          properties:
+            status:
+              const: not_due
+        then:
+          additionalProperties: true
+          properties:
+            daysUntilDue:
+              minimum: 1
+      - if:
+          additionalProperties: true
+          properties:
+            status:
+              const: due_today
+        then:
+          additionalProperties: true
+          properties:
+            daysUntilDue:
+              const: 0
+      - if:
+          additionalProperties: true
+          properties:
+            status:
+              const: overdue
+        then:
+          additionalProperties: true
+          properties:
+            daysUntilDue:
+              maximum: -1

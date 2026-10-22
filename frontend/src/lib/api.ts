@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { sessionExpired, sessionRevision } from "./session-lifecycle";
 export const sessionEnabled = import.meta.env.VITE_AUTH_MODE === "session";
 export class ApiError extends Error {
   constructor(
@@ -11,8 +12,14 @@ export class ApiError extends Error {
 export async function apiRequest<T>(
   path: string,
   schema: z.ZodType<T>,
-  options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
+  options: {
+    method?: string;
+    body?: unknown;
+    signal?: AbortSignal;
+    expectedStatus?: number | readonly number[];
+  } = {},
 ): Promise<T> {
+  const revision = sessionRevision();
   const method = options.method || "GET",
     base =
       import.meta.env.VITE_API_BASE_URL ||
@@ -36,6 +43,7 @@ export async function apiRequest<T>(
         credentials: "same-origin",
         signal,
       });
+      if (r.status === 401) sessionExpired(revision);
       if (!r.ok)
         throw new ApiError(
           "Session expired. Sign out and sign in again.",
@@ -65,12 +73,19 @@ export async function apiRequest<T>(
       );
     }
     if (!r.ok) {
+      if (r.status === 401 && sessionEnabled) sessionExpired(revision);
       const error = z.object({ message: z.string() }).safeParse(data);
       throw new ApiError(
         error.success ? error.data.message : "Request failed.",
         r.status,
       );
     }
+    const allowed =
+      typeof options.expectedStatus === "number"
+        ? [options.expectedStatus]
+        : options.expectedStatus;
+    if (allowed && !allowed.includes(r.status))
+      throw new ApiError("Backend returned an unexpected response.", r.status);
     const parsed = schema.safeParse(data);
     if (!parsed.success)
       throw new ApiError(

@@ -41,6 +41,7 @@ import {
   Schedules,
 } from "../features/Operations";
 import { Close } from "../features/Close";
+import { PaymentDueDate } from "../features/payment-due-date/PaymentDueDate";
 import { SubscriptionRenewals } from "../features/subscriptions/SubscriptionRenewals";
 import { InvoiceDuplicates } from "../features/invoice-duplicates/InvoiceDuplicates";
 import { MonthlyChecklist } from "../features/checklist/MonthlyChecklist";
@@ -197,6 +198,7 @@ const router = createBrowserRouter([
       { path: "close/checklist", element: <MonthlyChecklist /> },
       { path: "tools/subscriptions", element: <SubscriptionRenewals /> },
       { path: "tools/invoice-duplicates", element: <InvoiceDuplicates /> },
+      { path: "tools/payment-due-date", element: <PaymentDueDate /> },
       { path: "reports", element: <Reports /> },
       {
         path: "reports/profit-and-loss",

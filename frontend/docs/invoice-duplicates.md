@@ -1,6 +1,6 @@
 # Invoice duplicate checker
 
-Open `/tools/invoice-duplicates` (Manage → Invoice duplicate checker). Select an authorized company, download the sample, and upload your own UTF-8 comma-separated `.csv` file. Click **Check for duplicates**, review the groups, and download the full report. Maximum 128 KiB / 500 invoices. Dates must be YYYY-MM-DD; amounts must be non-negative plain decimals with up to 12 integer digits and two decimal places. Currency is three uppercase letters. Exactly these headers are required, in any order:
+Open `/tools/invoice-duplicates` from the authenticated product navigation. Select an authorized company, download the sample, and upload your own UTF-8 comma-separated `.csv` file. Click **Check for duplicates**, review the groups, and download the full report. Maximum 128 KiB / 500 invoices. Dates must be YYYY-MM-DD; amounts must be non-negative plain decimals with up to 12 integer digits and two decimal places. Currency is three uppercase letters. Exactly these headers are required, in any order:
 
 ```csv
 supplier_id,supplier_name,invoice_number,invoice_date,amount,currency
@@ -16,10 +16,10 @@ For local development, follow `backend/README.md` to install/generate/migrate/se
 
 ```sh
 npm ci
-VITE_API_BASE_URL=http://127.0.0.1:3000/api/v1 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
+VITE_APP_MODE=product VITE_AUTH_MODE=local VITE_CHECKLIST_MODE=api VITE_API_BASE_URL=http://127.0.0.1:3000/api/v1 npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-For a production build use `VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 npm run build` and the existing exact-host HTTPS/authenticated proxy settings documented in `backend/RELEASE.md`. Do not expose local identity. The public site's “API proxy is not configured” error is a deployment configuration blocker, not a successful connection.
+For a production build use `npm run build` (session-authenticated product with same-origin API) and the existing exact-host HTTPS/authenticated proxy settings documented in `backend/RELEASE.md`. Do not expose local identity. The public site's “API proxy is not configured” error is a deployment configuration blocker, not a successful connection.
 
 With a local PostgreSQL URL in the existing ignored `backend/.env`, backend built, and frontend port 5173 free:
 
@@ -28,3 +28,5 @@ npm run test:invoice-duplicates
 ```
 
 This reuses the isolated migrated/seeded PostgreSQL fixture used by the subscription suite; it drops only its own generated test schema. Production session/proxy upload coverage is included in `npm run test:session`. Shared transport schema: `contracts/invoice-duplicates.openapi.yaml`; exact rules and current evidence: `context/invoice-duplicates.md`.
+
+PR #4 integration now uses the product-only PageHeader/UI imports and route, preserving the separate legacy regression entry. Combined merge verification and Git publication evidence are recorded in context/invoice-merge.md.

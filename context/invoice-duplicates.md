@@ -41,3 +41,8 @@ Self-review covers the full scoped diff and new files; no independent reviewer i
 
 
 Review delivery: https://github.com/connectiot-org/New-FInAI/pull/4 remains draft for normal review. The existing Vercel integration automatically built a protected branch preview; it redirects this browser to Vercel sign-in, so no live preview interaction is claimed. Main and the production website were not changed by this work. No request to sign in or loosen preview access was needed to complete CI verification. A documentation-only follow-up records these results; application code is unchanged from the verified commit above.
+
+
+## Subsequent merge authorization — 2026-10-22
+
+The user now explicitly requests resolving PR #4 conflicts and merging into main, superseding the earlier draft-only/no-merge scope. Integration preserves main's calculator and authenticated product boundary, registers the checker in ProductApp with pure UI imports, combines both CI/test sets and retains route-specific upload bounds. Fresh combined evidence and current operator limits: [invoice-merge.md](invoice-merge.md). Earlier browser/CI/deployment observations above are historical and are not substituted for this verification.
