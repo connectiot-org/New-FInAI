@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { apiRequest } from "../../lib/api";
+import { loadAuthorizedEntities } from "../../lib/authorized-entities";
 const date = z.string().regex(/^(?!0000)\d{4}-(0[1-9]|1[0-2])-\d{2}$/);
 const details = {
   supplierName: z
@@ -55,14 +56,7 @@ export type Details = Pick<
   | "notes"
 >;
 export const subscriptionApi = {
-  entities: (signal: AbortSignal) =>
-    apiRequest(
-      "/entities",
-      z.strictObject({
-        items: z.array(z.strictObject({ id: z.uuid(), name: z.string() })),
-      }),
-      { signal },
-    ),
+  entities: loadAuthorizedEntities,
   async list(
     entityId: string,
     search: string,

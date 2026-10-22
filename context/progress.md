@@ -54,3 +54,14 @@ User authorized commit/push after fresh verification. Reran 12 backend + 34 stan
 ## Subscription renewals — 2026-10-22
 
 Implemented sequentially from clean c06d7f2 on work. Fresh final checks: 17 backend + 4 subscription browser + 34 existing standalone browser + 14 checklist browser + 1 production-build HTTPS session/proxy = 70 passing tests, zero skipped. Both applications typecheck/lint/build; existing/new contracts validate, subscription Redocly lint passes, application audits report zero known vulnerabilities, asset scan passes, and additive migration repeatability/synthetic subscription+checklist restore pass. Existing production auth reused; no deployment/paid resources. Commands, file inventory and gates: subscriptions.md.
+
+## Payment due-date calculator — 2026-10-22
+
+Implemented from clean7c918477a4a360d0dfefef0dace3015894911950 on `feature/payment-due-date`, following the supplied calculator brief. Independent contract1.0.0, pure permission-checked calendar calculation, `/tools/payment-due-date`, shared existing sessions/entity loader/transport, stale-request cancellation, strict response verification and no calculation persistence. No business table, migration, new dependency or global security change.
+
+Fresh final checks:21 backend +11 calculator browser +34 standalone browser +14 checklist browser +4 subscription browser +1 local HTTPS production-build session/proxy =85 passing tests, zero skipped. Both applications typecheck/lint/build, all3 contracts/validators lint/validate, both full audits report0 vulnerabilities, asset scan and synthetic restore pass, local backend container builds. One initial browser failure logged Chromium ERR_NETWORK_CHANGED while loading modules during overlapping container work; the full unchanged standalone suite reran with34 passes. Assertions were not removed. CI now includes calculator checks, but remote CI/deployment was not run. Reviewable diff deliberately remains unpushed/unmerged per the current brief. Exact commands, changed paths, manual journey, startup and remaining deployment gates: [payment-due-date.md](payment-due-date.md).
+
+
+### Subsequent calculator commit/push authorization
+
+The latest user instruction supersedes the original no-push restriction: verify, commit and push `feature/payment-due-date`. Fresh rerun passed all85 tests (21 backend,34 standalone,14 checklist,4 subscriptions,11 calculator,1 HTTPS session), both applications' typechecks/lint/builds, all3 contract validators/Redocly lint, asset scan and both0-vulnerability audits. Code inspection and diff checks passed. Publish only the feature branch without force; do not merge newer remote main or deploy. GitHub API access for hosted CI inspection returned Forbidden; distinguish that limitation from Git transport and local verification. Full evidence is in payment-due-date.md.

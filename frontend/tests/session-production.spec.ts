@@ -130,6 +130,13 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
       exact: true,
     }),
   ).toBeVisible();
+  await page.goto(`${info.origin}/tools/payment-due-date`);
+  await page.getByLabel("Invoice date", { exact: true }).fill("2026-10-01");
+  await page.getByLabel("As-of date", { exact: true }).fill("2026-11-02");
+  await page.getByRole("button", { name: "Calculate", exact: true }).click();
+  await expect(
+    page.getByRole("region", { name: "Payment due-date result", exact: true }),
+  ).toContainText("2 days overdue");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
@@ -138,4 +145,22 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Payment due-date result", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Account name").fill("browser-test");
+  await page.getByLabel("Organisation ID").fill(info.organisationId);
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill("synthetic-browser-password");
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Calculate", exact: true }),
+  ).toBeEnabled();
+  await expect(
+    page.getByRole("region", { name: "Payment due-date result", exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Invoice date", { exact: true })).toHaveValue(
+    "",
+  );
 });

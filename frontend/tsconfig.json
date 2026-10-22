@@ -32,6 +32,7 @@
     "tests",
     "api",
     "playwright.session.config.ts",
-    "playwright.subscriptions.config.ts"
+    "playwright.subscriptions.config.ts",
+    "playwright.payment-due-date.config.ts"
   ]
 }

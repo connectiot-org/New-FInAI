@@ -11,7 +11,12 @@ export class ApiError extends Error {
 export async function apiRequest<T>(
   path: string,
   schema: z.ZodType<T>,
-  options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
+  options: {
+    method?: string;
+    body?: unknown;
+    signal?: AbortSignal;
+    expectedStatus?: number;
+  } = {},
 ): Promise<T> {
   const method = options.method || "GET",
     base =
@@ -71,6 +76,11 @@ export async function apiRequest<T>(
         r.status,
       );
     }
+    if (
+      options.expectedStatus !== undefined &&
+      r.status !== options.expectedStatus
+    )
+      throw new ApiError("Backend returned an unexpected response.", r.status);
     const parsed = schema.safeParse(data);
     if (!parsed.success)
       throw new ApiError(

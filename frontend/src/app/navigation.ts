@@ -14,6 +14,7 @@ import {
   History,
   Settings,
   CreditCard,
+  CalendarDays,
   Layers,
 } from "lucide-react";
 export const navigation = [
@@ -85,6 +86,11 @@ export const navigation = [
         path: "/tools/subscriptions",
         icon: Layers,
       },
+      {
+        label: "Payment due-date calculator",
+        path: "/tools/payment-due-date",
+        icon: CalendarDays,
+      },
       { label: "Automations", path: "/automations", icon: Zap },
       { label: "Integrations", path: "/integrations", icon: Plug },
       { label: "Audit log", path: "/audit-log", icon: History },
@@ -93,6 +99,7 @@ export const navigation = [
   },
 ];
 export const routeTitles: Record<string, string> = {
+  "/tools/payment-due-date": "Payment due-date calculator",
   "/tools/subscriptions": "Subscription renewals",
   "/overview": "Overview",
   "/accounting/ledger": "General ledger",

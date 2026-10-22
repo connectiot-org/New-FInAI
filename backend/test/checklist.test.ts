@@ -811,6 +811,17 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
     ).r.status,
     403,
   );
+  const calculation = {
+    entityId: LOCAL.entityId,
+    invoiceDate: "2026-10-01",
+    termsDays: 30,
+    asOfDate: "2026-11-02",
+  };
+  assert.equal(
+    (await call("/api/v1/payment-due-date-checks", "POST", calculation)).r
+      .status,
+    401,
+  );
   const login = async (password = "synthetic-test-password") =>
     call("/auth/login", "POST", {
       username: "synthetic",
@@ -858,6 +869,19 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
     ).r.status,
     200,
   );
+  assert.equal(
+    (await call("/api/v1/payment-due-date-checks", "POST", calculation)).r
+      .status,
+    403,
+  );
+  const calculated = await call(
+    "/api/v1/payment-due-date-checks",
+    "POST",
+    calculation,
+    { "X-CSRF-Token": csrf },
+  );
+  assert.equal(calculated.r.status, 200);
+  assert.equal(calculated.data.dueDate, "2026-10-31");
   const priorCookie = cookie;
   const rotated = await login();
   assert.equal(rotated.r.status, 200);
@@ -1342,4 +1366,132 @@ test("subscription timezone fallback and separate inclusive renewal/deadline ind
     "UTC",
   );
   await configured.close();
+});
+
+test("payment calculator exact HTTP contract, read-only permission, entity/tenant isolation and no business writes", async () => {
+  const input = {
+      entityId: LOCAL.entityId,
+      invoiceDate: "2026-10-01",
+      termsDays: 30,
+      asOfDate: "2026-11-02",
+    },
+    path = "/payment-due-date-checks";
+  const before = [
+    await db.checklistTask.count(),
+    await db.subscriptionRenewal.count(),
+  ];
+  const result = await request("POST", path, input);
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.data, {
+    ...input,
+    dueDate: "2026-10-31",
+    daysUntilDue: -2,
+    status: "overdue",
+  });
+  const raw = await fetch(base + "/api/v1" + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  assert.equal(raw.status, 200);
+  assert.equal(raw.headers.get("cache-control"), "no-store");
+  assert.match(raw.headers.get("x-request-id")!, /^[a-f0-9-]{36}$/);
+  const reader = await start({
+    organisationId: LOCAL.organisationId,
+    userId: readerId,
+  });
+  try {
+    assert.equal(
+      (await request("POST", path, input, {}, reader.url)).status,
+      200,
+    );
+    await db.membership.update({
+      where: {
+        organisationId_userId: {
+          organisationId: LOCAL.organisationId,
+          userId: readerId,
+        },
+      },
+      data: { active: false },
+    });
+    try {
+      assert.equal(
+        (await request("POST", path, input, {}, reader.url)).status,
+        401,
+      );
+    } finally {
+      await db.membership.update({
+        where: {
+          organisationId_userId: {
+            organisationId: LOCAL.organisationId,
+            userId: readerId,
+          },
+        },
+        data: { active: true },
+      });
+    }
+  } finally {
+    await reader.instance.close();
+  }
+  for (const entityId of [hiddenId, foreign.entityId])
+    assert.equal(
+      (await request("POST", path, { ...input, entityId })).status,
+      404,
+    );
+  const other = await start({
+    organisationId: foreign.organisationId,
+    userId: foreign.userId,
+  });
+  try {
+    assert.equal(
+      (await request("POST", path, input, {}, other.url)).status,
+      404,
+    );
+  } finally {
+    await other.instance.close();
+  }
+  assert.equal(
+    (await request("POST", path, input, { "X-User-Id": LOCAL.userId })).status,
+    403,
+  );
+  assert.deepEqual(
+    [await db.checklistTask.count(), await db.subscriptionRenewal.count()],
+    before,
+  );
+});
+
+test("payment calculator HTTP rejects query/extra fields, invalid dates/IDs/terms and overflow with safe 422", async () => {
+  const input = {
+    entityId: LOCAL.entityId,
+    invoiceDate: "2026-10-01",
+    termsDays: 30,
+    asOfDate: "2026-11-02",
+  };
+  for (const extra of [
+    { entityId: "bad" },
+    { invoiceDate: "1900-02-29" },
+    { invoiceDate: "0000-01-01" },
+    { asOfDate: "2026-02-29" },
+    { termsDays: "30" },
+    { termsDays: 30.5 },
+    { termsDays: -1 },
+    { termsDays: 366 },
+    { userId: LOCAL.userId },
+    { organisationId: LOCAL.organisationId },
+    { invoiceDate: "9999-12-31", termsDays: 1 },
+  ])
+    assert.equal(
+      (
+        await request("POST", "/payment-due-date-checks", {
+          ...input,
+          ...extra,
+        })
+      ).status,
+      422,
+    );
+  assert.equal(
+    (await request("POST", "/payment-due-date-checks?timezone=UTC", input))
+      .status,
+    422,
+  );
 });

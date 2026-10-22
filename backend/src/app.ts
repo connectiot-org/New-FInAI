@@ -33,6 +33,8 @@ import {
 } from "./validation";
 import { z } from "zod";
 import { Auth, digest, equal } from "./auth";
+import { PaymentDueDateController } from "./payment-due-date.controller";
+import { PaymentDueDateService } from "./payment-due-date.service";
 import { SubscriptionRepository } from "./subscription.repository";
 import { SubscriptionController } from "./subscription.controller";
 import {
@@ -117,13 +119,18 @@ class ChecklistController {
   }
 }
 @Module({
-  controllers: [ChecklistController, SubscriptionController],
+  controllers: [
+    ChecklistController,
+    SubscriptionController,
+    PaymentDueDateController,
+  ],
   providers: [
     Database,
     ChecklistRepository,
     ChecklistService,
     SubscriptionService,
     SubscriptionRepository,
+    PaymentDueDateService,
   ],
 })
 class AppModule {}
