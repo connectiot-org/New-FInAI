@@ -1,6 +1,6 @@
 # Ordered backlog and gates
 
-> Historical gate plan. Current architecture/evidence: [architecture.md](architecture.md), [production-review.md](production-review.md). Self-hosted session identity is implemented; target deployment/recovery/capacity verification remains required. The product exposes only the three implemented live tools.
+> Historical gate plan. Current architecture/evidence: [architecture.md](architecture.md), [production-review.md](production-review.md). Self-hosted session identity is implemented; target deployment/recovery/capacity verification remains required. The product exposes implemented live tools, with the separately authorized free-model text chat extension described in openrouter.md.
 
 Status: A–C are complete for the local feature; D and later remain planned. Every ticket records role, edit paths, dependencies, test evidence and done criteria. Broader Rillet parity is a separate programme, not the first release promise.
 

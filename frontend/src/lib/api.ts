@@ -17,6 +17,7 @@ export async function apiRequest<T>(
     body?: unknown;
     signal?: AbortSignal;
     expectedStatus?: number | readonly number[];
+    timeoutMs?: number;
   } = {},
 ): Promise<T> {
   const revision = sessionRevision();
@@ -35,8 +36,11 @@ export async function apiRequest<T>(
   const headers: Record<string, string> = {};
   if (method !== "GET") headers["Content-Type"] = "application/json";
   const signal = options.signal
-    ? AbortSignal.any([options.signal, AbortSignal.timeout(10000)])
-    : AbortSignal.timeout(10000);
+    ? AbortSignal.any([
+        options.signal,
+        AbortSignal.timeout(options.timeoutMs ?? 10000),
+      ])
+    : AbortSignal.timeout(options.timeoutMs ?? 10000);
   try {
     if (sessionEnabled && method !== "GET") {
       const r = await fetch("/auth/session", {

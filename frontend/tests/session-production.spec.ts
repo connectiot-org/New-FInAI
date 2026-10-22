@@ -201,7 +201,7 @@ test("product navigation excludes simulated finance, preserves legacy storage un
   );
   await signIn(page);
   const navigation = page.getByRole("navigation", { name: "Finance tools" });
-  await expect(navigation.getByRole("link")).toHaveCount(3);
+  await expect(navigation.getByRole("link")).toHaveCount(4);
   for (const name of [
     "Monthly checklist",
     "Subscription renewals",
@@ -310,6 +310,181 @@ test("malformed sign-in and failed sign-out never confirm success; expired API s
   await expect(page.getByLabel("Invoice date", { exact: true })).toHaveValue(
     "",
   );
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Sign in to FinAI" }),
+  ).toBeVisible();
+});
+
+async function fixtureEvent(type: string) {
+  await new Promise<void>((resolve) => {
+    const listener = (value: unknown) => {
+      if ((value as { type?: string }).type === type) {
+        fixture.off("message", listener);
+        resolve();
+      }
+    };
+    fixture.on("message", listener);
+  });
+}
+async function configureAi(type: string) {
+  const done = fixtureEvent(`${type}-done`);
+  fixture.send?.({ type });
+  await done;
+}
+async function openAi(page: import("@playwright/test").Page) {
+  await page.goto(info.origin + "/tools/ai-chat");
+  await signIn(page);
+  await expect(
+    page.getByRole("button", { name: "Send message", exact: true }),
+  ).toBeEnabled();
+}
+const aiReply = (page: import("@playwright/test").Page) =>
+  page.getByRole("region", { name: "AI response", exact: true });
+
+test("AI uses authenticated Vercel key relay, free model selection, plaintext replies and CSRF", async ({
+  page,
+}) => {
+  await openAi(page);
+  const picker = page.getByLabel("Free model", { exact: true });
+  await expect(picker.locator("option")).toHaveCount(2);
+  await expect(picker).not.toContainText("Paid model");
+  await page.getByLabel("Search free models", { exact: true }).fill("second");
+  await expect(picker.locator("option")).toHaveCount(1);
+  await picker.selectOption("fixture/second:free");
+  await page
+    .getByLabel("Your prompt", { exact: true })
+    .fill("<img src=x onerror=alert(1)> Explain renewals.");
+  let submitted: Record<string, unknown> | undefined;
+  page.on("request", (req) => {
+    if (req.url().endsWith("/api/v1/ai/chat")) submitted = req.postDataJSON();
+  });
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(aiReply(page)).toContainText(
+    "Provider fixture reply: <img src=x onerror=alert(1)> Explain renewals.",
+  );
+  await expect(aiReply(page).locator("img")).toHaveCount(0);
+  expect(Object.keys(submitted!).sort()).toEqual([
+    "entityId",
+    "modelId",
+    "prompt",
+  ]);
+  expect(submitted?.modelId).toBe("fixture/second:free");
+  await expect(
+    page.getByText(/Your prompt is sent to OpenRouter/),
+  ).toBeVisible();
+  const statuses = await page.evaluate(async (entityId) => {
+    const catalog = await fetch(`/api/v1/ai/models?entityId=${entityId}`, {
+      headers: { "X-Finai-Openrouter-Key": "browser-must-not-select-a-key" },
+    });
+    const denied = await fetch("/api/v1/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        entityId,
+        modelId: "fixture/first:free",
+        prompt: "No CSRF",
+      }),
+    });
+    return [catalog.status, denied.status];
+  }, info.entityId);
+  expect(statuses).toEqual([200, 403]);
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await expect(aiReply(page)).toHaveCount(0);
+  await expect(page.getByLabel("Your prompt", { exact: true })).toHaveValue("");
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Send message", exact: true }),
+  ).toBeEnabled();
+  await expect(aiReply(page)).toHaveCount(0);
+});
+
+test("AI missing key, empty catalog, quota and invalid responses stay visible without fake success", async ({
+  page,
+}) => {
+  await openAi(page);
+  for (const [prompt, text] of [
+    ["quota test", "quota reached"],
+    ["malformed test", "invalid response"],
+  ]) {
+    await page.getByLabel("Your prompt", { exact: true }).fill(prompt);
+    await page
+      .getByRole("button", { name: "Send message", exact: true })
+      .click();
+    await expect(page.getByRole("alert")).toContainText(text);
+    await expect(aiReply(page)).toHaveCount(0);
+  }
+  try {
+    await configureAi("ai-key-off");
+    await page
+      .getByRole("button", { name: "Reload models", exact: true })
+      .click();
+    await expect(page.getByRole("alert")).toContainText("AI is not configured");
+    await expect(
+      page.getByRole("button", { name: "Send message", exact: true }),
+    ).toBeDisabled();
+    await configureAi("ai-key-on");
+    await configureAi("ai-empty");
+    await page
+      .getByRole("button", { name: "Reload models", exact: true })
+      .click();
+    await expect(page.getByRole("alert")).toContainText("No free text models");
+    await configureAi("ai-normal");
+    await page
+      .getByRole("button", { name: "Reload models", exact: true })
+      .click();
+    await expect(
+      page.getByRole("button", { name: "Send message", exact: true }),
+    ).toBeEnabled();
+  } finally {
+    await configureAi("ai-key-on");
+    await configureAi("ai-normal");
+  }
+  await page.route("**/api/v1/ai/chat", (route) => route.abort("failed"));
+  await page
+    .getByLabel("Your prompt", { exact: true })
+    .fill("Network uncertainty");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("could not be confirmed");
+  await expect(aiReply(page)).toHaveCount(0);
+});
+
+test("AI pending guard, changed model and reset discard delayed replies; mobile keyboard works", async ({
+  page,
+}) => {
+  await openAi(page);
+  await page.getByLabel("Your prompt", { exact: true }).fill("delayed test");
+  const pending = fixtureEvent("ai-pending");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await pending;
+  await expect(
+    page.getByRole("button", { name: "Sending…", exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByLabel("Free model", { exact: true })
+    .selectOption("fixture/second:free");
+  await page
+    .getByLabel("Your prompt", { exact: true })
+    .fill("New model question");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Send message", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(aiReply(page)).toContainText("New model question");
+  await configureAi("ai-release");
+  await expect(aiReply(page)).toContainText("New model question");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.getByLabel("Your prompt", { exact: true }).fill("delayed test");
+  const again = fixtureEvent("ai-pending");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await again;
+  await page.getByRole("button", { name: "Reset", exact: true }).click();
+  await configureAi("ai-release");
+  await expect(aiReply(page)).toHaveCount(0);
+  await expect(page.getByLabel("Your prompt", { exact: true })).toHaveValue("");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),

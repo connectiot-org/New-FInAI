@@ -1,0 +1,34 @@
+.ai-chat-layout {
+  display: grid;
+  gap: 20px;
+  max-width: 850px;
+}
+.ai-chat-form {
+  display: grid;
+  gap: 16px;
+}
+.ai-chat-form input,
+.ai-chat-form select,
+.ai-chat-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.ai-chat-form > button {
+  justify-self: start;
+}
+.ai-chat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ai-reply {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+@media (max-width: 600px) {
+  .ai-chat-layout {
+    max-width: 100%;
+  }
+}

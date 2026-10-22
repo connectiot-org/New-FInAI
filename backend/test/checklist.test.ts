@@ -822,6 +822,12 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
       .status,
     401,
   );
+  const aiInput = {
+    entityId: LOCAL.entityId,
+    modelId: "example/text:free",
+    prompt: "Explain.",
+  };
+  assert.equal((await call("/api/v1/ai/chat", "POST", aiInput)).r.status, 401);
   const login = async (password = "synthetic-test-password") =>
     call("/auth/login", "POST", {
       username: "synthetic",
@@ -882,6 +888,45 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
   );
   assert.equal(calculated.r.status, 200);
   assert.equal(calculated.data.dueDate, "2026-10-31");
+  assert.equal((await call("/api/v1/ai/chat", "POST", aiInput)).r.status, 403);
+  const { OpenRouterService } = await import("../src/openrouter.service");
+  const ai = instance.get(OpenRouterService);
+  ai.configuredKey = undefined; // Exercise trusted relay only, irrespective of host secrets.
+  const providerKey = "synthetic-openrouter-key-" + randomUUID();
+  let aiCalls = 0;
+  ai.fetcher = async (providerUrl, options) => {
+    aiCalls++;
+    if (String(providerUrl).endsWith("/models"))
+      return Response.json({
+        data: [
+          {
+            id: aiInput.modelId,
+            name: "Free model",
+            pricing: { prompt: "0", completion: "0" },
+            architecture: {
+              input_modalities: ["text"],
+              output_modalities: ["text"],
+            },
+          },
+        ],
+      });
+    assert.equal(
+      new Headers(options?.headers).get("authorization"),
+      `Bearer ${providerKey}`,
+    );
+    return Response.json({
+      choices: [{ message: { content: "Verified free model response." } }],
+      usage: { cost: 0 },
+    });
+  };
+  const aiReply = await call("/api/v1/ai/chat", "POST", aiInput, {
+    "X-CSRF-Token": csrf,
+    "X-Finai-Openrouter-Key": providerKey,
+  });
+  assert.equal(aiReply.r.status, 200);
+  assert.equal(aiCalls, 2);
+  assert.equal(aiReply.data.reply, "Verified free model response.");
+  assert.equal(JSON.stringify(aiReply.data).includes(providerKey), false);
   const priorCookie = cookie;
   const rotated = await login();
   assert.equal(rotated.r.status, 200);
@@ -1572,5 +1617,312 @@ test("global login cost budget rejects rotating accounts before password hashing
         data: { window: previous.window, count: previous.count },
       });
     else await db.rateLimit.delete({ where: { key } });
+  }
+});
+
+test("OpenRouter real HTTP: fresh free catalog, zero-cost routing, read-only and tenant/entity authorization", async () => {
+  const { OpenRouterService } = await import("../src/openrouter.service");
+  const service = app.get(OpenRouterService),
+    prior = { key: service.configuredKey, fetcher: service.fetcher };
+  const key = "synthetic-openrouter-key-" + randomUUID();
+  const model = {
+    id: "example/text:free",
+    name: "Example free text",
+    pricing: { prompt: "0", completion: "0", request: "0" },
+    architecture: { input_modalities: ["text"], output_modalities: ["text"] },
+  };
+  let calls = 0;
+  const transport: typeof fetch = async (url, options) => {
+    calls++;
+    assert.equal(options?.redirect, "error");
+    if (String(url).endsWith("/models")) {
+      assert.equal(options?.headers, undefined);
+      return Response.json({
+        data: [
+          model,
+          { ...model, id: "paid/model" },
+          {
+            ...model,
+            id: "fee/text:free",
+            pricing: { prompt: "0", completion: "0.01" },
+          },
+        ],
+      });
+    }
+    assert.equal(String(url), "https://openrouter.ai/api/v1/chat/completions");
+    assert.equal(
+      new Headers(options?.headers).get("authorization"),
+      `Bearer ${key}`,
+    );
+    const body = JSON.parse(String(options?.body));
+    assert.deepEqual(body.provider, {
+      allow_fallbacks: false,
+      require_parameters: true,
+      max_price: { prompt: 0, completion: 0, request: 0, image: 0 },
+    });
+    assert.equal(body.max_tokens, 512);
+    assert.equal(body.stream, false);
+    assert.deepEqual(body.messages, [
+      { role: "user", content: "Explain a renewal." },
+    ]);
+    assert.equal(JSON.stringify(body).includes(key), false);
+    return Response.json({
+      choices: [{ message: { content: "A renewal extends a subscription." } }],
+      usage: { cost: 0 },
+    });
+  };
+  service.configuredKey = key;
+  service.fetcher = transport;
+  const input = {
+    entityId: LOCAL.entityId,
+    modelId: model.id,
+    prompt: "Explain a renewal.",
+  };
+  try {
+    const models = await request(
+      "GET",
+      "/ai/models?entityId=" + LOCAL.entityId,
+    );
+    assert.equal(models.status, 200);
+    assert.deepEqual(models.data, {
+      items: [{ id: model.id, name: model.name }],
+    });
+    const result = await request("POST", "/ai/chat", input);
+    assert.equal(result.status, 200);
+    assert.deepEqual(result.data, {
+      entityId: input.entityId,
+      modelId: model.id,
+      reply: "A renewal extends a subscription.",
+    });
+    assert.equal(calls, 3);
+    for (const entityId of [hiddenId, foreign.entityId])
+      assert.equal(
+        (await request("POST", "/ai/chat", { ...input, entityId })).status,
+        404,
+      );
+    assert.equal(calls, 3);
+    assert.equal(
+      (
+        await request("POST", "/ai/chat", input, {
+          "X-Finai-Openrouter-Key": key,
+        })
+      ).status,
+      403,
+    );
+    for (const extra of [
+      { apiKey: key },
+      { modelId: "example/paid" },
+      { prompt: "" },
+    ])
+      assert.equal(
+        (await request("POST", "/ai/chat", { ...input, ...extra })).status,
+        422,
+      );
+    assert.equal(
+      (await request("POST", "/ai/chat?extra=true", input)).status,
+      422,
+    );
+    assert.equal(calls, 3);
+    const reader = await start({
+      organisationId: LOCAL.organisationId,
+      userId: readerId,
+    });
+    const readerService = reader.instance.get(OpenRouterService);
+    readerService.configuredKey = key;
+    readerService.fetcher = transport;
+    try {
+      assert.equal(
+        (await request("POST", "/ai/chat", input, {}, reader.url)).status,
+        200,
+      );
+    } finally {
+      await reader.instance.close();
+    }
+  } finally {
+    service.configuredKey = prior.key;
+    service.fetcher = prior.fetcher;
+  }
+});
+
+test("OpenRouter missing key, repricing, quota, malformed and secret-echo responses fail without fallback", async () => {
+  const { OpenRouterService } = await import("../src/openrouter.service");
+  const service = app.get(OpenRouterService),
+    previous = { key: service.configuredKey, fetcher: service.fetcher };
+  const key = "synthetic-openrouter-key-" + randomUUID();
+  const input = {
+    entityId: LOCAL.entityId,
+    modelId: "example/text:free",
+    prompt: "Explain.",
+  };
+  const model = {
+    id: input.modelId,
+    name: "Free text",
+    pricing: { prompt: "0", completion: "0" },
+    architecture: { input_modalities: ["text"], output_modalities: ["text"] },
+  };
+  let calls = 0;
+  service.fetcher = async () => {
+    calls++;
+    throw new Error("Must not call provider");
+  };
+  service.configuredKey = undefined;
+  try {
+    assert.equal(
+      (await request("GET", "/ai/models?entityId=" + LOCAL.entityId)).status,
+      503,
+    );
+    assert.equal(calls, 0);
+    service.configuredKey = key;
+    service.fetcher = async () => {
+      calls++;
+      return Response.json({
+        data: [{ ...model, pricing: { prompt: "0.001", completion: "0" } }],
+      });
+    };
+    assert.equal((await request("POST", "/ai/chat", input)).status, 422);
+    assert.equal(calls, 1);
+    for (const [status, body, expected] of [
+      [429, { error: { message: key } }, 429],
+      [401, { error: { message: key } }, 503],
+      [200, { choices: [] }, 502],
+      [200, { choices: [{ message: { content: key } }] }, 502],
+      [
+        200,
+        {
+          choices: [{ message: { content: "Unexpected charge" } }],
+          usage: { cost: 0.1 },
+        },
+        502,
+      ],
+    ] as const) {
+      service.fetcher = async (url) =>
+        String(url).endsWith("/models")
+          ? Response.json({ data: [model] })
+          : Response.json(body, { status });
+      const response = await request("POST", "/ai/chat", input);
+      assert.equal(response.status, expected);
+      assert.equal(JSON.stringify(response.data).includes(key), false);
+    }
+    service.fetcher = async () =>
+      new Response("{malformed", {
+        headers: { "Content-Type": "application/json" },
+      });
+    assert.equal(
+      (await request("GET", "/ai/models?entityId=" + LOCAL.entityId)).status,
+      502,
+    );
+    service.fetcher = async () => Response.json({ data: [] });
+    assert.equal(
+      (await request("GET", "/ai/models?entityId=" + LOCAL.entityId)).status,
+      503,
+    );
+    service.fetcher = async () => {
+      throw new Error("Timeout with private detail " + key);
+    };
+    const outage = await request(
+      "GET",
+      "/ai/models?entityId=" + LOCAL.entityId,
+    );
+    assert.equal(outage.status, 503);
+    assert.equal(JSON.stringify(outage.data).includes(key), false);
+  } finally {
+    service.configuredKey = previous.key;
+    service.fetcher = previous.fetcher;
+  }
+});
+
+test("OpenRouter shared budget, inactive membership, bounded output and aborts fail closed", async (context) => {
+  context.mock.timers.enable({
+    apis: ["Date"],
+    now: new Date("2032-01-01T00:00:30Z"),
+  });
+  const { OpenRouterService } = await import("../src/openrouter.service");
+  const { digest } = await import("../src/auth");
+  const service = app.get(OpenRouterService),
+    previous = { key: service.configuredKey, fetcher: service.fetcher };
+  service.configuredKey = "synthetic-openrouter-key-" + randomUUID();
+  const input = {
+    entityId: LOCAL.entityId,
+    modelId: "example/text:free",
+    prompt: "Explain.",
+  };
+  const key = digest(`ai-user:${LOCAL.organisationId}:${LOCAL.userId}`),
+    window = new Date("2032-01-01T00:00:00Z");
+  const previousLimit = await db.rateLimit.findUnique({ where: { key } });
+  await db.rateLimit.upsert({
+    where: { key },
+    create: { key, window, count: 10 },
+    update: { window, count: 10 },
+  });
+  let calls = 0;
+  service.fetcher = async () => {
+    calls++;
+    throw new Error("Not authorized to call provider");
+  };
+  try {
+    assert.equal((await request("POST", "/ai/chat", input)).status, 429);
+    assert.equal(calls, 0);
+    await db.rateLimit.delete({ where: { key } });
+    await db.membership.update({
+      where: {
+        organisationId_userId: {
+          organisationId: LOCAL.organisationId,
+          userId: LOCAL.userId,
+        },
+      },
+      data: { active: false },
+    });
+    try {
+      assert.equal((await request("POST", "/ai/chat", input)).status, 401);
+    } finally {
+      await db.membership.update({
+        where: {
+          organisationId_userId: {
+            organisationId: LOCAL.organisationId,
+            userId: LOCAL.userId,
+          },
+        },
+        data: { active: true },
+      });
+    }
+    assert.equal(calls, 0);
+    const model = {
+      id: input.modelId,
+      name: "Free model",
+      pricing: { prompt: "0", completion: "0" },
+      architecture: { input_modalities: ["text"], output_modalities: ["text"] },
+    };
+    service.fetcher = async (url) =>
+      String(url).endsWith("/models")
+        ? Response.json({ data: [model] })
+        : new Response("x".repeat(128 * 1024 + 1), {
+            headers: { "Content-Type": "application/json" },
+          });
+    assert.equal((await request("POST", "/ai/chat", input)).status, 502);
+    service.fetcher = async (_url, options) => {
+      assert.equal(options?.signal?.aborted, true);
+      throw new DOMException("Aborted", "AbortError");
+    };
+    const controller = new AbortController();
+    controller.abort();
+    await assert.rejects(
+      service.chat(
+        { organisationId: LOCAL.organisationId, userId: LOCAL.userId },
+        input,
+        undefined,
+        controller.signal,
+      ),
+      (e: any) => e.status === 503,
+    );
+  } finally {
+    if (previousLimit)
+      await db.rateLimit.upsert({
+        where: { key },
+        create: previousLimit,
+        update: { window: previousLimit.window, count: previousLimit.count },
+      });
+    else await db.rateLimit.deleteMany({ where: { key } });
+    service.configuredKey = previous.key;
+    service.fetcher = previous.fetcher;
   }
 });

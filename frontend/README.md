@@ -1,5 +1,9 @@
 # FinAI frontend
 
+The default build is now the authenticated product. Start with [product setup](docs/product.md) and [OpenRouter free-model configuration](docs/openrouter.md). It uses real API requests and server permissions; the older demo inventory below describes explicit local regression mode only. It does not describe the current default build or deployment setup.
+
+## Historical demo inventory
+
 A standalone FinAI public website and accounting product demo for the fictional Northstar Analytics. React 19, TypeScript, Vite, Tailwind CSS, Radix dialogs/dropdowns, Redux Toolkit, TanStack Table, React Hook Form + Zod, Recharts, and Lucide. The default demo requires no backend, credentials, or external runtime services. An optional local persistent monthly checklist is available separately; see [checklist setup](docs/checklist.md).
 
 ## Install and run

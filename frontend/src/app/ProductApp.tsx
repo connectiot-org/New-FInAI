@@ -11,6 +11,7 @@ import {
 import { BrandMark } from "../components/shared/BrandMark";
 import { SessionGate } from "../components/SessionGate";
 import { ToastProvider } from "../components/ui/primitives";
+import { AiChat } from "../features/ai-chat/AiChat";
 import { MonthlyChecklist } from "../features/checklist/MonthlyChecklist";
 import { SubscriptionRenewals } from "../features/subscriptions/SubscriptionRenewals";
 import { PaymentDueDate } from "../features/payment-due-date/PaymentDueDate";
@@ -19,6 +20,7 @@ const links = [
   ["/tools/payment-due-date", "Payment due-date calculator"],
   ["/tools/subscriptions", "Subscription renewals"],
   ["/close/checklist", "Monthly checklist"],
+  ["/tools/ai-chat", "AI chat"],
 ] as const;
 function Workspace() {
   const { pathname } = useLocation();
@@ -63,6 +65,7 @@ function Workspace() {
               element={<SubscriptionRenewals />}
             />
             <Route path="/close/checklist" element={<MonthlyChecklist />} />
+            <Route path="/tools/ai-chat" element={<AiChat />} />
             <Route
               path="*"
               element={

@@ -57,3 +57,7 @@ See `subscriptions.openapi.yaml` and `python contracts/validate_subscriptions.py
 ## Payment due-date calculator 1.0.0
 
 Independent contract: `payment-due-date.openapi.yaml`, validator `python contracts/validate_payment_due_date.py`. POST `/api/v1/payment-due-date-checks` accepts only entityId, invoiceDate, integer termsDays0..365 and asOfDate, with no query parameters. Return200 with exactly entityId/invoiceDate/termsDays/asOfDate/dueDate/daysUntilDue/status. Real Gregorian dates in years0001–9999; due-date overflow is422. Read permission is sufficient; existing auth/CSRF/proxy/rate-limit/local-mode safeguards apply. No business data/history is saved. Calendar days only; as-of date is caller-entered and explicit, never replaced by the server clock. Overdue is a date comparison, not verified payment or legal status.
+
+## OpenRouter free text chat 1.0.0
+
+`openrouter.openapi.yaml` / `python contracts/validate_openrouter.py`: authorized GET `/api/v1/ai/models?entityId`, POST `/api/v1/ai/chat` with strict entityId/modelId/prompt. Fresh zero-price catalog free text variants only, no paid fallback or record attachment/history. Existing session/CSRF/proxy permissions remain authoritative. Server-only key, zero routing price caps, bounded output/requests and shared quotas; missing key or provider failures stay visible. See context/openrouter.md for implementation evidence and live-provider limitations.

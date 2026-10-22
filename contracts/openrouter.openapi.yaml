@@ -1,0 +1,205 @@
+openapi: 3.1.1
+info:
+  title: FinAI free-model AI chat
+  version: 1.0.0
+servers:
+  - url: /
+security:
+  - sessionCookie: []
+paths:
+  /api/v1/ai/models:
+    get:
+      operationId: listFreeAiModels
+      summary: List currently zero-priced text models for an authorized entity
+      description: Fresh OpenRouter catalog. Only named free variants or the free router,
+        text input/output and all advertised prices zero. Missing key/catalog or no usable
+        free models fails visibly. No hardcoded catalog or paid fallback. Existing sessions,
+        proxy/host/origin checks, entity read permission and shared rate limits apply.
+      parameters:
+        - in: query
+          name: entityId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Free model choices, sorted by name. No-store and X-Request-Id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Models'
+              example:
+                items:
+                  - id: example/model:free
+                    name: Example free text model
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Invalid'
+        '429':
+          $ref: '#/components/responses/Limited'
+        '502':
+          $ref: '#/components/responses/Upstream'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /api/v1/ai/chat:
+    post:
+      operationId: askFreeAiModel
+      summary: Send an explicitly entered prompt to a selected free model
+      description: Strict body; no query fields. Entity read permission and existing
+        session/CSRF required. Revalidates a fresh catalog before each call, fixes routing
+        price ceilings to zero, disallows provider fallback, bounds output to512 tokens,
+        and applies user/organisation/global DB rate limits. Only the entered prompt is
+        sent to OpenRouter/model providers; no records are attached and no history is saved.
+        Availability/free quotas are provider-controlled. No automatic retry on uncertainty.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Prompt'
+            example:
+              entityId: 22222222-2222-4222-8222-222222222222
+              modelId: example/model:free
+              prompt: Explain a cancellation deadline in plain language.
+      responses:
+        '200':
+          description: Confirmed provider response. No-store and X-Request-Id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reply'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                modelId: example/model:free
+                reply: A cancellation deadline is the last date to give notice.
+        '400':
+          description: Malformed JSON
+          content:
+            application/json:
+              schema:
+                $ref: ./openapi.yaml#/components/schemas/Error
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Invalid'
+        '429':
+          $ref: '#/components/responses/Limited'
+        '502':
+          $ref: '#/components/responses/Upstream'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+      description: Existing sessions; exact Origin and X-CSRF-Token on POST.
+  schemas:
+    ModelId:
+      type: string
+      minLength: 1
+      maxLength: 200
+      pattern: '^(?:[a-zA-Z0-9][a-zA-Z0-9._/-]*:free|openrouter/free)$'
+    Models:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          maxItems: 2000
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, name]
+            properties:
+              id:
+                $ref: '#/components/schemas/ModelId'
+              name:
+                type: string
+                minLength: 1
+                maxLength: 200
+    Prompt:
+      type: object
+      additionalProperties: false
+      required: [entityId, modelId, prompt]
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        modelId:
+          $ref: '#/components/schemas/ModelId'
+        prompt:
+          type: string
+          minLength: 1
+          maxLength: 4000
+          description: Trimmed nonempty well-formed text; NUL rejected.
+    Reply:
+      type: object
+      additionalProperties: false
+      required: [entityId, modelId, reply]
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        modelId:
+          $ref: '#/components/schemas/ModelId'
+        reply:
+          type: string
+          minLength: 1
+          maxLength: 16000
+  responses:
+    Unauthorized:
+      description: Missing, expired or inactive identity
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error
+    Forbidden:
+      description: Untrusted proxy/host/origin or CSRF failure
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error
+    NotFound:
+      description: Entity absent or inaccessible
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error
+    Invalid:
+      description: Invalid input, unknown fields/query, or model no longer free/available
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error
+    Limited:
+      description: Application or upstream free quota reached
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error
+    Upstream:
+      description: Invalid provider response; upstream details and secrets are not returned
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error
+    Unavailable:
+      description: Missing/invalid server configuration, catalog/provider outage or timeout
+      content:
+        application/json:
+          schema:
+            $ref: ./openapi.yaml#/components/schemas/Error

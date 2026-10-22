@@ -16,6 +16,7 @@ import { spawnSync } from "node:child_process";
 import { PrismaClient } from "../../backend/node_modules/@prisma/client/default.js";
 import * as argon2 from "../../backend/node_modules/argon2/argon2.cjs";
 import { createApplication } from "../../backend/dist/src/app.js";
+import { OpenRouterService } from "../../backend/dist/src/openrouter.service.js";
 import { passwordOptions } from "../../backend/dist/src/auth.js";
 const initial = process.env.DATABASE_URL!;
 if (!["localhost", "127.0.0.1"].includes(new URL(initial).hostname))
@@ -95,6 +96,78 @@ const app = await createApplication({
   },
   quiet: true,
 });
+const openRouterKey = "synthetic-openrouter-key-" + randomUUID();
+const aiService = app.get(OpenRouterService);
+aiService.configuredKey = undefined; // Test the Vercel relay, never a host's real key.
+let aiEmpty = false,
+  releaseAi: (() => void) | undefined;
+const freeModels = [
+  { id: "fixture/first:free", name: "First fixture model" },
+  { id: "fixture/second:free", name: "Second fixture model" },
+].map((m) => ({
+  ...m,
+  pricing: { prompt: "0", completion: "0", request: "0" },
+  architecture: { input_modalities: ["text"], output_modalities: ["text"] },
+}));
+aiService.fetcher = async (url, options) => {
+  if (String(url).endsWith("/models"))
+    return Response.json({
+      data: aiEmpty
+        ? []
+        : [
+            ...freeModels,
+            { ...freeModels[0], id: "fixture/paid", name: "Paid model" },
+          ],
+    });
+  if (
+    new Headers(options?.headers).get("authorization") !==
+    `Bearer ${openRouterKey}`
+  )
+    throw new Error("Fixture provider credential mismatch");
+  const body = JSON.parse(String(options?.body));
+  if (
+    body.provider?.max_price?.prompt !== 0 ||
+    body.provider?.max_price?.completion !== 0 ||
+    body.provider?.allow_fallbacks !== false ||
+    body.max_tokens !== 512 ||
+    body.messages?.length !== 1 ||
+    body.messages[0].role !== "user"
+  )
+    throw new Error("Unsafe fixture request");
+  const prompt = String(body.messages[0].content);
+  if (prompt === "quota test")
+    return Response.json(
+      { error: { message: "Synthetic quota" } },
+      { status: 429 },
+    );
+  if (prompt === "malformed test") return Response.json({ choices: [] });
+  if (prompt === "delayed test") {
+    await new Promise<void>((resolve) => {
+      releaseAi = resolve;
+      options?.signal?.addEventListener("abort", () => resolve(), {
+        once: true,
+      });
+      process.send?.({ type: "ai-pending" });
+    });
+  }
+  return Response.json({
+    choices: [{ message: { content: `Provider fixture reply: ${prompt}` } }],
+    usage: { cost: 0 },
+  });
+};
+process.env.OPENROUTER_API_KEY = openRouterKey;
+process.on("message", (message) => {
+  const type = (message as { type?: string }).type;
+  if (type === "ai-release") {
+    releaseAi?.();
+    releaseAi = undefined;
+  }
+  if (type === "ai-key-off") delete process.env.OPENROUTER_API_KEY;
+  if (type === "ai-key-on") process.env.OPENROUTER_API_KEY = openRouterKey;
+  if (type === "ai-empty") aiEmpty = true;
+  if (type === "ai-normal") aiEmpty = false;
+  process.send?.({ type: `${type}-done` });
+});
 const backend = await app.getUrl();
 // Trust only this ephemeral test CA for the real proxy's outbound TLS verification.
 globalAgent.options.ca = readFileSync(`${certificateDir}/cert.pem`);
@@ -107,6 +180,17 @@ const backendTLS = createServer(
     cert: readFileSync(`${certificateDir}/cert.pem`),
   },
   (req, res) => {
+    const aiPath = /^\/api\/v1\/ai\/(models|chat)(?:\?|$)/.test(req.url || "");
+    if (
+      (aiPath &&
+        process.env.OPENROUTER_API_KEY &&
+        req.headers["x-finai-openrouter-key"] !== openRouterKey) ||
+      (!aiPath && req.headers["x-finai-openrouter-key"] !== undefined)
+    ) {
+      res.statusCode = 502;
+      res.end();
+      return;
+    }
     const upstream = request(
       backend + req.url,
       { method: req.method, headers: req.headers },
@@ -175,6 +259,7 @@ let stopping = false;
 const stop = async () => {
   if (stopping) return;
   stopping = true;
+  releaseAi?.();
   server.close();
   backendTLS.close();
   await app.close();

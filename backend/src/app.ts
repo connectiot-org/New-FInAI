@@ -33,6 +33,8 @@ import {
 } from "./validation";
 import { z } from "zod";
 import { Auth, digest, equal } from "./auth";
+import { OpenRouterController } from "./openrouter.controller";
+import { OpenRouterService } from "./openrouter.service";
 import { requireReadySchema } from "./readiness";
 import { PaymentDueDateController } from "./payment-due-date.controller";
 import { PaymentDueDateService } from "./payment-due-date.service";
@@ -42,7 +44,7 @@ import {
   SubscriptionService,
   organisationTimezones,
 } from "./subscription.service";
-type AuthRequest = Request & { identity: Identity };
+type AuthRequest = Request & { identity: Identity; openRouterKey?: string };
 const empty = z.strictObject({});
 @Controller("api/v1")
 class ChecklistController {
@@ -124,6 +126,7 @@ class ChecklistController {
     ChecklistController,
     SubscriptionController,
     PaymentDueDateController,
+    OpenRouterController,
   ],
   providers: [
     Database,
@@ -132,6 +135,7 @@ class ChecklistController {
     SubscriptionService,
     SubscriptionRepository,
     PaymentDueDateService,
+    OpenRouterService,
   ],
 })
 class AppModule {}
@@ -162,6 +166,9 @@ export async function createApplication(
   app.enableShutdownHooks();
   app.getHttpAdapter().getInstance().disable("x-powered-by");
   app.get(SubscriptionService).timezones = timezones;
+  app.get(OpenRouterService).configuredKey = (
+    options.env || process.env
+  ).OPENROUTER_API_KEY;
   const db = app.get(Database);
   const auth = new Auth(db);
   const server = app.getHttpServer();
@@ -221,9 +228,19 @@ export async function createApplication(
             "FORBIDDEN",
             "Exact origin and JSON required.",
           );
+        if (/^\/api\/v1\/ai\/(models|chat)$/.test(req.path)) {
+          const key = req.headers["x-finai-openrouter-key"];
+          req.openRouterKey = typeof key === "string" ? key : undefined;
+        }
         next();
         return;
       }
+      if (req.headers["x-finai-openrouter-key"] !== undefined)
+        throw new ApiError(
+          403,
+          "FORBIDDEN",
+          "Provider credential overrides are forbidden.",
+        );
       if (
         !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(
           req.socket.remoteAddress || "",

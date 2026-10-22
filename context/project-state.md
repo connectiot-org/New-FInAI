@@ -59,3 +59,8 @@ Subsequent user authorization: calculator commit/push to `feature/payment-due-da
 ## Current authenticated product — 2026-10-22
 
 The default frontend now ships only the three live tools behind the shared session gate. Legacy financial demonstrations remain explicit local test/development sources, excluded from product imports, public assets and navigation. The backend retains server-owned tenant/entity authority; production local identity remains rejected. Current accepted architecture is architecture.md; production-review.md records the scoped review, concrete safeguards and93 fresh passing tests plus build/security/recovery checks. No whole-platform accounting, target deployment, zero-defect or independent-audit claim is made. Public proxy/TLS/database/account/backup/capacity/monitoring gates still need operator evidence.
+
+
+## OpenRouter free text chat — 2026-10-22
+
+The user explicitly extended the product with manually entered free-model text chat at /tools/ai-chat. Implemented backend/provider policy, trusted Vercel server-only key relay, existing session/entity/CSRF safeguards, searchable fresh free text model choices, bounded responses/quotas and visible errors; no attached records, paid fallback, new dependencies/migrations or saved history. Fresh verification totals101 passing tests plus both applications' typecheck/lint/build,4 contract checks/lints,0-vulnerability audits, build guards and product asset scans. Actual provider egress returns403; Vercel/live inference/deployment are unverified. See openrouter.md for exact commands, inventory and release gates.

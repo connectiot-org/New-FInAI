@@ -2,7 +2,7 @@ import { request } from "node:https";
 import { isIP } from "node:net";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-export const config = { maxDuration: 20 };
+export const config = { maxDuration: 60 };
 type ProxyRequest = IncomingMessage & { body?: unknown };
 export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   const requestId = randomUUID();
@@ -116,6 +116,15 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     const value = req.headers[name];
     if (typeof value === "string") headers[name] = value;
   }
+  const aiRoute = /^api\/v1\/ai\/(models|chat)$/.test(route);
+  if (aiRoute && process.env.OPENROUTER_API_KEY) {
+    const key = process.env.OPENROUTER_API_KEY;
+    if (!/^[\x21-\x7e]{32,512}$/.test(key))
+      return fail(503, "AI provider key configuration is invalid.");
+    // Never forward a browser header; this value exists only in the server environment.
+    headers["X-Finai-Openrouter-Key"] = key;
+  }
+  const deadlineMs = aiRoute ? 45000 : 15000;
   headers["Content-Length"] = String(body.length);
   const upstream = request(
     target,
@@ -123,7 +132,7 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
       method: req.method,
       headers,
       servername: isIP(target.hostname) ? "" : target.hostname,
-      timeout: 15000,
+      timeout: deadlineMs,
     },
     (response) => {
       if (
@@ -154,7 +163,7 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   );
   const deadline = setTimeout(
     () => upstream.destroy(new Error("deadline")),
-    15000,
+    deadlineMs,
   );
   deadline.unref();
   res.on("close", () => {

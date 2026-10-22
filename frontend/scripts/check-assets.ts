@@ -6,6 +6,7 @@ const names = [
   "POSTGRES_PASSWORD",
   "API_PROXY_TOKEN",
   "FINAI_PROXY_TOKEN",
+  "OPENROUTER_API_KEY",
 ];
 const secrets = names
   .map((name) => process.env[name])

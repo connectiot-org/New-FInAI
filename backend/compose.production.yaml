@@ -28,6 +28,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:?Private database connection required}
       API_TRUSTED_HOST: ${API_TRUSTED_HOST:?Exact backend Host header required}
       ORGANISATION_TIMEZONES: ${ORGANISATION_TIMEZONES:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Exact frontend HTTPS origin required}
       API_PROXY_TOKEN: ${API_PROXY_TOKEN:?Secure proxy credential required}
     ports:

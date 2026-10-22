@@ -1,6 +1,6 @@
 # Current FinAI architecture — 2026-10-22
 
-This is the current implementation design, superseding the original proposals in backend-design.md. Source, contracts and executed verification remain authoritative. Product scope is the three implemented tools; financial accounting, banking and assistant simulations are excluded from the product build and are not approved accounting specifications.
+This is the current implementation design, superseding the original proposals in backend-design.md. Source, contracts and executed verification remain authoritative. Product scope is the implemented finance tools and optional free-model text chat; financial accounting, banking and assistant simulations are excluded from the product build and are not approved accounting specifications.
 
 ## System and trust boundary
 
@@ -9,6 +9,7 @@ flowchart LR
   B[Browser: authenticated product] -->|same-origin HTTPS /api and /auth| P[Vercel API/auth proxy]
   P -->|TLS + configured proxy credential and exact hosts| N[NestJS modular monolith]
   N -->|Prisma: scoped queries and transactions| D[(Private persistent PostgreSQL)]
+  N -->|TLS: explicit text prompt, fixed free-model policy| R[OpenRouter / free text model provider]
   O[Trusted administrator] -->|private DB environment + hidden password prompt| A[Account provisioning / reset / revoke]
   A --> D
 ```
@@ -22,7 +23,7 @@ Database sessions authenticate each request. Account disabled/expiry, active org
 ```text
 frontend/src/main.tsx
   product (default, build-time constant)
-    app/ProductApp.tsx -> shared SessionGate, pure UI, three live tools
+    app/ProductApp.tsx -> shared SessionGate, pure UI, live tools
     lib/api.ts + checklist transport -> same-origin proxy
     no demo store/seeds/legacy router or fixture public assets
   demo (explicit local/test only)
@@ -47,6 +48,7 @@ Pure UI lives in `components/ui/primitives.tsx` and PageHeader.tsx. Legacy Commo
 | `/close/checklist` | `/api/v1/checklist-tasks` and `/copy-previous-month` | ChecklistTask; entity read for list, write for mutations |
 | `/tools/subscriptions` | `/api/v1/subscription-renewals` | SubscriptionRenewal; entity read for list, write/version for changes |
 | `/tools/payment-due-date` | `/api/v1/payment-due-date-checks` | Stateless calculation; entity read permission |
+| `/tools/ai-chat` | `/api/v1/ai/models`, `/api/v1/ai/chat` | No chat history; entity read, CSRF on send, server key and DB quotas |
 | Shared session gate | `/auth/login`, `/auth/session`, `/auth/logout` | Account/Session/RateLimit; server identity, active membership and CSRF |
 
 ## Persistence and concurrency
@@ -75,10 +77,10 @@ Payment calculation has no business persistence. Strict real Gregorian dates0001
 
 ## Operations and release decisions
 
-- Separate frontend/backend manifests and deployment artifacts; one service and one database. No Redis, queues, paid APIs or microservices.
+- Separate frontend/backend manifests and deployment artifacts; one service and one database. No Redis, queues, paid APIs or microservices. Optional OpenRouter uses only zero-priced text models and explicit prompts.
 - Build-time product separation is enforced by asset scans and negative configuration checks, not by hiding demo navigation alone.
 - Liveness is process-only. Readiness requires all three completed migrations, no unfinished migration and critical business/auth columns; it reads no business records. Session-mode health still requires trusted proxy headers.
-- Small JSON limit16KiB, upstream deadline15s, proxy platform duration20s, backend request/header/keepalive limits and graceful shutdown are configured. Target ingress/TLS and replica/connection/hash capacity must be verified.
+- Small JSON limit16KiB, normal upstream deadline15s, AI deadline45s/platform duration60s, backend request/header/keepalive limits and graceful shutdown are configured. Target ingress/TLS and replica/connection/hash capacity must be verified.
 - Safe JSON errors/request IDs, no-store, bounded metadata logs and frontend CSP/anti-framing/security headers are implemented. Monitoring retention/alerts and production OS/container scanning remain operational gates.
 - Backup, synthetic restore, additive migration/rollback and administrative procedures are in backend/RELEASE.md. Production restore rehearsal, session revocation after restore and RPO/RTO acceptance must precede release.
 - No public deployment is performed by this work. A separately authorized preview must prove routing/static assets/API JSON, cookies/CSRF/tenant denial, readiness, persistence/restarts, operational limits and rollback on the actual target.
@@ -90,3 +92,9 @@ Payment calculation has no business persistence. Strict real Gregorian dates0001
 3. Reuse administratively provisioned self-hosted sessions and entity grants; no paid identity service or browser-selected role authority.
 4. Preserve additive data compatibility and existing transaction/version semantics; separate calendar-date deadlines from payment/financial events.
 5. Release on evidence: application correctness checks and local HTTPS verification do not establish target deployment readiness or absence of every defect.
+
+## Free-model text chat boundary
+
+The user now authorizes an external LLM only for explicitly entered text prompts. The trusted Vercel proxy injects server-only OPENROUTER_API_KEY only for the two AI paths; a backend environment key can take precedence. The browser never supplies credentials or provider routing settings. Existing session/CSRF/entity read access is required; read-only members may ask questions but receive no new record permissions. No financial records, tools, files, history or model actions are attached. Responses are plain text, not executable HTML or posting instructions.
+
+OpenRouterService uses fixed HTTPS URLs, fresh bounded catalog queries, free IDs, all advertised prices zero, zero routing price ceilings, disabled fallback, input/output/deadline bounds and PostgreSQL user/organisation/global budgets. No new table/dependency. Key/provider failures stay visible; no synthetic replies or automatic retry. Provider quotas, retention and external policy remain provider-controlled; key spending restrictions and a real activation smoke test are required. Local HTTPS tests use a controlled provider response, not live inference. Details/results/operator commands: [openrouter.md](openrouter.md).
