@@ -14,11 +14,13 @@ import { ToastProvider } from "../components/ui/primitives";
 import { MonthlyChecklist } from "../features/checklist/MonthlyChecklist";
 import { SubscriptionRenewals } from "../features/subscriptions/SubscriptionRenewals";
 import { PaymentDueDate } from "../features/payment-due-date/PaymentDueDate";
+import { InvoiceDuplicates } from "../features/invoice-duplicates/InvoiceDuplicates";
 import "./product.css";
 const links = [
   ["/tools/payment-due-date", "Payment due-date calculator"],
   ["/tools/subscriptions", "Subscription renewals"],
   ["/close/checklist", "Monthly checklist"],
+  ["/tools/invoice-duplicates", "Invoice duplicate checker"],
 ] as const;
 function Workspace() {
   const { pathname } = useLocation();
@@ -63,6 +65,10 @@ function Workspace() {
               element={<SubscriptionRenewals />}
             />
             <Route path="/close/checklist" element={<MonthlyChecklist />} />
+            <Route
+              path="/tools/invoice-duplicates"
+              element={<InvoiceDuplicates />}
+            />
             <Route
               path="*"
               element={

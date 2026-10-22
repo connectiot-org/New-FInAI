@@ -1,0 +1,138 @@
+openapi: 3.1.1
+info:
+  title: FinAI invoice duplicate checker
+  version: 1.0.0
+  description: >-
+    Transient within-file CSV analysis, maximum 128 KiB UTF-8 and 500 records.
+    Existing authenticated membership/entity read access and session CSRF apply.
+    No query parameters. JSON transport maximum 512 KiB on this exact route only.
+    Required CSV headers in any order: supplier_id,supplier_name,invoice_number,invoice_date,amount,currency.
+    Matching uses exact trimmed supplier ID and trimmed Unicode-uppercase invoice number.
+    Flags every row in repeated groups regardless of date, amount or currency.
+    No uploaded invoice/result persistence, invoice mutations or external API calls; existing auth rate-limit counters still apply.
+    See context/invoice-duplicates.md for CSV grammar, field normalization and limits.
+servers:
+  - url: /
+security:
+  - sessionCookie: []
+paths:
+  /api/v1/invoice-duplicate-checks:
+    post:
+      operationId: checkInvoiceDuplicates
+      summary: Find possible duplicate invoice references in one CSV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckInput'
+            example:
+              entityId: 22222222-2222-4222-8222-222222222222
+              csv: "supplier_id,supplier_name,invoice_number,invoice_date,amount,currency\nV001,Example,INV-01,2026-10-01,12.50,USD\nV001,Example,inv-01,2026-10-02,14,EUR\n"
+      responses:
+        '200':
+          description: Whole-file analysis, not confirmation of a duplicate payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckResult'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                summary: {rowCount: 2, groupCount: 1, flaggedRowCount: 2}
+                rows:
+                  - {recordNumber: 2, supplierId: V001, supplierName: Example, invoiceNumber: INV-01, invoiceDate: '2026-10-01', amount: '12.50', currency: USD, group: 1, groupSize: 2}
+                  - {recordNumber: 3, supplierId: V001, supplierName: Example, invoiceNumber: inv-01, invoiceDate: '2026-10-02', amount: '14.00', currency: EUR, group: 1, groupSize: 2}
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+        '500':
+          $ref: '#/components/responses/Error'
+        '503':
+          $ref: '#/components/responses/Error'
+components:
+  securitySchemes:
+    sessionCookie: {type: apiKey, in: cookie, name: __Host-finai_session}
+  responses:
+    Error:
+      description: Safe error; no uploaded field values or private data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    CheckInput:
+      type: object
+      additionalProperties: false
+      required: [entityId, csv]
+      properties:
+        entityId: {type: string, format: uuid}
+        csv:
+          type: string
+          minLength: 1
+          maxLength: 131072
+          description: Also bounded to 131072 UTF-8 bytes by the server
+    CheckResult:
+      type: object
+      additionalProperties: false
+      required: [entityId, summary, rows]
+      properties:
+        entityId: {type: string, format: uuid}
+        summary:
+          type: object
+          additionalProperties: false
+          required: [rowCount, groupCount, flaggedRowCount]
+          properties:
+            rowCount: {type: integer, minimum: 1, maximum: 500}
+            groupCount: {type: integer, minimum: 0, maximum: 250}
+            flaggedRowCount: {type: integer, minimum: 0, maximum: 500}
+        rows:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/InvoiceRow'
+    InvoiceRow:
+      type: object
+      additionalProperties: false
+      required: [recordNumber, supplierId, supplierName, invoiceNumber, invoiceDate, amount, currency, group, groupSize]
+      properties:
+        recordNumber: {type: integer, minimum: 2, maximum: 131073}
+        supplierId: {type: string, minLength: 1, maxLength: 200}
+        supplierName: {type: string, minLength: 1, maxLength: 200}
+        invoiceNumber: {type: string, minLength: 1, maxLength: 200}
+        invoiceDate:
+          type: string
+          format: date
+          pattern: '^(?!0000)\d{4}-\d{2}-\d{2}$'
+        amount:
+          type: string
+          pattern: '^(0|[1-9]\d{0,11})\.\d{2}$'
+        currency: {type: string, pattern: '^[A-Z]{3}$'}
+        group: {type: [integer, 'null'], minimum: 1, maximum: 250}
+        groupSize: {type: integer, minimum: 1, maximum: 500}
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message, requestId]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        requestId: {type: string, format: uuid}
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [field, message]
+            properties:
+              field: {type: string}
+              message: {type: string}

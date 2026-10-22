@@ -838,6 +838,23 @@ test("production sessions: generic login, proxy, CSRF, permissions, expiry, logo
     /HttpOnly; Secure; SameSite=Strict/,
   );
   assert.equal((await call("/api/v1/entities")).r.status, 200);
+  const invoiceBody = {
+    entityId: LOCAL.entityId,
+    csv: "supplier_id,supplier_name,invoice_number,invoice_date,amount,currency\nV1,Example,INV-1,2026-10-01,10,USD",
+  };
+  assert.equal(
+    (await call("/api/v1/invoice-duplicate-checks", "POST", invoiceBody)).r
+      .status,
+    403,
+  );
+  assert.equal(
+    (
+      await call("/api/v1/invoice-duplicate-checks", "POST", invoiceBody, {
+        "X-CSRF-Token": csrf,
+      })
+    ).r.status,
+    200,
+  );
   assert.equal(
     (
       await call("/api/v1/checklist-tasks/copy-previous-month", "POST", {
@@ -1573,4 +1590,150 @@ test("global login cost budget rejects rotating accounts before password hashing
       });
     else await db.rateLimit.delete({ where: { key } });
   }
+});
+
+test("invoice CSV HTTP contract, permission isolation, byte limits and transient results", async () => {
+  const header =
+    "supplier_id,supplier_name,invoice_number,invoice_date,amount,currency\n";
+  const csv =
+    header +
+    "V1,Example,INV-1,2026-10-01,10,USD\nV1,Changed,inv-1,2026-10-02,20,EUR";
+  const input = { entityId: LOCAL.entityId, csv };
+  const counts = async () =>
+    Promise.all([db.checklistTask.count(), db.subscriptionRenewal.count()]);
+  const before = await counts();
+  const result = await request("POST", "/invoice-duplicate-checks", input);
+  assert.equal(result.status, 200);
+  const duplicateSpec = yaml(
+    readFileSync("../contracts/invoice-duplicates.openapi.yaml", "utf8"),
+  );
+  const validateResult = ajv.compile({
+    ...duplicateSpec.components.schemas.CheckResult,
+    components: duplicateSpec.components,
+  });
+  assert.equal(
+    validateResult(result.data),
+    true,
+    JSON.stringify(validateResult.errors),
+  );
+  assert.deepEqual(result.data.summary, {
+    rowCount: 2,
+    groupCount: 1,
+    flaggedRowCount: 2,
+  });
+  assert.deepEqual(
+    (await request("POST", "/invoice-duplicate-checks", input)).data,
+    result.data,
+  );
+  assert.deepEqual(await counts(), before);
+  for (const body of [
+    { ...input, organisationId: LOCAL.organisationId },
+    { ...input, role: "admin" },
+    { ...input, csv: "bad" },
+    { ...input, csv: "x".repeat(131073) },
+  ])
+    assert.equal(
+      (await request("POST", "/invoice-duplicate-checks", body)).status,
+      422,
+    );
+  assert.equal(
+    (await request("POST", "/invoice-duplicate-checks?unknown=1", input))
+      .status,
+    422,
+  );
+  assert.equal(
+    (
+      await request("POST", "/invoice-duplicate-checks", {
+        ...input,
+        csv: csv + "\n".repeat(20000),
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await request("POST", "/invoice-duplicate-checks", {
+        ...input,
+        csv: "x".repeat(524289),
+      })
+    ).status,
+    422,
+  );
+  // The larger checker transport limit must not expand ordinary mutation limits.
+  assert.equal((await create({ title: "x".repeat(20000) })).status, 422);
+  for (const entityId of [foreign.entityId, hiddenId]) {
+    const response = await request("POST", "/invoice-duplicate-checks", {
+      entityId,
+      csv: "bad",
+    });
+    assert.equal(
+      response.status,
+      404,
+      "Access must be checked before CSV parsing",
+    );
+    assert.equal(response.data.message.includes("CSV"), false);
+  }
+  const reader = await start({
+    organisationId: LOCAL.organisationId,
+    userId: readerId,
+  });
+  try {
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/invoice-duplicate-checks",
+          input,
+          {},
+          reader.url,
+        )
+      ).status,
+      200,
+    );
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/invoice-duplicate-checks",
+          { ...input, entityId: LOCAL.secondEntityId },
+          {},
+          reader.url,
+        )
+      ).status,
+      404,
+    );
+    await db.membership.update({
+      where: {
+        organisationId_userId: {
+          organisationId: LOCAL.organisationId,
+          userId: readerId,
+        },
+      },
+      data: { active: false },
+    });
+    assert.equal(
+      (
+        await request(
+          "POST",
+          "/invoice-duplicate-checks",
+          input,
+          {},
+          reader.url,
+        )
+      ).status,
+      401,
+    );
+  } finally {
+    await db.membership.update({
+      where: {
+        organisationId_userId: {
+          organisationId: LOCAL.organisationId,
+          userId: readerId,
+        },
+      },
+      data: { active: true },
+    });
+    await reader.instance.close();
+  }
+  assert.deepEqual(await counts(), before);
 });

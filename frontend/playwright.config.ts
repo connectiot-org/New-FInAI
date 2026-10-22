@@ -3,7 +3,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   testIgnore:
-    /(?:checklist.*|session-production|subscriptions|payment-due-date)\.spec\.ts/,
+    /(?:checklist.*|session-production|subscriptions|payment-due-date|invoice-duplicates)\.spec\.ts/,
   fullyParallel: true,
   workers: 2,
   timeout: 45000,
@@ -22,7 +22,7 @@ export default defineConfig({
   },
   webServer: {
     command:
-      "VITE_APP_MODE=demo VITE_CHECKLIST_MODE=demo VITE_AUTH_MODE=local npm run dev -- --port 5173 --strictPort",
+      "VITE_APP_MODE=demo VITE_CHECKLIST_MODE=demo VITE_AUTH_MODE=local npm run dev -- --host 127.0.0.1 --port 5173 --strictPort",
     url: "http://127.0.0.1:5173",
     reuseExistingServer: false,
   },

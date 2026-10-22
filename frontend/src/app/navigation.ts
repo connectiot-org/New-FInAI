@@ -82,6 +82,11 @@ export const navigation = [
     group: "Manage",
     items: [
       {
+        label: "Invoice duplicate checker",
+        path: "/tools/invoice-duplicates",
+        icon: Receipt,
+      },
+      {
         label: "Subscription renewals",
         path: "/tools/subscriptions",
         icon: Layers,
@@ -99,6 +104,7 @@ export const navigation = [
   },
 ];
 export const routeTitles: Record<string, string> = {
+  "/tools/invoice-duplicates": "Invoice duplicate checker",
   "/tools/payment-due-date": "Payment due-date calculator",
   "/tools/subscriptions": "Subscription renewals",
   "/overview": "Overview",

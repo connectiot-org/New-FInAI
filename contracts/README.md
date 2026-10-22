@@ -2,6 +2,10 @@
 
 Current frontend product builds use API mode and session authentication by default; legacy demo-mode startup descriptions below are historical/local-only. API contracts remain compatible. See `../context/architecture.md` and `../context/production-review.md` for the current product boundary and verification.
 
+Additional independent tool contract: [invoice duplicate checker 1.0.0](invoice-duplicates.openapi.yaml).
+POST `/api/v1/invoice-duplicate-checks` returns transient, scoped CSV analysis without database writes.
+See `context/invoice-duplicates.md` for exact CSV/matching/limit/privacy semantics and verification.
+
 OpenAPI **3.1.1**, contract **1.1.0**, URI `/api/v1`. Reconciled with supplied Prompt 02, replacing 0.1.0-proposal.1 before implementation. Coordinator owns shared schema/examples. Application roles propose deltas before edits; no silent drift. Contract 1.1.0 adds administrative session authentication; target infrastructure and public-release verification remain gated. Local/test identity is still server-owned, explicit and loopback-only.
 
 | Operation | Input | Response |

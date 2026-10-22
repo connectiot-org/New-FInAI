@@ -17,7 +17,8 @@
     "test:payment-due-date": "playwright test --config playwright.payment-due-date.config.ts",
     "build:product": "tsc -b && VITE_APP_MODE=product VITE_AUTH_MODE=session VITE_CHECKLIST_MODE=api VITE_API_BASE_URL=/api/v1 vite build",
     "test:proxy": "node --test scripts/proxy.test.ts scripts/session.test.ts",
-    "check:product": "node scripts/check-product-build.ts && node scripts/check-assets.ts"
+    "check:product": "node scripts/check-product-build.ts && node scripts/check-assets.ts",
+    "test:invoice-duplicates": "playwright test --config playwright.invoice-duplicates.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
