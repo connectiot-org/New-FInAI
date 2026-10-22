@@ -1,0 +1,362 @@
+openapi: 3.1.1
+info:
+  title: FinAI subscription renewals
+  version: 1.0.0
+  description: 'Manual date tracking only. Existing session auth/CSRF and local identity
+    restrictions apply. Membership/entity access checked server-side. Create IDs allow
+    safe identical retries (200); changed/reused IDs conflict. Updates/archive require
+    atomic expectedVersion. Dates do not imply billing, renewal or cancellation. List
+    sorted by renewalDate/id; offset pagination is not a cross-request snapshot. Timezone
+    comes only from ORGANISATION_TIMEZONES (org UUID to IANA zone JSON), UTC fallback
+    when absent. Startup rejects invalid configured zones. Active renewal indicators:
+    past or today..30 days inclusive. Active cancellation indicators: past or today..7
+    days inclusive. Archived indicators null.'
+paths:
+  /api/v1/subscription-renewals:
+    get:
+      operationId: listSubscriptionRenewals
+      summary: listSubscriptionRenewals
+      responses:
+        '401':
+          description: Existing safe JSON error envelope; no private data.
+        '403':
+          description: Existing safe JSON error envelope; no private data.
+        '404':
+          description: Existing safe JSON error envelope; no private data.
+        '409':
+          description: Existing safe JSON error envelope; no private data.
+        '422':
+          description: Existing safe JSON error envelope; no private data.
+        '503':
+          description: Existing safe JSON error envelope; no private data.
+        '200':
+          description: Successful scoped operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionPage'
+              example:
+                items:
+                - &id001
+                  id: 33333333-3333-4333-8333-333333333333
+                  entityId: 22222222-2222-4222-8222-222222222222
+                  supplierName: Example supplier
+                  subscriptionName: Workspace plan
+                  renewalDate: '2026-11-01'
+                  cancellationDeadline: '2026-10-25'
+                  notes: null
+                  archived: false
+                  version: 1
+                  createdAt: '2026-10-22T06:00:00Z'
+                  updatedAt: '2026-10-22T06:00:00Z'
+                  renewalIndicator: Renewing soon.
+                  cancellationIndicator: Cancellation deadline approaching.
+                total: 1
+                offset: 0
+                limit: 20
+                nextOffset: null
+                today: '2026-10-22'
+                timezone: UTC
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 200
+      - name: status
+        in: query
+        required: false
+        schema:
+          enum:
+          - active
+          - archived
+          - all
+          default: active
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 1000000
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+    post:
+      operationId: createSubscriptionRenewal
+      summary: createSubscriptionRenewal
+      responses:
+        '401':
+          description: Existing safe JSON error envelope; no private data.
+        '403':
+          description: Existing safe JSON error envelope; no private data.
+        '404':
+          description: Existing safe JSON error envelope; no private data.
+        '409':
+          description: Existing safe JSON error envelope; no private data.
+        '422':
+          description: Existing safe JSON error envelope; no private data.
+        '503':
+          description: Existing safe JSON error envelope; no private data.
+        '200':
+          description: Successful scoped operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+              example: *id001
+        '201':
+          description: Successful scoped operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+              example: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSubscription'
+  /api/v1/subscription-renewals/{id}:
+    parameters: &id002
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    patch:
+      operationId: updateSubscriptionRenewal
+      summary: updateSubscriptionRenewal
+      responses:
+        '401':
+          description: Existing safe JSON error envelope; no private data.
+        '403':
+          description: Existing safe JSON error envelope; no private data.
+        '404':
+          description: Existing safe JSON error envelope; no private data.
+        '409':
+          description: Existing safe JSON error envelope; no private data.
+        '422':
+          description: Existing safe JSON error envelope; no private data.
+        '503':
+          description: Existing safe JSON error envelope; no private data.
+        '200':
+          description: Successful scoped operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+              example: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubscription'
+  /api/v1/subscription-renewals/{id}/archive:
+    parameters: *id002
+    patch:
+      operationId: archiveSubscriptionRenewal
+      summary: archiveSubscriptionRenewal
+      responses:
+        '401':
+          description: Existing safe JSON error envelope; no private data.
+        '403':
+          description: Existing safe JSON error envelope; no private data.
+        '404':
+          description: Existing safe JSON error envelope; no private data.
+        '409':
+          description: Existing safe JSON error envelope; no private data.
+        '422':
+          description: Existing safe JSON error envelope; no private data.
+        '503':
+          description: Existing safe JSON error envelope; no private data.
+        '200':
+          description: Successful scoped operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+              example: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArchiveSubscription'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+  schemas:
+    CreateSubscription:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        supplierName: &id003
+          type: string
+          minLength: 1
+          maxLength: 200
+        subscriptionName: *id003
+        renewalDate: &id004
+          type: string
+          format: date
+          pattern: ^(?!0000)\d{4}-\d{2}-\d{2}$
+        cancellationDeadline: &id005
+          anyOf:
+          - *id004
+          - type: 'null'
+        notes: &id006
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+      required:
+      - id
+      - entityId
+      - supplierName
+      - subscriptionName
+      - renewalDate
+    UpdateSubscription:
+      type: object
+      additionalProperties: false
+      properties:
+        supplierName: *id003
+        subscriptionName: *id003
+        renewalDate: *id004
+        cancellationDeadline: *id005
+        notes: *id006
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+      required:
+      - supplierName
+      - subscriptionName
+      - renewalDate
+      - expectedVersion
+    ArchiveSubscription:
+      type: object
+      additionalProperties: false
+      properties:
+        archived:
+          type: boolean
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+      required:
+      - archived
+      - expectedVersion
+    Subscription:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        supplierName: *id003
+        subscriptionName: *id003
+        renewalDate: *id004
+        cancellationDeadline: *id005
+        notes: *id006
+        archived:
+          type: boolean
+        version:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        renewalIndicator:
+          enum:
+          - null
+          - Renewal date passed.
+          - Renewing soon.
+        cancellationIndicator:
+          enum:
+          - null
+          - Cancellation deadline passed.
+          - Cancellation deadline approaching.
+      required:
+      - id
+      - entityId
+      - supplierName
+      - subscriptionName
+      - renewalDate
+      - cancellationDeadline
+      - notes
+      - archived
+      - version
+      - createdAt
+      - updatedAt
+      - renewalIndicator
+      - cancellationIndicator
+    SubscriptionPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Subscription'
+        total:
+          type: integer
+          minimum: 0
+        offset:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        nextOffset:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        today: *id004
+        timezone:
+          type: string
+      required:
+      - items
+      - total
+      - offset
+      - limit
+      - nextOffset
+      - today
+      - timezone
+security:
+- sessionCookie: []
+servers:
+- url: /

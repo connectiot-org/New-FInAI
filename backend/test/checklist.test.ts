@@ -977,3 +977,369 @@ test("database rate limiter is shared across instances", async () => {
     (e: any) => e.status === 429,
   );
 });
+
+test("subscription CRUD, safe create replay, atomic edit/archive conflicts and restart persistence", async () => {
+  const input = {
+    id: randomUUID(),
+    entityId: LOCAL.entityId,
+    supplierName: "  Example supplier  ",
+    subscriptionName: "  Renewal plan  ",
+    renewalDate: "2028-02-29",
+    cancellationDeadline: "2028-02-01",
+    notes: "Initial note",
+  };
+  const made = await request("POST", "/subscription-renewals", input);
+  assert.equal(made.status, 201);
+  assert.equal(made.data.supplierName, "Example supplier");
+  assert.equal(made.data.archived, false);
+  assert.equal(made.data.version, 1);
+  assert.ok(!("organisationId" in made.data));
+  assert.equal(
+    (await request("POST", "/subscription-renewals", input)).status,
+    200,
+  );
+  const details = {
+    supplierName: "Edited supplier",
+    subscriptionName: "Edited plan",
+    renewalDate: "2028-03-01",
+    cancellationDeadline: null,
+    notes: null,
+    expectedVersion: 1,
+  };
+  const race = await Promise.all([
+    request("PATCH", `/subscription-renewals/${input.id}`, details),
+    request("PATCH", `/subscription-renewals/${input.id}`, {
+      ...details,
+      notes: "Concurrent",
+    }),
+  ]);
+  assert.deepEqual(race.map((r) => r.status).sort(), [200, 409]);
+  assert.equal(
+    (
+      await request("PATCH", `/subscription-renewals/${input.id}/archive`, {
+        archived: true,
+        expectedVersion: 1,
+      })
+    ).status,
+    409,
+  );
+  const archived = await request(
+    "PATCH",
+    `/subscription-renewals/${input.id}/archive`,
+    { archived: true, expectedVersion: 2 },
+  );
+  assert.equal(archived.status, 200);
+  assert.equal(archived.data.version, 3);
+  assert.equal(archived.data.renewalIndicator, null);
+  const query = `/subscription-renewals?entityId=${LOCAL.entityId}&search=Edited%20supplier`;
+  assert.equal((await request("GET", query)).data.total, 0);
+  assert.equal(
+    (await request("GET", query + "&status=archived")).data.total,
+    1,
+  );
+  assert.equal(
+    (
+      await request("PATCH", `/subscription-renewals/${input.id}/archive`, {
+        archived: false,
+        expectedVersion: 3,
+      })
+    ).status,
+    200,
+  );
+  const restarted = await start();
+  const list = await request("GET", query, undefined, {}, restarted.url);
+  assert.equal(list.data.items[0].id, input.id);
+  assert.equal(list.data.items[0].version, 4);
+  await restarted.instance.close();
+});
+
+test("subscription validation rejects invalid calendar dates, deadlines and editable-field overrides", async () => {
+  const valid = {
+    id: randomUUID(),
+    entityId: LOCAL.entityId,
+    supplierName: "Supplier",
+    subscriptionName: "Plan",
+    renewalDate: "2026-12-01",
+  };
+  for (const extra of [
+    { renewalDate: "2026-02-29" },
+    { renewalDate: "2026-04-31" },
+    { renewalDate: "0000-01-01" },
+    { renewalDate: "2026-01-01T00:00:00Z" },
+    { cancellationDeadline: "2026-12-02" },
+    { supplierName: " " },
+    { subscriptionName: "x".repeat(201) },
+    { notes: "x".repeat(2001) },
+    { archived: true },
+    { organisationId: LOCAL.organisationId },
+  ])
+    assert.equal(
+      (await request("POST", "/subscription-renewals", { ...valid, ...extra }))
+        .status,
+      422,
+    );
+  const created = await request("POST", "/subscription-renewals", valid);
+  assert.equal(created.status, 201);
+  assert.equal(
+    (
+      await request("PATCH", `/subscription-renewals/${valid.id}`, {
+        supplierName: "S",
+        subscriptionName: "P",
+        renewalDate: "2026-12-01",
+      })
+    ).status,
+    422,
+  );
+  assert.equal(
+    (
+      await request("PATCH", `/subscription-renewals/${valid.id}/archive`, {
+        archived: true,
+        expectedVersion: 1,
+        entityId: foreign.entityId,
+      })
+    ).status,
+    422,
+  );
+  for (const query of [
+    "limit=51",
+    "limit=0",
+    "offset=-1",
+    "offset=1.5",
+    "status=wrong",
+    "role=Admin",
+  ])
+    assert.equal(
+      (
+        await request(
+          "GET",
+          `/subscription-renewals?entityId=${LOCAL.entityId}&${query}`,
+        )
+      ).status,
+      422,
+    );
+});
+
+test("subscription literal search, active/archived filtering and bounded pagination", async () => {
+  const label = `Find-${randomUUID()}`;
+  for (let i = 0; i < 5; i++)
+    assert.equal(
+      (
+        await request("POST", "/subscription-renewals", {
+          id: randomUUID(),
+          entityId: LOCAL.entityId,
+          supplierName: label,
+          subscriptionName: i === 0 ? "100%_literal" : "Plan",
+          renewalDate: "2030-01-01",
+        })
+      ).status,
+      201,
+    );
+  const path = `/subscription-renewals?entityId=${LOCAL.entityId}&search=${label.toUpperCase()}&limit=2`;
+  const first = (await request("GET", path)).data;
+  assert.equal(first.items.length, 2);
+  assert.equal(first.total, 5);
+  assert.equal(first.nextOffset, 2);
+  const second = (await request("GET", path + "&offset=2")).data,
+    third = (await request("GET", path + "&offset=4")).data;
+  assert.equal(third.nextOffset, null);
+  assert.equal(
+    new Set(
+      [...first.items, ...second.items, ...third.items].map((v: any) => v.id),
+    ).size,
+    5,
+  );
+  const literal = await request(
+    "GET",
+    `/subscription-renewals?entityId=${LOCAL.entityId}&search=${encodeURIComponent("%_")}`,
+  );
+  assert.equal(literal.data.total, 1);
+  assert.equal((await request("GET", path + "&status=archived")).data.total, 0);
+});
+
+test("subscription organisation/entity permissions and inactive/read-only memberships", async () => {
+  const input = {
+    id: randomUUID(),
+    entityId: LOCAL.entityId,
+    supplierName: "Private",
+    subscriptionName: "Plan",
+    renewalDate: "2027-01-01",
+  };
+  await request("POST", "/subscription-renewals", input);
+  const foreignApp = await start({
+    organisationId: foreign.organisationId,
+    userId: foreign.userId,
+  });
+  assert.equal(
+    (
+      await request(
+        "GET",
+        `/subscription-renewals?entityId=${LOCAL.entityId}`,
+        undefined,
+        {},
+        foreignApp.url,
+      )
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await request("POST", "/subscription-renewals", {
+        ...input,
+        id: randomUUID(),
+        entityId: hiddenId,
+      })
+    ).status,
+    404,
+  );
+  for (const [path, body] of [
+    [
+      `/subscription-renewals/${input.id}`,
+      {
+        supplierName: "Stolen",
+        subscriptionName: "P",
+        renewalDate: "2027-01-01",
+        expectedVersion: 1,
+      },
+    ],
+    [
+      `/subscription-renewals/${input.id}/archive`,
+      { archived: true, expectedVersion: 1 },
+    ],
+  ] as const)
+    assert.equal(
+      (await request("PATCH", path, body, {}, foreignApp.url)).status,
+      404,
+    );
+  await foreignApp.instance.close();
+  const reader = await start({
+    organisationId: LOCAL.organisationId,
+    userId: readerId,
+  });
+  assert.equal(
+    (
+      await request(
+        "POST",
+        "/subscription-renewals",
+        { ...input, id: randomUUID() },
+        {},
+        reader.url,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await request(
+        "PATCH",
+        `/subscription-renewals/${input.id}/archive`,
+        { archived: true, expectedVersion: 1 },
+        {},
+        reader.url,
+      )
+    ).status,
+    403,
+  );
+  await db.membership.update({
+    where: {
+      organisationId_userId: {
+        organisationId: LOCAL.organisationId,
+        userId: readerId,
+      },
+    },
+    data: { active: false },
+  });
+  try {
+    assert.equal(
+      (
+        await request(
+          "GET",
+          `/subscription-renewals?entityId=${LOCAL.entityId}`,
+          undefined,
+          {},
+          reader.url,
+        )
+      ).status,
+      401,
+    );
+  } finally {
+    await db.membership.update({
+      where: {
+        organisationId_userId: {
+          organisationId: LOCAL.organisationId,
+          userId: readerId,
+        },
+      },
+      data: { active: true },
+    });
+  }
+  await reader.instance.close();
+});
+
+test("subscription timezone fallback and separate inclusive renewal/deadline indicators", async () => {
+  const { dateContext, subscriptionIndicators, organisationTimezones } =
+    await import("../src/subscription.service");
+  const instant = new Date("2026-10-21T20:00:00Z");
+  assert.equal(dateContext("Asia/Dhaka", instant).today, "2026-10-22");
+  assert.equal(dateContext("America/Los_Angeles", instant).today, "2026-10-21");
+  assert.deepEqual(organisationTimezones(undefined), {});
+  assert.throws(() =>
+    organisationTimezones(
+      '{"11111111-1111-4111-8111-111111111111":"Invalid/Timezone"}',
+    ),
+  );
+  const today = "2026-10-22";
+  assert.deepEqual(
+    subscriptionIndicators("2026-10-22", "2026-10-22", false, today),
+    {
+      renewalIndicator: "Renewing soon.",
+      cancellationIndicator: "Cancellation deadline approaching.",
+    },
+  );
+  assert.deepEqual(
+    subscriptionIndicators("2026-11-21", "2026-10-29", false, today),
+    {
+      renewalIndicator: "Renewing soon.",
+      cancellationIndicator: "Cancellation deadline approaching.",
+    },
+  );
+  assert.deepEqual(
+    subscriptionIndicators("2026-11-22", "2026-10-30", false, today),
+    { renewalIndicator: null, cancellationIndicator: null },
+  );
+  assert.deepEqual(
+    subscriptionIndicators("2026-10-21", "2026-10-20", false, today),
+    {
+      renewalIndicator: "Renewal date passed.",
+      cancellationIndicator: "Cancellation deadline passed.",
+    },
+  );
+  assert.deepEqual(
+    subscriptionIndicators("2026-10-21", "2026-10-20", true, today),
+    { renewalIndicator: null, cancellationIndicator: null },
+  );
+  const configured = await createApplication({
+    env: {
+      ...env,
+      ORGANISATION_TIMEZONES: JSON.stringify({
+        [LOCAL.organisationId]: "Asia/Dhaka",
+      }),
+    },
+    quiet: true,
+  });
+  apps.push(configured);
+  const listing = await request(
+    "GET",
+    `/subscription-renewals?entityId=${LOCAL.entityId}`,
+    undefined,
+    {},
+    await configured.getUrl(),
+  );
+  assert.equal(listing.data.timezone, "Asia/Dhaka");
+  assert.equal(listing.data.today, dateContext("Asia/Dhaka").today);
+  assert.equal(
+    (await request("GET", `/subscription-renewals?entityId=${LOCAL.entityId}`))
+      .data.timezone,
+    "UTC",
+  );
+  await configured.close();
+});

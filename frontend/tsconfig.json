@@ -31,6 +31,7 @@
     "playwright.checklist.config.ts",
     "tests",
     "api",
-    "playwright.session.config.ts"
+    "playwright.session.config.ts",
+    "playwright.subscriptions.config.ts"
   ]
 }

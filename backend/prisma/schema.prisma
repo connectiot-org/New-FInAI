@@ -39,6 +39,7 @@ model Entity {
   organisation   Organisation    @relation(fields: [organisationId], references: [id])
   access         EntityAccess[]
   tasks          ChecklistTask[]
+  subscriptions SubscriptionRenewal[]
 
   @@unique([organisationId, id])
 }
@@ -93,4 +94,21 @@ model RateLimit {
   key String @id @db.Char(64)
   window DateTime @db.Timestamptz(3)
   count Int
+}
+
+model SubscriptionRenewal {
+  id String @id @db.Uuid
+  organisationId String @map("organisation_id") @db.Uuid
+  entityId String @map("entity_id") @db.Uuid
+  supplierName String @db.VarChar(200)
+  subscriptionName String @db.VarChar(200)
+  renewalDate DateTime @db.Date
+  cancellationDeadline DateTime? @db.Date
+  notes String? @db.VarChar(2000)
+  archived Boolean @default(false)
+  version Int @default(1)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+  entity Entity @relation(fields: [organisationId, entityId], references: [organisationId, id], onDelete: NoAction, onUpdate: NoAction)
+  @@index([organisationId, entityId, archived, renewalDate, id], map: "SubscriptionRenewal_organisation_id_entity_id_archived_renewal_")
 }

@@ -50,3 +50,7 @@ Implemented sequentially from clean a285efa93bcf8918958b13139dabd9857edd0e72. Ba
 ## Verification and GitHub handoff
 
 User authorized commit/push after fresh verification. Reran 12 backend + 34 standalone browser + 14 API checklist + 1 HTTPS session/proxy = 61 passing tests, with typechecks/lint/builds, contracts, zero-vulnerability application audits, asset scan and synthetic restore passing. Backend review additionally fixed and tested a concurrent login/password-reset race by locking/rechecking the account before minting a session. Push the role-scoped commits to the existing work branch without force; main/public deployment remain separate. See copy-release.md and Git history.
+
+## Subscription renewals — 2026-10-22
+
+Implemented sequentially from clean c06d7f2 on work. Fresh final checks: 17 backend + 4 subscription browser + 34 existing standalone browser + 14 checklist browser + 1 production-build HTTPS session/proxy = 70 passing tests, zero skipped. Both applications typecheck/lint/build; existing/new contracts validate, subscription Redocly lint passes, application audits report zero known vulnerabilities, asset scan passes, and additive migration repeatability/synthetic subscription+checklist restore pass. Existing production auth reused; no deployment/paid resources. Commands, file inventory and gates: subscriptions.md.
