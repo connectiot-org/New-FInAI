@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Trash2 } from "lucide-react";
-import { PageHeader } from "../../components/shared/Common";
-import { Confirm, Field, useToast } from "../../components/ui";
+import { PageHeader } from "../../components/shared/PageHeader";
+import { Confirm, Field, useToast } from "../../components/ui/primitives";
 import {
   checklistClient as client,
   checklistMode,
@@ -54,6 +54,15 @@ function ChecklistBody() {
   activeScope.current = scope;
   const visible = data?.scope === scope ? data.list : undefined;
 
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    activeScope.current = scope;
+    return () => {
+      mounted.current = false;
+      activeScope.current = "";
+    };
+  }, [scope]);
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
@@ -161,7 +170,7 @@ function ChecklistBody() {
       }
     } finally {
       inFlight.current = false;
-      setPending(false);
+      if (mounted.current) setPending(false);
     }
   }
   async function copy() {
@@ -192,7 +201,7 @@ function ChecklistBody() {
         setRevision((v) => v + 1);
       }
       inFlight.current = false;
-      setPending(false);
+      if (mounted.current) setPending(false);
     }
   }
   function add() {
@@ -241,21 +250,23 @@ function ChecklistBody() {
     <>
       <PageHeader
         title="Monthly checklist"
-        description="Your tasks for one entity and month. Completion is separate from close approval."
+        description="Your tasks for one company and month."
         action={
           <span className="tag">
-            {checklistMode === "demo"
-              ? "Demo checklist"
-              : sessionEnabled
-                ? "Connected backend"
-                : "Local backend"}
+            {import.meta.env.VITE_APP_MODE !== "demo"
+              ? "Saved tasks"
+              : checklistMode === "demo"
+                ? "Demo checklist"
+                : sessionEnabled
+                  ? "Connected backend"
+                  : "Local backend"}
           </span>
         }
       />
       <p className="notice">
         {checklistMode === "demo"
           ? "Session-only checklist demo. Tasks clear on page refresh."
-          : "Tasks are saved to the connected backend. Demo workspace controls and persona changes do not change checklist access."}
+          : "Tasks are saved to your company. Access is managed by your administrator."}
       </p>
       {entityError && (
         <div role="alert" className="notice error">

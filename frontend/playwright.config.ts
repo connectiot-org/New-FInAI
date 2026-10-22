@@ -2,7 +2,8 @@ import { existsSync } from "node:fs";
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
-  testIgnore: /(?:checklist.*|session-production|subscriptions|payment-due-date)\.spec\.ts/,
+  testIgnore:
+    /(?:checklist.*|session-production|subscriptions|payment-due-date)\.spec\.ts/,
   fullyParallel: true,
   workers: 2,
   timeout: 45000,
@@ -20,9 +21,10 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --port 5173",
+    command:
+      "VITE_APP_MODE=demo VITE_CHECKLIST_MODE=demo VITE_AUTH_MODE=local npm run dev -- --port 5173 --strictPort",
     url: "http://127.0.0.1:5173",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
   reporter: [["list"], ["html", { open: "never" }]],
 });

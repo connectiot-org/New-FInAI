@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   webServer: {
     command:
-      "VITE_API_BASE_URL=http://127.0.0.1:3002/api/v1 npm run dev -- --port 5173 --strictPort",
+      "VITE_APP_MODE=demo VITE_AUTH_MODE=local VITE_API_BASE_URL=http://127.0.0.1:3002/api/v1 npm run dev -- --port 5173 --strictPort",
     url: "http://127.0.0.1:5173",
     reuseExistingServer: false,
   },

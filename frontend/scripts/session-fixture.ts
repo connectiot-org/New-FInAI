@@ -134,7 +134,12 @@ const server = createServer(
   },
   (req, res) => {
     const path = new URL(req.url || "/", origin).pathname;
-    if (path.startsWith("/api/") || path.startsWith("/auth/")) {
+    const routes = JSON.parse(readFileSync("vercel.json", "utf8")).routes;
+    for (const [name, value] of Object.entries(
+      routes[0].headers as Record<string, string>,
+    ))
+      res.setHeader(name, value);
+    if (/^\/(api|auth)(?:\/|$)/.test(path)) {
       const incoming = new URL(req.url || "/", origin);
       incoming.searchParams.set("route", path.slice(1));
       req.url = "/api/proxy?" + incoming.searchParams.toString();

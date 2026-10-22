@@ -54,3 +54,8 @@ Implemented `/tools/subscriptions` with one additive SubscriptionRenewal table, 
 
 
 Subsequent user authorization: calculator commit/push to `feature/payment-due-date` is now requested after fresh verification. All85 tests and both application build/typecheck/lint, contract, asset and audit checks passed again. Main merge and deployment remain outside scope. GitHub-hosted CI status is unverified because API requests return Forbidden; remote publication is verified separately through Git.
+
+
+## Current authenticated product — 2026-10-22
+
+The default frontend now ships only the three live tools behind the shared session gate. Legacy financial demonstrations remain explicit local test/development sources, excluded from product imports, public assets and navigation. The backend retains server-owned tenant/entity authority; production local identity remains rejected. Current accepted architecture is architecture.md; production-review.md records the scoped review, concrete safeguards and93 fresh passing tests plus build/security/recovery checks. No whole-platform accounting, target deployment, zero-defect or independent-audit claim is made. Public proxy/TLS/database/account/backup/capacity/monitoring gates still need operator evidence.

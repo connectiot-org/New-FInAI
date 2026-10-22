@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { PageHeader } from "../../components/shared/Common";
-import { Field } from "../../components/ui";
+import { PageHeader } from "../../components/shared/PageHeader";
+import { Field } from "../../components/ui/primitives";
 import { SessionGate } from "../../components/SessionGate";
 import { ApiError } from "../../lib/api";
 import {

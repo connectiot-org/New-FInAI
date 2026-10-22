@@ -1,4 +1,4 @@
-name: Checklist release checks
+name: FinAI product release checks
 on: [push, pull_request]
 permissions:
   contents: read
@@ -52,7 +52,8 @@ jobs:
           npm run test:subscriptions
           npm run test:payment-due-date
           npm run test:session
-          node scripts/check-assets.ts
+          npm run test:proxy
+          npm run check:product
           npm audit
       - name: Container build and synthetic application restore
         run: |

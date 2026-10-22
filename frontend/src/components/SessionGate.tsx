@@ -1,36 +1,76 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { Field } from "./ui";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { z } from "zod";
+import { Field } from "./ui/primitives";
 import { sessionEnabled } from "../lib/api";
-export function SessionGate({
+import { sessionChanged } from "../lib/session-lifecycle";
+const SessionContext = createContext(false);
+const sessionSchema = z.strictObject({
+  csrfToken: z.string().regex(/^[a-f0-9]{64}$/),
+});
+async function token(response: Response) {
+  if (response.status !== 200) throw new Error("Session service unavailable");
+  return sessionSchema.parse(await response.json()).csrfToken;
+}
+type Props = { children: ReactNode; title?: string };
+export function SessionGate(props: Props) {
+  return useContext(SessionContext) ? (
+    <>{props.children}</>
+  ) : (
+    <SessionBoundary {...props} />
+  );
+}
+function SessionBoundary({
   children,
   title = "Sign in to your checklist",
-}: {
-  children: ReactNode;
-  title?: string;
-}) {
+}: Props) {
   const [authenticated, setAuthenticated] = useState(!sessionEnabled);
   const [checking, setChecking] = useState(sessionEnabled);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  const [retry, setRetry] = useState(0);
+  const inFlight = useRef(false);
   useEffect(() => {
     if (!sessionEnabled) return;
     let active = true;
+    const controller = new AbortController();
+    setChecking(true);
+    setError("");
     fetch("/auth/session", {
       credentials: "same-origin",
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]),
     })
-      .then((r) => {
-        if (active) setAuthenticated(r.ok);
+      .then(async (r) => {
+        if (r.status !== 401) await token(r);
+        if (active) setAuthenticated(r.status === 200);
       })
       .catch(() => {
-        if (active) setError("Cannot reach sign-in service.");
+        if (active)
+          setError(
+            "Cannot reach sign-in service. Check your connection and try again.",
+          );
       })
       .finally(() => {
         if (active) setChecking(false);
       });
     return () => {
       active = false;
+      controller.abort();
     };
+  }, [retry]);
+  useEffect(() => {
+    const expire = () => {
+      setAuthenticated(false);
+      setError("Your session expired. Sign in again.");
+    };
+    window.addEventListener("finai:session-expired", expire);
+    return () => window.removeEventListener("finai:session-expired", expire);
   }, []);
   if (checking) return <p role="status">Checking session…</p>;
   if (!authenticated)
@@ -38,13 +78,25 @@ export function SessionGate({
       <section className="panel">
         <h1>{title}</h1>
         <p>Accounts are provided by your administrator.</p>
-        {error && <p role="alert">{error}</p>}
+        {error && (
+          <p role="alert">
+            {error}{" "}
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setRetry((v) => v + 1)}
+            >
+              Check session again
+            </button>
+          </p>
+        )}
         <form
           onSubmit={async (event) => {
             event.preventDefault();
-            if (busy) return;
-            const form = event.currentTarget;
-            const fields = new FormData(form);
+            if (inFlight.current) return;
+            const form = event.currentTarget,
+              fields = new FormData(form);
+            inFlight.current = true;
             setBusy(true);
             setError("");
             try {
@@ -59,15 +111,16 @@ export function SessionGate({
                 }),
                 signal: AbortSignal.timeout(10000),
               });
-              if (!r.ok)
-                throw new Error(
-                  "Sign-in failed. Check your details or try again later.",
-                );
+              await token(r);
               form.reset();
+              sessionChanged();
               setAuthenticated(true);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Sign-in failed.");
+            } catch {
+              setError(
+                "Sign-in failed. Check your details or try again later.",
+              );
             } finally {
+              inFlight.current = false;
               setBusy(false);
             }
           }}
@@ -78,10 +131,17 @@ export function SessionGate({
               autoComplete="username"
               required
               maxLength={100}
+              disabled={busy}
             />
           </Field>
           <Field label="Organisation ID">
-            <input name="organisationId" required autoComplete="off" />
+            <input
+              name="organisationId"
+              required
+              autoComplete="off"
+              maxLength={36}
+              disabled={busy}
+            />
           </Field>
           <Field label="Password">
             <input
@@ -90,6 +150,7 @@ export function SessionGate({
               autoComplete="current-password"
               required
               maxLength={1024}
+              disabled={busy}
             />
           </Field>
           <button className="primary" disabled={busy}>
@@ -99,38 +160,46 @@ export function SessionGate({
       </section>
     );
   return (
-    <>
+    <SessionContext.Provider value={true}>
       {sessionEnabled && (
         <>
           <button
             disabled={busy}
             onClick={async () => {
-              if (busy) return;
+              if (inFlight.current) return;
+              inFlight.current = true;
               setBusy(true);
               setError("");
               try {
                 const r = await fetch("/auth/session", {
                   credentials: "same-origin",
+                  signal: AbortSignal.timeout(10000),
                 });
-                if (r.ok) {
-                  const session = await r.json();
+                if (r.status !== 401) {
+                  const csrfToken = await token(r);
                   const result = await fetch("/auth/logout", {
                     method: "POST",
                     credentials: "same-origin",
                     headers: {
                       "Content-Type": "application/json",
-                      "X-CSRF-Token": session.csrfToken,
+                      "X-CSRF-Token": csrfToken,
                     },
                     body: "{}",
                     signal: AbortSignal.timeout(10000),
                   });
-                  if (!result.ok)
-                    throw new Error("Sign out failed. Try again.");
+                  if (result.status !== 200) throw new Error();
+                  z.strictObject({ status: z.literal("signed-out") }).parse(
+                    await result.json(),
+                  );
                 }
+                sessionChanged();
                 setAuthenticated(false);
-              } catch (e) {
-                setError(e instanceof Error ? e.message : "Sign out failed.");
+              } catch {
+                setError(
+                  "Sign out could not be confirmed. Check your connection and try again.",
+                );
               } finally {
+                inFlight.current = false;
                 setBusy(false);
               }
             }}
@@ -141,6 +210,6 @@ export function SessionGate({
         </>
       )}
       {children}
-    </>
+    </SessionContext.Provider>
   );
 }

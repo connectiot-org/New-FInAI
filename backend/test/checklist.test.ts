@@ -1495,3 +1495,82 @@ test("payment calculator HTTP rejects query/extra fields, invalid dates/IDs/term
     422,
   );
 });
+
+test("readiness rejects incomplete migration history and missing auth columns without exposing schema details", async () => {
+  const probe = async () => {
+    const r = await fetch(base + "/health/ready");
+    assert.equal(r.headers.get("x-powered-by"), null);
+    return { status: r.status, body: (await r.json()) as { code?: string } };
+  };
+  assert.equal((await probe()).status, 200);
+  const [migration] = await db.$queryRaw<{ finished_at: Date }[]>`
+    SELECT finished_at FROM "_prisma_migrations"
+    WHERE migration_name='202610220001_subscription_renewals'`;
+  await db.$executeRaw`UPDATE "_prisma_migrations" SET finished_at=NULL
+    WHERE migration_name='202610220001_subscription_renewals'`;
+  try {
+    assert.equal((await probe()).status, 503);
+  } finally {
+    await db.$executeRaw`UPDATE "_prisma_migrations" SET finished_at=${migration.finished_at}
+      WHERE migration_name='202610220001_subscription_renewals'`;
+  }
+  await db.$executeRawUnsafe(
+    'ALTER TABLE "Session" RENAME COLUMN "csrfHash" TO "missing_csrf_hash"',
+  );
+  try {
+    const failed = await probe();
+    assert.equal(failed.status, 503);
+    assert.equal(failed.body.code, "UNAVAILABLE");
+    assert.doesNotMatch(JSON.stringify(failed.body), /csrfHash|SELECT|Prisma/);
+  } finally {
+    await db.$executeRawUnsafe(
+      'ALTER TABLE "Session" RENAME COLUMN "missing_csrf_hash" TO "csrfHash"',
+    );
+  }
+  assert.equal((await probe()).status, 200);
+});
+
+test("global login cost budget rejects rotating accounts before password hashing across instances", async (context) => {
+  context.mock.timers.enable({
+    apis: ["Date"],
+    now: new Date("2030-01-01T00:00:30Z"),
+  });
+  const { Auth, digest } = await import("../src/auth");
+  const key = digest("login-global"),
+    window = new Date(Math.floor(Date.now() / 60000) * 60000);
+  const previous = await db.rateLimit.findUnique({ where: { key } });
+  await db.rateLimit.upsert({
+    where: { key },
+    create: { key, window, count: 60 },
+    update: { window, count: 60 },
+  });
+  const { Readable } = await import("node:stream");
+  const req = Object.assign(Readable.from([]), {
+    body: {
+      username: "rotating-unknown-account",
+      password: "synthetic-never-hashed-password",
+      organisationId: LOCAL.organisationId,
+    },
+    headers: { "x-finai-client-ip": "192.0.2.55" },
+  });
+  try {
+    const first = new Auth(db),
+      second = new Auth(db);
+    for (const auth of [first, second])
+      await assert.rejects(
+        auth.login(req as any, {} as any),
+        (e: any) => e.status === 429,
+      );
+    assert.equal(
+      (await db.rateLimit.findUniqueOrThrow({ where: { key } })).count,
+      62,
+    );
+  } finally {
+    if (previous)
+      await db.rateLimit.update({
+        where: { key },
+        data: { window: previous.window, count: previous.count },
+      });
+    else await db.rateLimit.delete({ where: { key } });
+  }
+});

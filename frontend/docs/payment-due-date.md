@@ -1,3 +1,5 @@
+> Current product startup/build boundary: [product.md](product.md). The product defaults to real API/session mode; legacy demo instructions below apply only to explicit local regression builds.
+
 # Payment due-date calculator
 
 Route `/tools/payment-due-date`, navigation “Payment due-date calculator”. Select a company from the existing authorized entity list. Enter invoice date, choose Net0/7/14/30/45/60/90 or Custom0..365, and review/edit the visible as-of date (defaults to the browser's local calendar date). Calculate shows due date, due-in/today/overdue status, absolute day count and the submitted as-of date. Terms use calendar days without weekend/holiday adjustment. The tool does not check payment or legal obligations. Overdue results explicitly say payment status was not checked.

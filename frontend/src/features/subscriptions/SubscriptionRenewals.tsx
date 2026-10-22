@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { PageHeader } from "../../components/shared/Common";
-import { Modal, Confirm, Field, Empty, useToast } from "../../components/ui";
+import { PageHeader } from "../../components/shared/PageHeader";
+import {
+  Modal,
+  Confirm,
+  Field,
+  Empty,
+  useToast,
+} from "../../components/ui/primitives";
 import { SessionGate } from "../../components/SessionGate";
 import { ApiError } from "../../lib/api";
 import {
@@ -58,6 +64,15 @@ function RenewalsBody() {
   const writing = useRef(false),
     toast = useToast();
   const page = data?.key === key ? data.page : undefined;
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    activeKey.current = key;
+    return () => {
+      mounted.current = false;
+      activeKey.current = "";
+    };
+  }, [key]);
   useEffect(() => {
     const c = new AbortController();
     let active = true;
@@ -159,7 +174,7 @@ function RenewalsBody() {
       setReload((v) => v + 1);
     } finally {
       writing.current = false;
-      setPending(false);
+      if (mounted.current) setPending(false);
     }
   }
   function save() {

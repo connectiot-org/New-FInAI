@@ -1,6 +1,6 @@
-# FinAI local checklist API
+# FinAI API
 
-NestJS 11 / TypeScript / Prisma 6.19.3 / PostgreSQL 17.6. Persistent monthly checklist with previous-month title copying; existing frontend financial workflows remain simulations. Local identity requires explicit development/test configuration and loopback binding. Administratively provisioned session authentication and production proxy configuration are documented in [RELEASE.md](RELEASE.md); public deployment remains gated. No paid authentication provider or third-party key is required.
+NestJS 11 / TypeScript / Prisma 6.19.3 / PostgreSQL 17.6. Persistent monthly checklist/copy, subscription renewals and a stateless payment due-date calculator. The default frontend is the authenticated product; legacy financial simulations are excluded from its build. Local identity requires explicit development/test configuration and loopback binding. Administratively provisioned session authentication and production proxy configuration are documented in [RELEASE.md](RELEASE.md); public deployment remains gated. No paid authentication provider or third-party key is required.
 
 From `backend/`, with Node 24/npm 11 and Docker Compose:
 
@@ -19,7 +19,7 @@ npm start
 
 API: 127.0.0.1:3000. `GET /health/ready` checks database/schema and active seeded membership (not just port/PID). The fixed server user has two authorized entities returned by `GET /api/v1/entities`. No browser demo identity or arbitrary headers can authorize requests. Trusted local frontend origins default to http://127.0.0.1:5173 and http://localhost:5173. Mutations require JSON, including DELETE. No Origin is allowed for local CLI tools; browser requests must use an exact configured origin. Cross-origin credentials/cookies are not used. Forwarding headers, identity overrides, untrusted Host/Origin and caller Authorization are rejected in this local-only implementation.
 
-See `../contracts/openapi.yaml` (1.0.0) and `../contracts/README.md` for exact routes, examples and error semantics. Unknown input fields are rejected. Task creations retain a digest of canonical original payload for safe UUID retries. Transaction-scoped PostgreSQL advisory locks serialize ID claims and per-month capacity; at most 200 tasks per entity/month. Completion and deletion use optimistic version checks. The single feature table is ChecklistTask; shared identity/membership tables supply authorization. No workflow/event/financial tables were added.
+See `../contracts/openapi.yaml` (1.1.0) and `../contracts/README.md` for exact routes, examples and error semantics. Unknown input fields are rejected. Task creations retain a digest of canonical original payload for safe UUID retries. Transaction-scoped PostgreSQL advisory locks serialize ID claims and per-month capacity; at most 200 tasks per entity/month. Completion and deletion use optimistic version checks. ChecklistTask and SubscriptionRenewal store the two persistent features; shared identity/membership tables supply authorization. No workflow/event/financial tables were added.
 
 Checks from this directory:
 
@@ -32,7 +32,7 @@ npm test
 
 Tests create a unique `test_<UUID>` PostgreSQL schema, apply real Prisma migrations twice, seed isolated synthetic tenants, start actual HTTP services, then remove only that test schema. They do not reset the application schema. DATABASE_URL must point to local PostgreSQL. Real tests cover CRUD, summaries, restart persistence, schema conformance, input constraints, entity/organisation permissions, forged identities/origins, safe retries, concurrent CAS/deletion, concurrent cap enforcement and production fail-closed configuration. See context/progress.md for actual run outcomes; do not equate written tests with passed tests.
 
-If Prisma engine downloads fail, allow `binaries.prisma.sh` in environment network settings, retain TLS/checksum verification and retry `npm run generate`. Never set checksum-ignore or TLS-disable variables. No seed/development identity may run publicly. Production requires separately implemented verified identity, membership lifecycle, security review, private database/deployment/migration/backup/restore gates and explicit deployment authorization.
+If Prisma engine downloads fail, allow `binaries.prisma.sh` in environment network settings, retain TLS/checksum verification and retry `npm run generate`. Never set checksum-ignore or TLS-disable variables. No seed/development identity may run publicly. Production uses the implemented database-session identity and still requires target membership provisioning, security/deployment review, private database/migration/backup/restore gates and explicit deployment authorization.
 
 Dependency review: NestJS 11.2.7 and Prisma 6.19.3 are pinned. A scoped npm override pins @prisma/config → deepmerge-ts 8.0.2 to resolve its recursive-merge advisory; generation, migration deployment and full PostgreSQL tests validate this toolchain combination. No dependency advisories (including development tools) were reported by npm audit after the update.
 
@@ -51,3 +51,5 @@ POST `/api/v1/payment-due-date-checks` accepts only `entityId`, `invoiceDate`, i
 Existing server-owned identity, active membership and entity access apply. Read-only entity access suffices. Session-mode POST still requires the existing same-origin proxy, cookie and CSRF protections; local identity stays explicit and loopback-only. No security settings, dependencies, business tables or migrations are added, and calculations store no inputs/results/history. Existing authentication infrastructure retains its normal session/rate-limit operations.
 
 With existing database configuration, run `npm run build && npm start` from backend/. Fresh installations follow the setup above; no calculator migration or seed is needed. Checks: `npm run typecheck && npm run lint && npm run build && npm test`. Contract and verification evidence: [payment due-date handover](../context/payment-due-date.md).
+
+Current system design and reviewed product boundary: [architecture](../context/architecture.md). Hardening evidence and remaining deployment gates: [production review](../context/production-review.md). Readiness now checks required migration completion and critical columns; session mode uses a database-shared global login-cost budget in addition to the existing IP/account/mutation limits. No new migration or dependency is required for this hardening.
