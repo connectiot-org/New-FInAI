@@ -1,11 +1,32 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowUpRight, FileText, Upload } from "lucide-react";
 import { Field, Modal } from "../ui";
 import { useAppDispatch, useDemo, command } from "../../store";
 import { money } from "../../demo/selectors";
 import { periods } from "../../demo/seed";
-export { PageHeader } from "./PageHeader";
+export function PageHeader({
+  title,
+  description,
+  action,
+  eyebrow,
+}: {
+  title: string;
+  description?: string;
+  action?: ReactNode;
+  eyebrow?: string;
+}) {
+  return (
+    <header className="page-header">
+      <div>
+        {eyebrow && <div className="eyebrow">{eyebrow}</div>}
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
+      </div>
+      <div className="page-actions">{action}</div>
+    </header>
+  );
+}
 export function Tabs({
   options,
   value,

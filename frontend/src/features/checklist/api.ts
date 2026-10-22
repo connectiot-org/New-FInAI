@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { sessionExpired, sessionRevision } from "../../lib/session-lifecycle";
 
-export const checklistMode = import.meta.env.VITE_CHECKLIST_MODE || "api";
+export const checklistMode = import.meta.env.VITE_CHECKLIST_MODE || "demo";
 export const sessionEnabled = import.meta.env.VITE_AUTH_MODE === "session";
 export function previousMonth(value: string) {
   const [y, m] = value.split("-").map(Number);
@@ -97,7 +96,6 @@ class ApiClient implements ChecklistClient {
     signal?: AbortSignal,
     headers: Record<string, string> = {},
   ): Promise<unknown> {
-    const revision = sessionRevision();
     if (checklistMode !== "api")
       throw new ChecklistError("Checklist mode is not configured correctly.");
     const base =
@@ -125,7 +123,6 @@ class ApiClient implements ChecklistClient {
         credentials: "same-origin",
         signal: AbortSignal.timeout(10000),
       });
-      if (session.status === 401) sessionExpired(revision);
       if (!session.ok)
         throw new ChecklistError(
           "Your session expired. Sign in again.",
@@ -169,7 +166,6 @@ class ApiClient implements ChecklistClient {
       );
     }
     if (!response.ok) {
-      if (response.status === 401 && sessionEnabled) sessionExpired(revision);
       const error = errorSchema.safeParse(data);
       throw new ChecklistError(
         error.success ? error.data.message : "The checklist request failed.",
@@ -386,6 +382,4 @@ class DemoClient implements ChecklistClient {
   }
 }
 export const checklistClient: ChecklistClient =
-  import.meta.env.VITE_APP_MODE === "demo" && checklistMode === "demo"
-    ? new DemoClient()
-    : new ApiClient();
+  checklistMode === "demo" ? new DemoClient() : new ApiClient();

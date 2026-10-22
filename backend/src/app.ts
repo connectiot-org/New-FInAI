@@ -33,9 +33,6 @@ import {
 } from "./validation";
 import { z } from "zod";
 import { Auth, digest, equal } from "./auth";
-import { requireReadySchema } from "./readiness";
-import { PaymentDueDateController } from "./payment-due-date.controller";
-import { PaymentDueDateService } from "./payment-due-date.service";
 import { SubscriptionRepository } from "./subscription.repository";
 import { SubscriptionController } from "./subscription.controller";
 import {
@@ -120,18 +117,13 @@ class ChecklistController {
   }
 }
 @Module({
-  controllers: [
-    ChecklistController,
-    SubscriptionController,
-    PaymentDueDateController,
-  ],
+  controllers: [ChecklistController, SubscriptionController],
   providers: [
     Database,
     ChecklistRepository,
     ChecklistService,
     SubscriptionService,
     SubscriptionRepository,
-    PaymentDueDateService,
   ],
 })
 class AppModule {}
@@ -160,7 +152,6 @@ export async function createApplication(
     bodyParser: false,
   });
   app.enableShutdownHooks();
-  app.getHttpAdapter().getInstance().disable("x-powered-by");
   app.get(SubscriptionService).timezones = timezones;
   const db = app.get(Database);
   const auth = new Auth(db);
@@ -292,7 +283,11 @@ export async function createApplication(
       }
       if (config.mode === "session") {
         if (req.path === "/health/ready" && req.method === "GET") {
-          await requireReadySchema(db);
+          await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "Session" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "Account" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "RateLimit" LIMIT 1`;
           res.json({ status: "ready", mode: "session" });
           return;
         }
@@ -320,8 +315,9 @@ export async function createApplication(
         next();
         return;
       }
-      if (req.path === "/health/ready" && req.method === "GET") {
-        await requireReadySchema(db);
+      if (req.path === "/health/ready") {
+        await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
+        await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
         const membership = await db.membership.findUnique({
           where: { organisationId_userId: identity },
         });

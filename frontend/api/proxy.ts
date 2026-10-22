@@ -1,15 +1,10 @@
 import { request } from "node:https";
-import { isIP } from "node:net";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 export const config = { maxDuration: 20 };
 type ProxyRequest = IncomingMessage & { body?: unknown };
 export default async function proxy(req: ProxyRequest, res: ServerResponse) {
-  const requestId = randomUUID();
-  res.setHeader("X-Request-Id", requestId);
-  res.setHeader("X-Content-Type-Options", "nosniff");
   const fail = (status: number, message: string) => {
-    if (res.destroyed || res.writableEnded) return;
     if (res.headersSent) {
       res.destroy();
       return;
@@ -31,20 +26,14 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
                   ? "VALIDATION_FAILED"
                   : "UNAVAILABLE",
         message,
-        requestId,
+        requestId: randomUUID(),
       }),
     );
   };
   const backend = process.env.FINAI_BACKEND_ORIGIN,
     publicOrigin = process.env.FINAI_PUBLIC_ORIGIN,
     token = process.env.FINAI_PROXY_TOKEN;
-  if (
-    !backend ||
-    !publicOrigin ||
-    !token ||
-    token.length < 32 ||
-    /[\r\n]/.test(token)
-  )
+  if (!backend || !publicOrigin || !token)
     return fail(503, "API proxy is not configured.");
   let target: URL, publicURL: URL;
   try {
@@ -63,8 +52,6 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     return fail(503, "API proxy configuration is invalid.");
   }
   const incoming = new URL(req.url || "/", publicOrigin);
-  if (incoming.searchParams.getAll("route").length !== 1)
-    return fail(400, "Invalid route parameters.");
   const route = incoming.searchParams.get("route") || "";
   if (
     !/^(api\/v1(?:\/[a-zA-Z0-9-]+)*|auth\/(login|logout|session))$/.test(route)
@@ -122,7 +109,7 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     {
       method: req.method,
       headers,
-      servername: isIP(target.hostname) ? "" : target.hostname,
+      servername: target.hostname,
       timeout: 15000,
     },
     (response) => {
@@ -152,15 +139,6 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
       response.on("error", () => res.destroy());
     },
   );
-  const deadline = setTimeout(
-    () => upstream.destroy(new Error("deadline")),
-    15000,
-  );
-  deadline.unref();
-  res.on("close", () => {
-    clearTimeout(deadline);
-    upstream.destroy();
-  });
   upstream.on("timeout", () => upstream.destroy(new Error("timeout")));
   upstream.on("error", () => fail(502, "Backend unavailable."));
   upstream.end(body);

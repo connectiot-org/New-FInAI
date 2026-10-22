@@ -1,7 +1,5 @@
 # Proposed backend architecture
 
-> Historical proposal. The implemented session-based product architecture and current scope are in [architecture.md](architecture.md). OIDC/provider requirements below are superseded by the accepted self-hosted session design.
-
 Design dated 2026-10-19, grounded in `project-state.md` and reconciled with Prompt 02. The local checklist is implemented and Gates A–C are verified; future financial domains and production deployment/security remain proposals. See progress.md and review.md for actual evidence.
 
 ## Architecture and authority

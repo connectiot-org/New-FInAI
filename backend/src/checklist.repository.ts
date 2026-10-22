@@ -31,9 +31,6 @@ export class ChecklistRepository {
         "You cannot change records for this entity.",
       );
   }
-  requireEntityRead(identity: Identity, entityId: string) {
-    return this.db.$transaction((tx) => this.authorize(tx, identity, entityId));
-  }
   async entities(identity: Identity) {
     return this.db.entity.findMany({
       where: {

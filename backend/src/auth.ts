@@ -2,7 +2,7 @@ import { randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import * as argon2 from "argon2";
 import type { Request, Response } from "express";
 import { z } from "zod";
-import type { PrismaClient } from "@prisma/client";
+import { Database } from "./database";
 import { ApiError } from "./errors";
 import { parse, uuid } from "./validation";
 export const digest = (value: string) =>
@@ -22,7 +22,7 @@ const cookieName = "__Host-finai_session";
 const denied = () =>
   new ApiError(401, "UNAUTHENTICATED", "Sign-in failed or session expired.");
 export class Auth {
-  constructor(private db: PrismaClient) {}
+  constructor(private db: Database) {}
   async limit(key: string, maximum: number, seconds: number) {
     const hash = digest(key),
       window = new Date(
@@ -92,8 +92,6 @@ export class Auth {
     const account = await this.db.account.findUnique({
       where: { username: input.username.toLowerCase() },
     });
-    // A shared budget bounds expensive Argon2 work across rotating IPs/accounts.
-    await this.limit("login-global", 60, 60);
     // Always pay the Argon2 cost, including unknown accounts.
     const valid = account
       ? await argon2.verify(account.passwordHash, input.password)

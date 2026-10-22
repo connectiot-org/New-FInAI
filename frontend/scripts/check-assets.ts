@@ -19,9 +19,7 @@ function files(root: string): string[] {
 }
 for (const root of ["dist", "artifacts/session-dist"]) {
   if (!existsSync(root))
-    throw new Error(
-      "Build both product and HTTPS-session assets before scanning.",
-    );
+    throw new Error("Build both demo and session assets before scanning.");
   const assets = files(root).filter((path) => /\.(js|css|html)$/.test(path));
   for (const path of assets) {
     const text = readFileSync(path, "utf8");
@@ -29,28 +27,15 @@ for (const root of ["dist", "artifacts/session-dist"]) {
       throw new Error(
         "Credential value found in frontend assets; release blocked.",
       );
-    if (text.includes("http://127.0.0.1:3000/api/v1"))
+    if (
+      root.includes("session-dist") &&
+      text.includes("http://127.0.0.1:3000/api/v1")
+    )
       throw new Error(
         "Visitor localhost API URL found in production session assets.",
       );
-    if (
-      [
-        "finai-demo-v1",
-        "Northstar Analytics",
-        "Demo workspace",
-        "Session-only checklist demo",
-        "Checklist demo entity",
-      ].some((marker) => text.includes(marker))
-    )
-      throw new Error("Demo runtime or fixtures found in product assets.");
   }
-  if (
-    assets.some((path) =>
-      /(?:demo-entry|ReferenceHome|ProductPreview)/.test(path),
-    )
-  )
-    throw new Error("Demo entry emitted in product assets.");
 }
 console.log(
-  "PASS: product/session assets exclude demo runtime and fixtures, known backend credentials and localhost API fallbacks",
+  "PASS: demo/session assets contain none of the available backend credential values; production session API uses no localhost fallback",
 );

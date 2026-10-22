@@ -1,7 +1,5 @@
 # Monthly checklist contract 1.1.0
 
-Current frontend product builds use API mode and session authentication by default; legacy demo-mode startup descriptions below are historical/local-only. API contracts remain compatible. See `../context/architecture.md` and `../context/production-review.md` for the current product boundary and verification.
-
 OpenAPI **3.1.1**, contract **1.1.0**, URI `/api/v1`. Reconciled with supplied Prompt 02, replacing 0.1.0-proposal.1 before implementation. Coordinator owns shared schema/examples. Application roles propose deltas before edits; no silent drift. Contract 1.1.0 adds administrative session authentication; target infrastructure and public-release verification remain gated. Local/test identity is still server-owned, explicit and loopback-only.
 
 | Operation | Input | Response |
@@ -53,7 +51,3 @@ Production identity uses administratively provisioned Argon2id accounts and Post
 ## Subscription renewal contract 1.0.0
 
 See `subscriptions.openapi.yaml` and `python contracts/validate_subscriptions.py`. Existing checklist contracts remain unchanged. Scoped GET/POST `/api/v1/subscription-renewals`, PATCH `/{id}` for allowlisted details with expectedVersion, PATCH `/{id}/archive` for archived/expectedVersion. Create uses a client UUID and permits identical retries; changed payload/occupied ID conflicts. All access uses server membership and entity permissions, never financial-demo personas. Dates are Gregorian YYYY-MM-DD (0001–9999), cancellation <= renewal, names trimmed 1–200 Unicode characters, nullable notes <=2000. Lists use offset/limit (default20/max50), active/archived/all and case-insensitive literal supplier/name search, sorted renewalDate/id. Indicators are separate strings/null; archived records have none. Organisation timezone is server configuration `ORGANISATION_TIMEZONES` JSON mapping organisation UUID to IANA timezone; missing entries use UTC. Invalid configured maps/zones fail startup. Indicator boundaries are inclusive today..30 (renewal) and today..7 (cancellation); past dates never assert an action occurred.
-
-## Payment due-date calculator 1.0.0
-
-Independent contract: `payment-due-date.openapi.yaml`, validator `python contracts/validate_payment_due_date.py`. POST `/api/v1/payment-due-date-checks` accepts only entityId, invoiceDate, integer termsDays0..365 and asOfDate, with no query parameters. Return200 with exactly entityId/invoiceDate/termsDays/asOfDate/dueDate/daysUntilDue/status. Real Gregorian dates in years0001–9999; due-date overflow is422. Read permission is sufficient; existing auth/CSRF/proxy/rate-limit/local-mode safeguards apply. No business data/history is saved. Calendar days only; as-of date is caller-entered and explicit, never replaced by the server clock. Overdue is a date comparison, not verified payment or legal status.

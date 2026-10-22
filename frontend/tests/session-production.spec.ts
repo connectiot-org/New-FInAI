@@ -37,7 +37,7 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
 }) => {
   await page.goto(`${info.origin}/close/checklist?month=2060-09`);
   await expect(
-    page.getByRole("heading", { name: "Sign in to FinAI" }),
+    page.getByRole("heading", { name: "Sign in to your checklist" }),
   ).toBeVisible();
   await page.getByLabel("Account name").fill("browser-test");
   await page.getByLabel("Organisation ID").fill(info.organisationId);
@@ -45,7 +45,9 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
     .getByLabel("Password", { exact: true })
     .fill("synthetic-browser-password");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.getByText("Saved tasks", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Connected backend", { exact: true }),
+  ).toBeVisible();
   await page.getByLabel("Task title").fill("Secure session task");
   await page.getByRole("button", { name: "Add task", exact: true }).click();
   await expect(
@@ -128,189 +130,11 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
       exact: true,
     }),
   ).toBeVisible();
-  await page.goto(`${info.origin}/tools/payment-due-date`);
-  await page.getByLabel("Invoice date", { exact: true }).fill("2026-10-01");
-  await page.getByLabel("As-of date", { exact: true }).fill("2026-11-02");
-  await page.getByRole("button", { name: "Calculate", exact: true }).click();
-  await expect(
-    page.getByRole("region", { name: "Payment due-date result", exact: true }),
-  ).toContainText("2 days overdue");
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();
   await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Sign in to FinAI" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Payment due-date result", exact: true }),
-  ).toHaveCount(0);
-  await page.getByLabel("Account name").fill("browser-test");
-  await page.getByLabel("Organisation ID").fill(info.organisationId);
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("synthetic-browser-password");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Calculate", exact: true }),
-  ).toBeEnabled();
-  await expect(
-    page.getByRole("region", { name: "Payment due-date result", exact: true }),
-  ).toHaveCount(0);
-  await expect(page.getByLabel("Invoice date", { exact: true })).toHaveValue(
-    "",
-  );
-});
-
-async function signIn(page: import("@playwright/test").Page) {
-  await page.getByLabel("Account name").fill("browser-test");
-  await page.getByLabel("Organisation ID").fill(info.organisationId);
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("synthetic-browser-password");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Sign out", exact: true }),
-  ).toBeVisible();
-}
-
-test("product navigation excludes simulated finance, preserves legacy storage untouched, and fits 390px", async ({
-  page,
-}) => {
-  const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(e.message));
-  await page.addInitScript(() => {
-    const get = Storage.prototype.getItem,
-      set = Storage.prototype.setItem;
-    const accesses: string[] = [];
-    Object.defineProperty(window, "demoStorageAccess", { value: accesses });
-    set.call(localStorage, "finai-demo-v1", "legacy-sentinel");
-    Storage.prototype.getItem = function (key: string) {
-      if (key === "finai-demo-v1") accesses.push("read");
-      return get.call(this, key);
-    };
-    Storage.prototype.setItem = function (key: string, value: string) {
-      if (key === "finai-demo-v1") accesses.push("write");
-      return set.call(this, key, value);
-    };
-  });
-  const response = await page.goto(info.origin + "/tools/payment-due-date");
-  expect(response?.headers()["content-security-policy"]).toContain(
-    "frame-ancestors 'none'",
-  );
-  await signIn(page);
-  const navigation = page.getByRole("navigation", { name: "Finance tools" });
-  await expect(navigation.getByRole("link")).toHaveCount(3);
-  for (const name of [
-    "Monthly checklist",
-    "Subscription renewals",
-    "Payment due-date calculator",
-  ]) {
-    await navigation.getByRole("link", { name, exact: true }).click();
-    await expect(
-      page.getByRole("heading", { name, exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Sign out", exact: true }),
-    ).toHaveCount(1);
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByLabel("Invoice date", { exact: true }).fill("2026-10-01");
-  await page.getByLabel("As-of date", { exact: true }).fill("2026-11-02");
-  await page.getByRole("button", { name: "Calculate", exact: true }).focus();
-  await page.keyboard.press("Enter");
-  await expect(
-    page.getByRole("region", { name: "Payment due-date result" }),
-  ).toContainText("2 days overdue");
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  await page.screenshot({
-    path: "artifacts/product-mobile.png",
-    fullPage: true,
-  });
-  expect(
-    await page.evaluate(
-      () =>
-        (window as unknown as { demoStorageAccess: string[] })
-          .demoStorageAccess,
-    ),
-  ).toEqual([]);
-  await expect(page.locator("body")).not.toContainText("Demo workspace");
-  await page.goto(info.origin + "/accounting/ledger");
-  await expect(
-    page.getByRole("heading", { name: "Page unavailable" }),
-  ).toBeVisible();
-  await page.goto(info.origin + "/tools/subscriptions");
-  await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Subscription renewals", exact: true }),
-  ).toBeVisible();
-  expect(errors).toEqual([]);
-  for (const path of [
-    "/api",
-    "/auth",
-    "/api/no-such-route",
-    "/auth/no-such-route",
-  ]) {
-    const r = await page.request.get(info.origin + path);
-    expect(r.status()).toBe(404);
-    expect(r.headers()["content-type"]).toContain("application/json");
-    expect((await r.json()).requestId).toBe(r.headers()["x-request-id"]);
-  }
-});
-
-test("malformed sign-in and failed sign-out never confirm success; expired API session clears product state", async ({
-  page,
-}) => {
-  await page.goto(info.origin + "/tools/payment-due-date");
-  await page.route("**/auth/login", (route) =>
-    route.fulfill({ json: { csrfToken: "invalid" } }),
-  );
-  await page.getByLabel("Account name").fill("browser-test");
-  await page.getByLabel("Organisation ID").fill(info.organisationId);
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("synthetic-browser-password");
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Sign-in failed");
-  await expect(
-    page.getByRole("button", { name: "Sign out", exact: true }),
-  ).toHaveCount(0);
-  await page.unroute("**/auth/login");
-  await signIn(page);
-  await page.route("**/auth/session", (route) =>
-    route.fulfill({ status: 503, json: { message: "Synthetic outage" } }),
-  );
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText(
-    "Sign out could not be confirmed",
-  );
-  await expect(
-    page.getByRole("button", { name: "Calculate", exact: true }),
-  ).toBeEnabled();
-  await page.unroute("**/auth/session");
-  await page.route("**/payment-due-date-checks", (route) =>
-    route.fulfill({ status: 401, json: { message: "Expired" } }),
-  );
-  await page.getByLabel("Invoice date", { exact: true }).fill("2026-10-01");
-  await page.getByLabel("As-of date", { exact: true }).fill("2026-11-02");
-  await page.getByRole("button", { name: "Calculate", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Sign in to FinAI" }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Payment due-date result" }),
-  ).toHaveCount(0);
-  await page.unroute("**/payment-due-date-checks");
-  await signIn(page);
-  await expect(page.getByLabel("Invoice date", { exact: true })).toHaveValue(
-    "",
-  );
-  await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();

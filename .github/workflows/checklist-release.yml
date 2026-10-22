@@ -1,4 +1,4 @@
-name: FinAI product release checks
+name: Checklist release checks
 on: [push, pull_request]
 permissions:
   contents: read
@@ -38,8 +38,7 @@ jobs:
           /tmp/finai-contracts/bin/pip install -r contracts/requirements.txt
           /tmp/finai-contracts/bin/python contracts/validate_examples.py
           /tmp/finai-contracts/bin/python contracts/validate_subscriptions.py
-          /tmp/finai-contracts/bin/python contracts/validate_payment_due_date.py
-          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/payment-due-date.openapi.yaml --extends minimal
+          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml --extends minimal
       - name: Browser and production session checks
         working-directory: frontend
         run: |
@@ -50,10 +49,8 @@ jobs:
           npm test
           npm run test:checklist
           npm run test:subscriptions
-          npm run test:payment-due-date
           npm run test:session
-          npm run test:proxy
-          npm run check:product
+          node scripts/check-assets.ts
           npm audit
       - name: Container build and synthetic application restore
         run: |

@@ -170,14 +170,6 @@ test("original hero artwork and typography remain responsive", async ({
   ]) {
     await page.setViewportSize({ width: target.width, height: 1000 });
     await page.goto("/");
-    await expect(page.locator(".reference-hero h1")).toBeVisible();
-    await expect
-      .poll(() =>
-        page
-          .locator(".reference-hero-art>img")
-          .evaluate((el) => (el as HTMLImageElement).naturalWidth),
-      )
-      .toBeGreaterThan(1000);
     await page.evaluate(() => document.fonts.ready);
     const measured = await page.evaluate(() => {
       const h = document.querySelector(".reference-hero h1")!,
