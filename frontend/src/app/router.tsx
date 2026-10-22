@@ -42,6 +42,7 @@ import {
 } from "../features/Operations";
 import { Close } from "../features/Close";
 import { SubscriptionRenewals } from "../features/subscriptions/SubscriptionRenewals";
+import { InvoiceDuplicates } from "../features/invoice-duplicates/InvoiceDuplicates";
 import { MonthlyChecklist } from "../features/checklist/MonthlyChecklist";
 import {
   Consolidation,
@@ -195,6 +196,7 @@ const router = createBrowserRouter([
       { path: "close", element: <Close /> },
       { path: "close/checklist", element: <MonthlyChecklist /> },
       { path: "tools/subscriptions", element: <SubscriptionRenewals /> },
+      { path: "tools/invoice-duplicates", element: <InvoiceDuplicates /> },
       { path: "reports", element: <Reports /> },
       {
         path: "reports/profit-and-loss",

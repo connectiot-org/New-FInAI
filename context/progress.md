@@ -54,3 +54,8 @@ User authorized commit/push after fresh verification. Reran 12 backend + 34 stan
 ## Subscription renewals — 2026-10-22
 
 Implemented sequentially from clean c06d7f2 on work. Fresh final checks: 17 backend + 4 subscription browser + 34 existing standalone browser + 14 checklist browser + 1 production-build HTTPS session/proxy = 70 passing tests, zero skipped. Both applications typecheck/lint/build; existing/new contracts validate, subscription Redocly lint passes, application audits report zero known vulnerabilities, asset scan passes, and additive migration repeatability/synthetic subscription+checklist restore pass. Existing production auth reused; no deployment/paid resources. Commands, file inventory and gates: subscriptions.md.
+
+
+## Invoice duplicate checker — 2026-10-22
+
+New transient CSV checker at `/tools/invoice-duplicates`, POST `/api/v1/invoice-duplicate-checks`, independent contract 1.0.0. Reuses existing auth/entity read access; no new dependency, paid API, table or invoice mutation. Locally 23 backend tests pass; both application builds/lint/typechecks, contracts and audits pass. Browser tests are implemented but blocked locally by forbidden Chrome startup Unix sockets; CI evidence is pending. Live subscription route currently reports "API proxy is not configured." See `invoice-duplicates.md` for exact behavior, limits, test evidence and deployment blocker.

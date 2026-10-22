@@ -2,7 +2,8 @@ import { existsSync } from "node:fs";
 import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
-  testIgnore: /(?:checklist.*|session-production|subscriptions)\.spec\.ts/,
+  testIgnore:
+    /(?:checklist.*|session-production|subscriptions|invoice-duplicates)\.spec\.ts/,
   fullyParallel: true,
   workers: 2,
   timeout: 45000,
@@ -20,7 +21,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   webServer: {
-    command: "npm run dev -- --port 5173",
+    command: "npm run dev -- --host 127.0.0.1 --port 5173",
     url: "http://127.0.0.1:5173",
     reuseExistingServer: !process.env.CI,
   },

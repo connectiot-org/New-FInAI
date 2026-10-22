@@ -61,6 +61,11 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   incoming.searchParams.delete("route");
   target.pathname = "/" + route;
   target.search = incoming.searchParams.toString();
+  // Keep every existing route's small limit. Only the bounded CSV checker needs more.
+  const bodyLimit =
+    req.method === "POST" && route === "api/v1/invoice-duplicate-checks"
+      ? 524288
+      : 16384;
   let body: Buffer;
   try {
     if (req.body !== undefined)
@@ -73,12 +78,12 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
       for await (const chunk of req) {
         const b = Buffer.from(chunk);
         size += b.length;
-        if (size > 16384) return fail(422, "Request too large.");
+        if (size > bodyLimit) return fail(422, "Request too large.");
         chunks.push(b);
       }
       body = Buffer.concat(chunks);
     }
-    if (body.length > 16384) return fail(422, "Request too large.");
+    if (body.length > bodyLimit) return fail(422, "Request too large.");
   } catch {
     return fail(400, "Invalid request.");
   }

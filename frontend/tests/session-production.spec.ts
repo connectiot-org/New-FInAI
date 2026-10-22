@@ -130,7 +130,59 @@ test("HTTPS production sign-in, copy, refresh, CSRF denial, cookie flags and log
       exact: true,
     }),
   ).toBeVisible();
+  await page.goto(
+    `${info.origin}/tools/invoice-duplicates?entity=${info.entityId}`,
+  );
+  const csv =
+    "supplier_id,supplier_name,invoice_number,invoice_date,amount,currency\n" +
+    Array.from(
+      { length: 300 },
+      (_, i) => `V001,Synthetic session supplier,INV-${i},2060-10-01,12.50,USD`,
+    ).join("\n");
+  expect(Buffer.byteLength(csv)).toBeGreaterThan(16384);
+  await page
+    .getByLabel("Invoice CSV file", { exact: true })
+    .setInputFiles({
+      name: "session-invoices.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(csv),
+    });
+  await page
+    .getByRole("button", { name: "Check for duplicates", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Invoice check results" }),
+  ).toContainText("300");
+  await expect(
+    page.getByText(
+      "No possible duplicates found in this file using the matching rule.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(async (entityId) => {
+      const response = await fetch("/api/v1/invoice-duplicate-checks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entityId, csv: "bad" }),
+      });
+      return response.status;
+    }, info.entityId),
+  ).toBe(403);
+  expect(
+    await page.evaluate(async () => {
+      const response = await fetch("/api/v1/checklist-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "x".repeat(20000) }),
+      });
+      return response.status;
+    }),
+  ).toBe(422);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(
+    page.getByRole("region", { name: "Invoice check results" }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("heading", { name: "Sign in to FinAI" }),
   ).toBeVisible();

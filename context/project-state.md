@@ -47,3 +47,8 @@ Starting checkout a285efa93bcf8918958b13139dabd9857edd0e72 was clean and revalid
 ## Subscription renewals — 2026-10-22
 
 Implemented `/tools/subscriptions` with one additive SubscriptionRenewal table, scoped CRUD/archive, bounded search/pagination, server organisation-timezone date indicators, existing sessions/permissions, and shared sign-in UI. No automatic billing/reminders or new auth platform. See `subscriptions.md` for current verification, files, migration/startup commands and production limits.
+
+
+## Invoice duplicate checker — 2026-10-22
+
+New transient CSV checker at `/tools/invoice-duplicates`, POST `/api/v1/invoice-duplicate-checks`, independent contract 1.0.0. Reuses existing auth/entity read access; no new dependency, paid API, table or invoice mutation. Locally 23 backend tests pass; both application builds/lint/typechecks, contracts and audits pass. Browser tests are implemented but blocked locally by forbidden Chrome startup Unix sockets; CI evidence is pending. Live subscription route currently reports "API proxy is not configured." See `invoice-duplicates.md` for exact behavior, limits, test evidence and deployment blocker.
