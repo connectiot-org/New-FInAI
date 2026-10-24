@@ -53,6 +53,8 @@ jobs:
           npm run test:session
           npm run test:receivables
           npm run test:receivables:production
+          npm run test:workspace
+          npm run test:workspace:production
           node scripts/check-assets.ts
           npm audit
       - name: Container build and synthetic application restore
