@@ -1,0 +1,62 @@
+.production-workspace.app {
+  display: block;
+  min-height: 100vh;
+}
+.production-workspace > header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.production-workspace > header > a:last-child {
+  margin-left: auto;
+}
+.production-workspace > main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.production-workspace nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+.production-workspace nav a {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+}
+.production-workspace nav a.active {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.production-workspace .session-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.production-workspace :is(input, select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+}
+.production-workspace :is(h1, h2, p, a, td, dd) {
+  overflow-wrap: anywhere;
+}
+.production-workspace :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  .production-workspace > main {
+    padding: 16px;
+  }
+  .production-workspace > header {
+    padding: 16px;
+  }
+  .production-workspace > header > a:last-child {
+    margin-left: 0;
+  }
+}

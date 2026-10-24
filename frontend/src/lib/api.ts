@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { expireSession, sessionEpoch } from "./session";
 export const sessionEnabled = import.meta.env.VITE_AUTH_MODE === "session";
 export class ApiError extends Error {
   constructor(
@@ -13,6 +14,7 @@ export async function apiRequest<T>(
   schema: z.ZodType<T>,
   options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
+  const epoch = sessionEpoch();
   const method = options.method || "GET",
     base =
       import.meta.env.VITE_API_BASE_URL ||
@@ -36,6 +38,7 @@ export async function apiRequest<T>(
         credentials: "same-origin",
         signal,
       });
+      if (r.status === 401 && !options.signal?.aborted) expireSession(epoch);
       if (!r.ok)
         throw new ApiError(
           "Session expired. Sign out and sign in again.",
@@ -55,6 +58,8 @@ export async function apiRequest<T>(
         ? { body: JSON.stringify(options.body) }
         : {}),
     });
+    if (r.status === 401 && sessionEnabled && !options.signal?.aborted)
+      expireSession(epoch);
     let data: unknown;
     try {
       data = await r.json();

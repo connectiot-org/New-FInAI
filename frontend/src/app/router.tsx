@@ -56,6 +56,11 @@ import {
   Integrations,
   Settings,
 } from "../features/Administration";
+import {
+  Workspace,
+  WorkspaceOverview,
+  WorkspaceMissing,
+} from "../features/workspace/Workspace";
 function Welcome() {
   useEffect(() => {
     document.title = "Welcome · FinAI";
@@ -134,6 +139,9 @@ function Welcome() {
             <ArrowRight size={16} />
           </button>
         </form>
+        <p>
+          <Link to="/workspace">Sign in to your finance workspace</Link>
+        </p>
         <div className="welcome-note">
           <ShieldCheck size={20} />
           <p>
@@ -170,6 +178,17 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/welcome", element: <Welcome /> },
+  {
+    path: "/workspace",
+    element: <Workspace />,
+    children: [
+      { index: true, element: <Navigate to="/workspace/overview" replace /> },
+      { path: "overview", element: <WorkspaceOverview /> },
+      { path: "checklist", element: <MonthlyChecklist workspace /> },
+      { path: "subscriptions", element: <SubscriptionRenewals /> },
+      { path: "*", element: <WorkspaceMissing /> },
+    ],
+  },
   {
     element: <Shell />,
     children: [

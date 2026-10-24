@@ -127,9 +127,11 @@ await new Promise<void>((resolve) =>
   backendTLS.listen(18444, "127.0.0.1", resolve),
 );
 const root = resolve(
-  process.env.FINAI_TEST_RECEIVABLES
-    ? "artifacts/receivables-dist"
-    : "artifacts/session-dist",
+  process.env.FINAI_TEST_WORKSPACE
+    ? "artifacts/workspace-dist"
+    : process.env.FINAI_TEST_RECEIVABLES
+      ? "artifacts/receivables-dist"
+      : "artifacts/session-dist",
 );
 mkdirSync(root, { recursive: true });
 const server = createServer(
@@ -170,7 +172,9 @@ const server = createServer(
 await new Promise<void>((resolve) =>
   server.listen(18443, "127.0.0.1", resolve),
 );
-const receivables = !!process.env.FINAI_TEST_RECEIVABLES;
+const receivables = !!(
+  process.env.FINAI_TEST_RECEIVABLES || process.env.FINAI_TEST_WORKSPACE
+);
 const secondEntityId = randomUUID();
 if (receivables) {
   await db.entity.create({
