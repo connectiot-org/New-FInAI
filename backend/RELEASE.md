@@ -15,8 +15,7 @@ DATABASE_URL=<private PostgreSQL connection with TLS and verification>
 API_PROXY_TOKEN=<at least 32 random characters from secret manager>
 ```
 
-Vercel server-side variables: `FINAI_BACKEND_ORIGIN=https://your-backend.example`, `FINAI_PUBLIC_ORIGIN=https://your-frontend.example
-API_TRUSTED_HOST=your-backend.example`, `FINAI_PROXY_TOKEN` equal to backend API_PROXY_TOKEN. Proxy replaces all forwarded/identity headers; backend trusts only this token, exact backend Host, authenticated X-Finai-Public-Host and HTTPS forwarded protocol. TLS ingress must not log headers/bodies or expose unencrypted backend traffic. Restrict backend ingress to the proxy where hosting supports it. Do not enable Express trust proxy. Configure ingress request limit 16 KiB, upstream timeout 15 seconds and TLS. One configured public origin per environment; preview requires its own backend configuration/database and exact origin, never wildcard trust.
+Vercel server-side variables: `FINAI_BACKEND_ORIGIN=https://your-backend.example`, `FINAI_PUBLIC_ORIGIN=https://your-frontend.example`, `FINAI_PROXY_TOKEN` equal to backend API_PROXY_TOKEN. Proxy replaces all forwarded/identity headers; backend trusts only this token, exact backend Host, authenticated X-Finai-Public-Host and HTTPS forwarded protocol. TLS ingress must not log headers/bodies or expose unencrypted backend traffic. Restrict backend ingress to the proxy where hosting supports it. Do not enable Express trust proxy. Configure ingress request limit 16 KiB, upstream timeout 15 seconds and TLS. One configured public origin per environment; preview requires its own backend configuration/database and exact origin, never wildcard trust.
 
 On a prepared host: `docker build -t finai-backend:<release-sha> backend`. Run against persistent PostgreSQL 17.6 with private network and durable volume; do not put database on ephemeral serverless filesystem. Migrate once per release with the same image and secure environment: `node node_modules/prisma/build/index.js migrate deploy`. Then start `node dist/src/main.js` behind TLS ingress. Local commands use `node --env-file=.env ...`; production environment is injected. Never run local seed in production. The additive sessions migration creates Account/Session/RateLimit only; it does not change checklist data. Existing organisations/entities/memberships remain authoritative. Bootstrap real organisation/entity via an approved administrative data process, never copy synthetic local identity into production.
 
@@ -47,3 +46,8 @@ docker compose --env-file /secure/finai.env -f backend/compose.production.yaml u
 ```
 
 Use the same `run --rm api` prefix for administrative `node --import tsx scripts/accounts.mts ...` commands (interactive terminal required). Configure the Vercel server-only variables and public build flags before an authorized preview, run every deployed smoke check above, and publish only after those gates pass. Never run `down -v`. Validate the host storage/backups, ingress limits, private database topology and connection/Argon2 capacity before release; this file alone does not verify them.
+
+
+## Imported receivables release
+
+See `RECEIVABLES.md` for the ordered snapshot migration, owner-reviewed source import, readiness/smoke checks and rollback. Frontend flags: `VITE_RECEIVABLES_MODE=api`, `VITE_AUTH_MODE=session`, `VITE_API_BASE_URL=/api/v1`. Preserve checklist mode separately. FINAI_PUBLIC_ORIGIN is one exact frontend HTTPS origin; API_TRUSTED_HOST is a separate backend host setting, not a second line of that origin value. No target secrets, production import or deployment is performed by implementation tests.

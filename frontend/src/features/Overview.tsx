@@ -3,6 +3,7 @@ import { ArrowRight, Plus } from "lucide-react";
 import { useDemo } from "../store";
 import { FinanceSnapshot } from "../components/shared/FinanceSnapshot";
 import { PageHeader } from "../components/shared/Common";
+import { OutstandingCustomers } from "./receivables/OutstandingCustomers";
 export function Overview() {
   const s = useDemo();
   return (
@@ -18,6 +19,7 @@ export function Overview() {
         }
       />
       <FinanceSnapshot />
+      <OutstandingCustomers />
       <section className="panel activity-panel">
         <div className="section-heading">
           <h2>Recent activity</h2>

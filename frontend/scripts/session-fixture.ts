@@ -82,7 +82,7 @@ const cert = spawnSync(
 );
 if (cert.status !== 0) throw new Error("Test certificate generation failed");
 const origin = "https://127.0.0.1:18443";
-const app = await createApplication({
+const applicationOptions = {
   env: {
     ...process.env,
     NODE_ENV: "production",
@@ -94,8 +94,9 @@ const app = await createApplication({
     API_PROXY_TOKEN: proxyToken,
   },
   quiet: true,
-});
-const backend = await app.getUrl();
+};
+let app = await createApplication(applicationOptions);
+let backend = await app.getUrl();
 // Trust only this ephemeral test CA for the real proxy's outbound TLS verification.
 globalAgent.options.ca = readFileSync(`${certificateDir}/cert.pem`);
 process.env.FINAI_BACKEND_ORIGIN = "https://127.0.0.1:18444";
@@ -125,7 +126,11 @@ const backendTLS = createServer(
 await new Promise<void>((resolve) =>
   backendTLS.listen(18444, "127.0.0.1", resolve),
 );
-const root = resolve("artifacts/session-dist");
+const root = resolve(
+  process.env.FINAI_TEST_RECEIVABLES
+    ? "artifacts/receivables-dist"
+    : "artifacts/session-dist",
+);
 mkdirSync(root, { recursive: true });
 const server = createServer(
   {
@@ -165,7 +170,89 @@ const server = createServer(
 await new Promise<void>((resolve) =>
   server.listen(18443, "127.0.0.1", resolve),
 );
-process.send?.({ origin, organisationId, entityId });
+const receivables = !!process.env.FINAI_TEST_RECEIVABLES;
+const secondEntityId = randomUUID();
+if (receivables) {
+  await db.entity.create({
+    data: {
+      id: secondEntityId,
+      organisationId,
+      name: "Second imported entity",
+    },
+  });
+  await db.entityAccess.create({
+    data: { organisationId, userId, entityId: secondEntityId, canWrite: true },
+  });
+}
+const importedSource = (paidCents: number, sourceName: string) => ({
+  schemaVersion: 1,
+  currency: "USD",
+  sourceName,
+  sourceCapturedAt:
+    sourceName === "Synthetic source B"
+      ? "2026-10-24T00:00:00Z"
+      : "2026-10-23T00:00:00Z",
+  completeRegister: true,
+  invoices: [
+    {
+      invoiceId: "synthetic-source-invoice",
+      customerId: "external-customer",
+      customerName: "Synthetic imported customer",
+      issuedOn: "2026-09-01",
+      status: "Partial",
+      amountCents: 100000,
+      paidCents,
+    },
+  ],
+});
+const importSource = async (expected: number, paid: number, name: string) => {
+  const { ReceivablesRepository } =
+    await import("../../backend/dist/src/receivables/repository.js");
+  const { ChecklistRepository } =
+    await import("../../backend/dist/src/checklist.repository.js");
+  const repo = new ReceivablesRepository(
+    app.get((await import("../../backend/dist/src/database.js")).Database),
+    app.get(ChecklistRepository),
+  );
+  return repo.import(
+    { organisationId, userId },
+    entityId,
+    expected,
+    importedSource(paid, name),
+    true,
+  );
+};
+if (receivables) await importSource(0, 25000, "Synthetic source A");
+process.send?.({ origin, organisationId, entityId, secondEntityId });
+process.on("message", async (command) => {
+  if (!receivables) return;
+  try {
+    if (command === "restart") {
+      await app.close();
+      app = await createApplication(applicationOptions);
+      backend = await app.getUrl();
+    } else if (command === "importB")
+      await importSource(1, 50000, "Synthetic source B");
+    else if (command === "deny")
+      await db.entityAccess.delete({
+        where: {
+          organisationId_userId_entityId: { organisationId, userId, entityId },
+        },
+      });
+    else if (command === "allow")
+      await db.entityAccess.create({
+        data: { organisationId, userId, entityId, canWrite: true },
+      });
+    else if (command === "proxyOff") delete process.env.FINAI_BACKEND_ORIGIN;
+    else if (command === "proxyOn")
+      process.env.FINAI_BACKEND_ORIGIN = "https://127.0.0.1:18444";
+    else if (command === "expire")
+      await db.session.deleteMany({ where: { userId } });
+    process.send?.({ command, ok: true });
+  } catch {
+    process.send?.({ command, ok: false });
+  }
+});
 let stopping = false;
 const stop = async () => {
   if (stopping) return;

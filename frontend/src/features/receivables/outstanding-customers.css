@@ -1,0 +1,116 @@
+.outstanding-customers {
+  margin-top: 24px;
+}
+.outstanding-customers .section-heading {
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.outstanding-customers .section-heading h2 {
+  margin: 0;
+}
+.outstanding-customers .section-heading a {
+  white-space: normal;
+}
+.outstanding-customers .outstanding-customers-basis,
+.outstanding-customers .outstanding-customers-note,
+.outstanding-customers dt,
+.outstanding-customers caption {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.outstanding-customers .outstanding-customers-totals {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+.outstanding-customers dd {
+  margin: 4px 0 0;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.outstanding-customers table {
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
+}
+.outstanding-customers caption {
+  text-align: left;
+  padding-bottom: 8px;
+}
+.outstanding-customers th,
+.outstanding-customers td {
+  padding: 10px 8px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+.outstanding-customers th:first-child {
+  width: 38%;
+}
+.outstanding-customers th:nth-child(2) {
+  width: 30%;
+}
+.outstanding-customers th:not(:first-child),
+.outstanding-customers td:not(:first-child) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.outstanding-customers a {
+  overflow-wrap: anywhere;
+}
+.outstanding-customers a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.outstanding-customers .outstanding-customers-note {
+  margin: 14px 0 0;
+}
+@media (max-width: 480px) {
+  .outstanding-customers .outstanding-customers-totals {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .outstanding-customers .outstanding-customers-totals > div:first-child {
+    grid-column: 1 / -1;
+  }
+  .outstanding-customers th,
+  .outstanding-customers td {
+    padding: 10px 4px;
+  }
+}
+.outstanding-customers .receivables-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.outstanding-customers .receivables-controls label {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.outstanding-customers .receivables-controls input,
+.outstanding-customers .receivables-controls select {
+  width: 100%;
+  min-width: 0;
+}
+.outstanding-customers .receivables-source {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.outstanding-customers button:focus-visible,
+.outstanding-customers input:focus-visible,
+.outstanding-customers select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.outstanding-customers .panel {
+  max-width: 100%;
+}
