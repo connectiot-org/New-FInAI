@@ -50,6 +50,20 @@ test("real private workspace: single session, imported snapshots, saved tasks/su
   page,
   context,
 }) => {
+  const capture = async (name: string) => {
+    for (const width of [1440, 390, 320]) {
+      await page.setViewportSize({ width, height: 1000 });
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: `artifacts/workspace-production/${name}-${width}.png`,
+        fullPage: true,
+      });
+    }
+  };
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto(info.origin + "/workspace");
@@ -115,7 +129,33 @@ test("real private workspace: single session, imported snapshots, saved tasks/su
       exact: true,
     }),
   ).toBeVisible();
+  await page.getByRole("link", { name: "Receivables", exact: true }).click();
+  await page.getByLabel("Receivables entity").selectOption(info.entityId);
+  await expect(
+    page.getByRole("heading", { name: "Imported invoices", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "$750.00", exact: true }),
+  ).toBeVisible();
+  await capture("invoices");
+  const pinned = new URL(page.url()).searchParams.get("snapshotId");
   await action("importB");
+  await page.reload();
+  expect(new URL(page.url()).searchParams.get("snapshotId")).toBe(pinned);
+  await expect(
+    page.getByRole("cell", { name: "$750.00", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Customers", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Customer balances", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Issue periods", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Balances by invoice issue month",
+      exact: true,
+    }),
+  ).toBeVisible();
   await page.getByRole("link", { name: "Overview", exact: true }).click();
   await card.getByLabel("Receivables entity").selectOption(info.entityId);
   await expect(card.locator("dd")).toHaveText(["$500.00", "1", "1"]);
@@ -132,6 +172,66 @@ test("real private workspace: single session, imported snapshots, saved tasks/su
       fullPage: true,
     });
   }
+  await page.getByRole("link", { name: "Imports", exact: true }).click();
+  await page
+    .getByLabel("Import entity", { exact: true })
+    .selectOption(info.entityId);
+  const register = {
+    schemaVersion: 1,
+    currency: "USD",
+    completeRegister: true,
+    sourceName: "Synthetic browser source C",
+    sourceCapturedAt: "2026-10-24T00:00:00Z",
+    invoices: [
+      {
+        invoiceId: "browser-invoice",
+        customerId: "browser-customer",
+        customerName: "Synthetic browser customer",
+        issuedOn: "2026-09-01",
+        status: "Issued",
+        amountCents: 32100,
+        paidCents: 0,
+      },
+    ],
+  };
+  await page.getByLabel("Register JSON file", { exact: false }).setInputFiles({
+    name: "synthetic.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(" ".repeat(17000) + JSON.stringify(register)),
+  });
+  await page
+    .getByRole("button", { name: "Preview import", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Review before applying" }),
+  ).toBeVisible();
+  await expect(page.locator("dd")).toContainText([
+    "Synthetic browser source C",
+  ]);
+  await capture("import-preview");
+  await page
+    .getByRole("button", { name: "Confirm and apply snapshot" })
+    .click();
+  await expect(
+    page.getByText("Version 3: Synthetic browser source C", { exact: false }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Administration", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Server audit" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("receivables.preview_applied", { exact: false }),
+  ).toBeVisible();
+  await capture("administration");
+  await page
+    .getByLabel("Entity name", { exact: true })
+    .fill("Synthetic browser-created entity");
+  await page
+    .getByRole("button", { name: "Create entity", exact: true })
+    .click();
+  await page.getByRole("link", { name: "Overview", exact: true }).click();
+  await card.getByLabel("Receivables entity").selectOption(info.entityId);
+  await expect(card.locator("dd")).toHaveText(["$321.00", "1", "1"]);
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
   const cookie = (await context.cookies()).find(
     (c) => c.name === "__Host-finai_session",

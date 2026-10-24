@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
+import { usdCents } from "./format";
 import { useEffect, useId, useState } from "react";
 import { SessionGate } from "../../components/SessionGate";
 import { ApiError, sessionEnabled } from "../../lib/api";
-import { money } from "../../demo/selectors";
+
 import {
   receivablesApi as api,
   validPeriod,
@@ -174,7 +176,7 @@ function ImportedBody({ workspace = false }: { workspace?: boolean }) {
           <dl className="outstanding-customers-totals">
             <div>
               <dt>Total current outstanding</dt>
-              <dd>{money(data.totalCents)}</dd>
+              <dd>{usdCents(data.totalCents)}</dd>
             </div>
             <div>
               <dt>Outstanding invoices</dt>
@@ -201,9 +203,27 @@ function ImportedBody({ workspace = false }: { workspace?: boolean }) {
               <tbody>
                 {data.rows.map((row) => (
                   <tr key={row.customerId}>
-                    <td>{row.customerName ?? "Customer unavailable"}</td>
+                    <td>
+                      {workspace && row.customerName ? (
+                        <Link
+                          to={
+                            "/workspace/receivables/invoices?" +
+                            new URLSearchParams({
+                              entityId,
+                              period,
+                              snapshotId: data.source.snapshotId,
+                              customerId: row.customerId,
+                            })
+                          }
+                        >
+                          {row.customerName}
+                        </Link>
+                      ) : (
+                        (row.customerName ?? "Customer unavailable")
+                      )}
+                    </td>
                     <td>{row.invoiceCount}</td>
-                    <td>{money(row.remainingCents)}</td>
+                    <td>{usdCents(row.remainingCents)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -213,9 +233,24 @@ function ImportedBody({ workspace = false }: { workspace?: boolean }) {
           )}
         </>
       )}
+      {workspace && data?.dataState === "ready" && (
+        <Link
+          to={
+            "/workspace/receivables/invoices?" +
+            new URLSearchParams({
+              entityId,
+              period,
+              snapshotId: data.source.snapshotId,
+            })
+          }
+        >
+          View imported invoices
+        </Link>
+      )}
       <p className="outstanding-customers-note">
-        Imported invoice balances may differ from ledger-based receivables. No
-        production record links are available in this demo workspace.
+        Imported invoice balances may differ from ledger-based receivables.
+        {!workspace &&
+          " No production record links are available in this demo workspace."}
       </p>
     </>
   );

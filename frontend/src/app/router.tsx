@@ -1,3 +1,5 @@
+import { Imports } from "../features/workspace/Imports";
+import { Administration as WorkspaceAdministration } from "../features/workspace/Administration";
 import { BrandMark } from "../components/shared/BrandMark";
 import { Component, useEffect, type ReactNode } from "react";
 import {
@@ -61,6 +63,7 @@ import {
   WorkspaceOverview,
   WorkspaceMissing,
 } from "../features/workspace/Workspace";
+import { ReceivablesRegister } from "../features/workspace/ReceivablesRegister";
 function Welcome() {
   useEffect(() => {
     document.title = "Welcome · FinAI";
@@ -182,8 +185,22 @@ const router = createBrowserRouter([
     path: "/workspace",
     element: <Workspace />,
     children: [
+      { path: "imports", element: <Imports /> },
+      { path: "administration", element: <WorkspaceAdministration /> },
       { index: true, element: <Navigate to="/workspace/overview" replace /> },
       { path: "overview", element: <WorkspaceOverview /> },
+      {
+        path: "receivables/invoices",
+        element: <ReceivablesRegister view="invoice" />,
+      },
+      {
+        path: "receivables/customers",
+        element: <ReceivablesRegister view="customer" />,
+      },
+      {
+        path: "receivables/periods",
+        element: <ReceivablesRegister view="issue-period" />,
+      },
       { path: "checklist", element: <MonthlyChecklist workspace /> },
       { path: "subscriptions", element: <SubscriptionRenewals /> },
       { path: "*", element: <WorkspaceMissing /> },

@@ -3,7 +3,7 @@ import base from "./playwright.config";
 export default defineConfig({
   ...base,
   testIgnore: [],
-  testMatch: /workspace\.spec\.ts/,
+  testMatch: /workspace(?:-detail)?\.spec\.ts/,
   workers: 1,
   fullyParallel: false,
   webServer: {

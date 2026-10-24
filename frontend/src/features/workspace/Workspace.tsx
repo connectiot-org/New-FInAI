@@ -1,3 +1,4 @@
+import { WorkspaceContext, useWorkspace } from "./context";
 import { Component, type ReactNode } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { SessionGate } from "../../components/SessionGate";
@@ -49,6 +50,26 @@ class WorkspaceBoundary extends Component<
     );
   }
 }
+function WorkspaceBody() {
+  const c = useWorkspace();
+  return (
+    <>
+      <nav aria-label="Workspace navigation">
+        <NavLink to="/workspace/overview">Overview</NavLink>
+        <NavLink to="/workspace/receivables/invoices">Receivables</NavLink>
+        <NavLink to="/workspace/checklist">Monthly checklist</NavLink>
+        <NavLink to="/workspace/subscriptions">Subscriptions</NavLink>
+        {c.entities.some((e) => e.canImport) && (
+          <NavLink to="/workspace/imports">Imports</NavLink>
+        )}
+        {c.administrator && (
+          <NavLink to="/workspace/administration">Administration</NavLink>
+        )}
+      </nav>
+      <Outlet />
+    </>
+  );
+}
 export function Workspace() {
   const configured =
     import.meta.env.VITE_AUTH_MODE === "session" &&
@@ -69,12 +90,9 @@ export function Workspace() {
         <WorkspaceBoundary>
           {configured ? (
             <SessionGate title="Sign in to your finance workspace">
-              <nav aria-label="Workspace navigation">
-                <NavLink to="/workspace/overview">Overview</NavLink>
-                <NavLink to="/workspace/checklist">Monthly checklist</NavLink>
-                <NavLink to="/workspace/subscriptions">Subscriptions</NavLink>
-              </nav>
-              <Outlet />
+              <WorkspaceContext>
+                <WorkspaceBody />
+              </WorkspaceContext>
             </SessionGate>
           ) : (
             <section className="panel">

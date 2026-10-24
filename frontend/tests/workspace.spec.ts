@@ -29,6 +29,21 @@ const ready = (entityId = A, period = "all", cents = 75000) => ({
 const card = (p: Page) =>
   p.getByRole("region", { name: "Outstanding by customer", exact: true });
 async function routes(p: Page, authenticated = true) {
+  await p.route("**/api/v1/workspace/context", (r) =>
+    r.fulfill({
+      json: {
+        userId: A,
+        organisationId: A,
+        organisationName: "Authorized workspace",
+        administrator: false,
+        revision: "a".repeat(64),
+        entities: [
+          { id: A, name: "Authorized A", canWrite: true, canImport: false },
+          { id: B, name: "Authorized B", canWrite: true, canImport: false },
+        ],
+      },
+    }),
+  );
   await p.route("**/auth/session", (r) =>
     r.fulfill({
       status: authenticated ? 200 : 401,
@@ -302,4 +317,34 @@ test("long untrusted source names remain text, mobile/keyboard contained, no pri
   }
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
   expect(errors).toEqual([]);
+});
+test("validated permission bootstrap hides restricted controls and malformed context never exposes private modules", async ({
+  page,
+}) => {
+  await routes(page);
+  const adminCalls: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/api/v1/admin/")) adminCalls.push(r.url());
+  });
+  await page.goto("/workspace/administration");
+  await expect(
+    page.getByText("Administrator permission required.", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("navigation", { name: "Workspace navigation" })
+      .getByRole("link", { name: "Administration", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Imports", exact: true }),
+  ).toHaveCount(0);
+  expect(adminCalls).toEqual([]);
+  await page.route("**/api/v1/workspace/context", (r) =>
+    r.fulfill({ json: { administrator: true, entities: [] } }),
+  );
+  await page.goto("/workspace/overview");
+  await expect(
+    page.getByRole("heading", { name: "Workspace unavailable", exact: true }),
+  ).toBeVisible();
+  await expect(card(page)).toHaveCount(0);
 });
