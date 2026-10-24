@@ -1,0 +1,849 @@
+openapi: 3.1.1
+info:
+  title: FinAI immutable receivables detail
+  version: 1.1.0
+  description: Additive companion to unchanged receivables 1.0.0. Every read authorizes
+    entity access; explicit snapshotId pins pagination to one committed register.
+    No latest mixing. Unknown/repeated query values rejected; default status outstanding,
+    offset0, limit20 (max50). Source issue dates/cumulative paid values are not due-date
+    aging or historical month-end data. Search is literal bounded text. Exports require
+    read permission, echo filters/source, return at most10000 complete rows and never
+    truncate.
+servers:
+- url: /
+paths:
+  /api/v1/receivables/snapshots:
+    get:
+      operationId: receivableSnapshots
+      security:
+      - Session: []
+      parameters:
+      - &id001
+        name: entityId
+        in: query
+        required: true
+        schema: &id003
+          type: string
+          format: uuid
+      - name: offset
+        in: query
+        schema: &id002
+          type: integer
+          minimum: 0
+          maximum: 10000
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      responses:
+        '200':
+          description: Authorized immutable snapshot result; stable deterministic
+            bounded pagination. Export permits authorized read members, max 10000
+            rows, JSON through existing proxy; browser CSV is a deliberate action
+            with exact minor-unit conversion and formula escaping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Snapshots'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                offset: 0
+                limit: 20
+                total: 1
+                nextOffset: null
+                items:
+                - snapshotId: 33333333-3333-4333-8333-333333333333
+                  version: 1
+                  sourceName: Owner-approved export
+                  sourceCapturedAt: '2026-10-23T00:00:00Z'
+                  importedAt: '2026-10-24T00:00:00Z'
+                  importingActorId: 11111111-1111-4111-8111-111111111111
+                  digest: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        '401':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: receivableSnapshots
+  /api/v1/receivables/invoices:
+    get:
+      operationId: receivableInvoices
+      security:
+      - Session: []
+      parameters:
+      - *id001
+      - name: offset
+        in: query
+        schema: *id002
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      - name: snapshotId
+        in: query
+        required: true
+        schema: *id003
+      - name: period
+        in: query
+        required: true
+        schema: &id004
+          type: string
+          pattern: ^(all|(?!0000)\d{4}-(0[1-9]|1[0-2]))$
+      - name: status
+        in: query
+        schema: &id005
+          enum:
+          - all
+          - outstanding
+          - Draft
+          - Issued
+          - Partial
+          - Paid
+      - name: customerId
+        in: query
+        schema: &id006
+          type: string
+          minLength: 1
+          maxLength: 200
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: Authorized immutable snapshot result; stable deterministic
+            bounded pagination. Export permits authorized read members, max 10000
+            rows, JSON through existing proxy; browser CSV is a deliberate action
+            with exact minor-unit conversion and formula escaping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoices'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                period: all
+                currency: USD
+                source: &id007
+                  snapshotId: 33333333-3333-4333-8333-333333333333
+                  version: 1
+                  sourceName: Owner-approved export
+                  sourceCapturedAt: '2026-10-23T00:00:00Z'
+                  importedAt: '2026-10-24T00:00:00Z'
+                filters: &id008
+                  status: outstanding
+                  customerId: null
+                  search: ''
+                offset: 0
+                limit: 20
+                total: 1
+                invoiceCount: 1
+                customerCount: 1
+                remainingCents: 75000
+                nextOffset: null
+                view: invoice
+                sort: invoiceId:asc
+                items: &id009
+                - invoiceId: source-invoice-1
+                  customerId: source-customer-1
+                  customerName: Synthetic customer
+                  issuedOn: '2026-09-01'
+                  status: Partial
+                  amountCents: 100000
+                  paidCents: 25000
+                  remainingCents: 75000
+        '401':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: receivableInvoices
+  /api/v1/receivables/customers:
+    get:
+      operationId: receivableCustomers
+      security:
+      - Session: []
+      parameters:
+      - *id001
+      - name: offset
+        in: query
+        schema: *id002
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      - name: snapshotId
+        in: query
+        required: true
+        schema: *id003
+      - name: period
+        in: query
+        required: true
+        schema: *id004
+      - name: status
+        in: query
+        schema: *id005
+      - name: customerId
+        in: query
+        schema: *id006
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: Authorized immutable snapshot result; stable deterministic
+            bounded pagination. Export permits authorized read members, max 10000
+            rows, JSON through existing proxy; browser CSV is a deliberate action
+            with exact minor-unit conversion and formula escaping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customers'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                period: all
+                currency: USD
+                source: *id007
+                filters: *id008
+                offset: 0
+                limit: 20
+                total: 1
+                invoiceCount: 1
+                customerCount: 1
+                remainingCents: 75000
+                nextOffset: null
+                view: customer
+                sort: remainingCents:desc,customerId:asc
+                items:
+                - customerId: source-customer-1
+                  customerName: Synthetic customer
+                  invoiceCount: 1
+                  remainingCents: 75000
+        '401':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: receivableCustomers
+  /api/v1/receivables/issue-periods:
+    get:
+      operationId: receivableIssuePeriods
+      security:
+      - Session: []
+      parameters:
+      - *id001
+      - name: offset
+        in: query
+        schema: *id002
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      - name: snapshotId
+        in: query
+        required: true
+        schema: *id003
+      - name: period
+        in: query
+        required: true
+        schema: *id004
+      - name: status
+        in: query
+        schema: *id005
+      - name: customerId
+        in: query
+        schema: *id006
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: Authorized immutable snapshot result; stable deterministic
+            bounded pagination. Export permits authorized read members, max 10000
+            rows, JSON through existing proxy; browser CSV is a deliberate action
+            with exact minor-unit conversion and formula escaping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuePeriods'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                period: all
+                currency: USD
+                source: *id007
+                filters: *id008
+                offset: 0
+                limit: 20
+                total: 1
+                invoiceCount: 1
+                customerCount: 1
+                remainingCents: 75000
+                nextOffset: null
+                view: issue-period
+                sort: period:asc
+                items:
+                - period: 2026-09
+                  invoiceCount: 1
+                  customerCount: 1
+                  remainingCents: 75000
+        '401':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: receivableIssuePeriods
+  /api/v1/receivables/export:
+    get:
+      operationId: receivableInvoicesExport
+      security:
+      - Session: []
+      parameters:
+      - *id001
+      - name: snapshotId
+        in: query
+        required: true
+        schema: *id003
+      - name: period
+        in: query
+        required: true
+        schema: *id004
+      - name: status
+        in: query
+        schema: *id005
+      - name: customerId
+        in: query
+        schema: *id006
+      - name: search
+        in: query
+        schema:
+          type: string
+          maxLength: 100
+      responses:
+        '200':
+          description: Authorized immutable snapshot result; stable deterministic
+            bounded pagination. Export permits authorized read members, max 10000
+            rows, JSON through existing proxy; browser CSV is a deliberate action
+            with exact minor-unit conversion and formula escaping.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoices'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                period: all
+                currency: USD
+                source: *id007
+                filters: *id008
+                offset: 0
+                limit: 10000
+                total: 1
+                invoiceCount: 1
+                customerCount: 1
+                remainingCents: 75000
+                nextOffset: null
+                view: invoice
+                sort: invoiceId:asc
+                items: *id009
+        '401':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Safe JSON error, no foreign existence disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      summary: receivableInvoicesExport
+components:
+  securitySchemes:
+    Session:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+  schemas:
+    Source:
+      type: object
+      additionalProperties: false
+      required:
+      - snapshotId
+      - version
+      - sourceName
+      - sourceCapturedAt
+      - importedAt
+      properties:
+        snapshotId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        sourceName:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        sourceCapturedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+        importedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      - requestId
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        requestId:
+          type: string
+          format: uuid
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    Filters:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      - customerId
+      - search
+      properties:
+        status: *id005
+        customerId:
+          anyOf:
+          - *id006
+          - type: 'null'
+        search:
+          type: string
+          maxLength: 100
+    Invoice:
+      type: object
+      additionalProperties: false
+      required:
+      - invoiceId
+      - customerId
+      - customerName
+      - issuedOn
+      - status
+      - amountCents
+      - paidCents
+      - remainingCents
+      properties:
+        invoiceId: *id006
+        customerId: *id006
+        customerName:
+          anyOf:
+          - *id006
+          - type: 'null'
+        issuedOn:
+          type: string
+          format: date
+        status:
+          enum:
+          - Draft
+          - Issued
+          - Partial
+          - Paid
+        amountCents: &id010
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        paidCents: *id010
+        remainingCents: *id010
+    Customer:
+      type: object
+      additionalProperties: false
+      required:
+      - customerId
+      - customerName
+      - invoiceCount
+      - remainingCents
+      properties:
+        customerId: *id006
+        customerName:
+          anyOf:
+          - *id006
+          - type: 'null'
+        invoiceCount:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        remainingCents: *id010
+    IssuePeriod:
+      type: object
+      additionalProperties: false
+      required:
+      - period
+      - invoiceCount
+      - customerCount
+      - remainingCents
+      properties:
+        period: *id004
+        invoiceCount:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        customerCount:
+          type: integer
+          minimum: 1
+          maximum: 10000
+        remainingCents: *id010
+    Invoices:
+      type: object
+      additionalProperties: false
+      required:
+      - view
+      - entityId
+      - period
+      - currency
+      - source
+      - filters
+      - offset
+      - limit
+      - total
+      - invoiceCount
+      - customerCount
+      - remainingCents
+      - nextOffset
+      - sort
+      - items
+      properties:
+        view:
+          const: invoice
+        entityId: *id003
+        period: *id004
+        currency: &id011
+          const: USD
+        source: &id012
+          $ref: '#/components/schemas/Source'
+        filters: &id013
+          $ref: '#/components/schemas/Filters'
+        offset: *id002
+        limit: &id014
+          type: integer
+          minimum: 1
+          maximum: 10000
+        total: *id002
+        invoiceCount: *id002
+        customerCount: *id002
+        remainingCents: *id010
+        nextOffset: &id015
+          anyOf:
+          - *id002
+          - type: 'null'
+        sort:
+          const: invoiceId:asc
+        items:
+          type: array
+          maxItems: 10000
+          items:
+            $ref: '#/components/schemas/Invoice'
+    Customers:
+      type: object
+      additionalProperties: false
+      required:
+      - view
+      - entityId
+      - period
+      - currency
+      - source
+      - filters
+      - offset
+      - limit
+      - total
+      - invoiceCount
+      - customerCount
+      - remainingCents
+      - nextOffset
+      - sort
+      - items
+      properties:
+        view:
+          const: customer
+        entityId: *id003
+        period: *id004
+        currency: *id011
+        source: *id012
+        filters: *id013
+        offset: *id002
+        limit: *id014
+        total: *id002
+        invoiceCount: *id002
+        customerCount: *id002
+        remainingCents: *id010
+        nextOffset: *id015
+        sort:
+          const: remainingCents:desc,customerId:asc
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Customer'
+    IssuePeriods:
+      type: object
+      additionalProperties: false
+      required:
+      - view
+      - entityId
+      - period
+      - currency
+      - source
+      - filters
+      - offset
+      - limit
+      - total
+      - invoiceCount
+      - customerCount
+      - remainingCents
+      - nextOffset
+      - sort
+      - items
+      properties:
+        view:
+          const: issue-period
+        entityId: *id003
+        period: *id004
+        currency: *id011
+        source: *id012
+        filters: *id013
+        offset: *id002
+        limit: *id014
+        total: *id002
+        invoiceCount: *id002
+        customerCount: *id002
+        remainingCents: *id010
+        nextOffset: *id015
+        sort:
+          const: period:asc
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/IssuePeriod'
+    Snapshots:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - offset
+      - limit
+      - total
+      - nextOffset
+      - items
+      properties:
+        entityId: *id003
+        offset: *id002
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        nextOffset:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+        items:
+          type: array
+          maxItems: 50
+          items:
+            allOf:
+            - $ref: '#/components/schemas/HistorySource'
+    HistorySource:
+      type: object
+      additionalProperties: false
+      required:
+      - snapshotId
+      - version
+      - sourceName
+      - sourceCapturedAt
+      - importedAt
+      - importingActorId
+      - digest
+      properties:
+        snapshotId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        sourceName:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        sourceCapturedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+        importedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+        importingActorId:
+          type: string
+          format: uuid
+        digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
