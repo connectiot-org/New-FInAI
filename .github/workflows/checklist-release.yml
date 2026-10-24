@@ -39,7 +39,8 @@ jobs:
           /tmp/finai-contracts/bin/python contracts/validate_examples.py
           /tmp/finai-contracts/bin/python contracts/validate_subscriptions.py
           /tmp/finai-contracts/bin/python contracts/validate_receivables.py
-          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml --extends minimal
+          /tmp/finai-contracts/bin/python contracts/validate_receivables_detail.py
+          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml contracts/receivables-detail.openapi.yaml contracts/workspace.openapi.yaml --extends minimal
       - name: Browser and production session checks
         working-directory: frontend
         run: |

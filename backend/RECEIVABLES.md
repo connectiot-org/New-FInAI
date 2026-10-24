@@ -55,3 +55,7 @@ Rollback routes traffic to the previous compatible frontend/backend images and t
 From backend/: `npm run generate`, `npm run typecheck`, `npm run lint`, `npm run build`, `npm test` (includes isolated PostgreSQL/HTTP import/receivables tests), `npm audit`, `bash scripts/restore-rehearsal.sh`. From root: the three `contracts/validate_*.py` validators and pinned Redocly 2.8.0 lint. Frontend commands/evidence are in `../frontend/docs/outstanding-customers.md` and `../context/receivables-production.md`.
 
 Implementation testing uses disposable synthetic schemas/databases only. No real export, production credentials/target or deployment/import authorization has been supplied. Locally tested does not mean CI verified, preview verified, production deployed or production verified. Dependency advisories and external API access must be resolved before a release can be marked clear.
+
+## Workspace operations extension — 24 October 2026
+
+WORKSPACE.md supersedes the earlier write-only CLI permission note: imports now require independent canImport; upgrade preserves existing grants by backfill. Apply migration202610240002_workspace_operations before this release. Pinned detail/history/CSV and reviewed browser imports add no ledger/reporting semantics. Both current dependency audits are zero; earlier advisory statements above are historical. Use WORKSPACE.md for current source/admin/audit/cleanup and target gates.
