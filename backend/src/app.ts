@@ -42,7 +42,21 @@ import {
 import { ReceivablesController } from "./receivables/controller";
 import { ReceivablesService } from "./receivables/service";
 import { ReceivablesRepository } from "./receivables/repository";
-type AuthRequest = Request & { identity: Identity };
+import { ReceivablesDetailController } from "./receivables/detail.controller";
+import { ReceivablesDetailService } from "./receivables/detail.service";
+import { ReceivablesDetailRepository } from "./receivables/detail.repository";
+import { WorkspaceController } from "./workspace/controller";
+import { WorkspaceService } from "./workspace/service";
+import { ReceivablesImportController } from "./receivables/import.controller";
+import {
+  ReceivablesImportService,
+  BROWSER_IMPORT_BYTES,
+} from "./receivables/import.service";
+import { requireImport } from "./workspace/permissions";
+import { requestAuditContext } from "./audit";
+type AuthRequest = Request & { identity: Identity; sessionHash?: string };
+const isPreview = (req: Request) =>
+  req.method === "POST" && req.path === "/api/v1/receivables/imports/preview";
 const empty = z.strictObject({});
 @Controller("api/v1")
 class ChecklistController {
@@ -121,11 +135,16 @@ class ChecklistController {
 }
 @Module({
   controllers: [
+    WorkspaceController,
+    ReceivablesImportController,
     ChecklistController,
     SubscriptionController,
     ReceivablesController,
+    ReceivablesDetailController,
   ],
   providers: [
+    WorkspaceService,
+    ReceivablesImportService,
     Database,
     ChecklistRepository,
     ChecklistService,
@@ -133,6 +152,8 @@ class ChecklistController {
     SubscriptionRepository,
     ReceivablesService,
     ReceivablesRepository,
+    ReceivablesDetailService,
+    ReceivablesDetailRepository,
   ],
 })
 class AppModule {}
@@ -168,8 +189,11 @@ export async function createApplication(
   server.requestTimeout = 15000;
   server.headersTimeout = 10000;
   server.keepAliveTimeout = 5000;
+  app.use((_req: Request, _res: Response, next: NextFunction) =>
+    requestAuditContext.run({ requestId: randomUUID() }, next),
+  );
   app.use((req: AuthRequest, res: Response, next: NextFunction) => {
-    const requestId = randomUUID();
+    const requestId = requestAuditContext.getStore()!.requestId;
     res.setHeader("X-Request-Id", requestId);
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -212,9 +236,11 @@ export async function createApplication(
         if (
           !["GET", "HEAD"].includes(req.method) &&
           (req.headers.origin !== config.origins[0] ||
-            !/^application\/json(?:\s*;|$)/i.test(
-              req.headers["content-type"] || "",
-            ))
+            !(
+              isPreview(req)
+                ? /^application\/octet-stream$/i
+                : /^application\/json(?:\s*;|$)/i
+            ).test(req.headers["content-type"] || ""))
         )
           throw new ApiError(
             403,
@@ -283,6 +309,39 @@ export async function createApplication(
       sendError(e, req, res);
     }
   });
+  app.use(async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!isPreview(req)) return next();
+    try {
+      if (config.mode !== "session" || req.headers["content-encoding"])
+        throw new ApiError(
+          403,
+          "FORBIDDEN",
+          "Uncompressed authenticated uploads required.",
+        );
+      const session = await auth.session(req);
+      auth.csrf(req, session);
+      await auth.limit(
+        `import:${session.organisationId}:${session.userId}`,
+        5,
+        900,
+      );
+      const entityId = parse(uuid, req.query.entityId);
+      await db.$transaction((tx) =>
+        requireImport(
+          tx,
+          { organisationId: session.organisationId, userId: session.userId },
+          entityId,
+        ),
+      );
+      express.raw({
+        type: "application/octet-stream",
+        limit: BROWSER_IMPORT_BYTES,
+        inflate: false,
+      })(req, res, next);
+    } catch (e) {
+      sendError(e, req, res);
+    }
+  });
   app.use(express.json({ limit: "16kb" }));
   app.use(async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -299,6 +358,10 @@ export async function createApplication(
           await db.$queryRaw`SELECT 1 FROM "Session" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "Account" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "RateLimit" LIMIT 1`;
+          await db.$queryRaw`SELECT is_administrator, version FROM "Membership" LIMIT 1`;
+          await db.$queryRaw`SELECT can_import, version FROM "EntityAccess" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "ServerAudit" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "ReceivableImportStage" LIMIT 1`;
           res.json({ status: "ready", mode: "session" });
           return;
         }
@@ -319,6 +382,7 @@ export async function createApplication(
           await auth.logout(req, res);
           return;
         }
+        req.sessionHash = digest(auth.token(req));
         req.identity = {
           organisationId: session.organisationId,
           userId: session.userId,

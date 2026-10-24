@@ -80,7 +80,7 @@ export function validateRegister(value: unknown, now = Date.now()): Register {
     );
   const ids = new Set<string>(),
     names = new Map<string, string | null>();
-  for (const row of input.invoices) {
+  for (const [index, row] of input.invoices.entries()) {
     if (
       ids.has(row.invoiceId) ||
       (names.has(row.customerId) &&
@@ -90,6 +90,12 @@ export function validateRegister(value: unknown, now = Date.now()): Register {
         422,
         "VALIDATION_FAILED",
         "Duplicate invoices or conflicting customer names.",
+        [
+          {
+            field: `invoices.${index}`,
+            message: "Duplicate invoice ID or inconsistent customer name.",
+          },
+        ],
       );
     ids.add(row.invoiceId);
     names.set(row.customerId, row.customerName);

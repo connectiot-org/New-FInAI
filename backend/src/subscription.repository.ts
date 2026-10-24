@@ -9,6 +9,7 @@ import type {
   SubscriptionArchive,
   SubscriptionList,
 } from "./subscription.validation";
+import { recordAudit } from "./audit";
 const iso = (v: Date) => v.toISOString().slice(0, 10);
 @Injectable()
 export class SubscriptionRepository {
@@ -112,17 +113,23 @@ export class SubscriptionRepository {
           );
         return { row: existing, created: false };
       }
-      return {
-        row: await tx.subscriptionRenewal.create({
-          data: {
-            id: input.id,
-            organisationId: identity.organisationId,
-            entityId: input.entityId,
-            ...details,
-          },
-        }),
-        created: true,
-      };
+      const row = await tx.subscriptionRenewal.create({
+        data: {
+          id: input.id,
+          organisationId: identity.organisationId,
+          entityId: input.entityId,
+          ...details,
+        },
+      });
+      await recordAudit(
+        tx,
+        identity,
+        "subscription.created",
+        row.id,
+        row.entityId,
+        { version: row.version },
+      );
+      return { row, created: true };
     });
     return result;
   }
@@ -161,6 +168,14 @@ export class SubscriptionRepository {
           "VERSION_CONFLICT",
           "Record changed. Reload and review before saving again.",
         );
+      await recordAudit(
+        tx,
+        identity,
+        "subscription.changed",
+        id,
+        updated[0].entityId,
+        { version: updated[0].version, archived: updated[0].archived },
+      );
       return updated[0];
     });
     return row;

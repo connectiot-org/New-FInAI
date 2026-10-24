@@ -3,8 +3,8 @@ import { createInterface } from "node:readline";
 import { Writable } from "node:stream";
 import { randomUUID } from "node:crypto";
 import * as argon2 from "argon2";
-import { Database } from "../src/database";
-import { passwordOptions } from "../src/auth";
+import { Database } from "../dist/src/database.js";
+import { passwordOptions } from "../dist/src/auth.js";
 const db = new Database();
 async function password() {
   if (!process.stdin.isTTY)
@@ -81,7 +81,9 @@ try {
       "Usage: accounts.mts create <username> <organisationId> | reset <username> | revoke <username>",
     );
 } catch {
-  console.error("Account operation failed. Check the command, secure terminal input and administrative database configuration.");
+  console.error(
+    "Account operation failed. Check the command, secure terminal input and administrative database configuration.",
+  );
   process.exitCode = 1;
 } finally {
   await db.$disconnect();

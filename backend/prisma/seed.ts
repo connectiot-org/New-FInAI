@@ -50,6 +50,7 @@ async function seed() {
             userId: LOCAL.userId,
             entityId: id,
             canWrite: true,
+            canImport: true,
           },
           update: {},
         });

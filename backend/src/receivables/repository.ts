@@ -6,6 +6,8 @@ import { ChecklistRepository } from "../checklist.repository";
 import type { Identity } from "../config";
 import { ApiError } from "../errors";
 import { registerDigest, validateRegister, type Scope } from "./validation";
+import { requireImport } from "../workspace/permissions";
+import { recordAudit } from "../audit";
 const conflict = () =>
   new ApiError(
     409,
@@ -34,6 +36,7 @@ export class ReceivablesRepository {
     expectedVersion: number,
     value: unknown,
     apply = false,
+    transaction?: Prisma.TransactionClient,
   ) {
     const input = validateRegister(value),
       digest = registerDigest(input);
@@ -47,75 +50,83 @@ export class ReceivablesRepository {
         "VALIDATION_FAILED",
         "Invalid expected snapshot version.",
       );
-    return this.db.$transaction(
-      async (tx) => {
-        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`receivables:${identity.organisationId}:${entityId}`},0))`;
-        await this.permissions.authorize(tx, identity, entityId, true);
-        await tx.$queryRaw`SELECT a.entity_id FROM "EntityAccess" a JOIN "Membership" m ON m.organisation_id=a.organisation_id AND m.user_id=a.user_id WHERE a.organisation_id=${identity.organisationId}::uuid AND a.entity_id=${entityId}::uuid AND a.user_id=${identity.userId}::uuid FOR SHARE OF a,m`;
-        await this.permissions.authorize(tx, identity, entityId, true);
-        const where = { organisationId: identity.organisationId, entityId };
-        const current = await tx.receivableSnapshot.findFirst({
-            where,
-            orderBy: { version: "desc" },
-          }),
-          version = current?.version || 0;
-        if (
-          current?.digest === digest &&
-          (expectedVersion === version || expectedVersion === version - 1)
-        )
-          return {
-            status: "unchanged",
-            version,
-            rowCount: input.invoices.length,
-          };
-        if (
-          expectedVersion !== version ||
-          (await tx.receivableSnapshot.findFirst({
-            where: { ...where, digest },
-          }))
-        )
-          throw conflict();
-        if (!apply)
-          return {
-            status: "dry_run",
-            version: version + 1,
-            rowCount: input.invoices.length,
-          };
-        const id = randomUUID();
-        await tx.receivableSnapshot.create({
-          data: {
-            ...where,
-            id,
-            version: version + 1,
-            sourceName: input.sourceName,
-            sourceCapturedAt: new Date(input.sourceCapturedAt),
-            importingActorId: identity.userId,
-            digest,
-            rowCount: input.invoices.length,
-          },
-        });
-        for (let i = 0; i < input.invoices.length; i += 500)
-          await tx.receivableSnapshotInvoice.createMany({
-            data: input.invoices.slice(i, i + 500).map((v) => ({
-              ...where,
-              snapshotId: id,
-              invoiceId: v.invoiceId,
-              customerId: v.customerId,
-              customerName: v.customerName,
-              issuedOn: new Date(v.issuedOn + "T00:00:00Z"),
-              status: v.status,
-              amountCents: BigInt(v.amountCents),
-              paidCents: BigInt(v.paidCents),
-            })),
-          });
+    const run = async (tx: Prisma.TransactionClient) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`receivables:${identity.organisationId}:${entityId}`},0))`;
+      await requireImport(tx, identity, entityId);
+      await tx.$queryRaw`SELECT a.entity_id FROM "EntityAccess" a JOIN "Membership" m ON m.organisation_id=a.organisation_id AND m.user_id=a.user_id WHERE a.organisation_id=${identity.organisationId}::uuid AND a.entity_id=${entityId}::uuid AND a.user_id=${identity.userId}::uuid FOR SHARE OF a,m`;
+      await requireImport(tx, identity, entityId);
+      const where = { organisationId: identity.organisationId, entityId };
+      const current = await tx.receivableSnapshot.findFirst({
+          where,
+          orderBy: { version: "desc" },
+        }),
+        version = current?.version || 0;
+      if (
+        current?.digest === digest &&
+        (expectedVersion === version || expectedVersion === version - 1)
+      )
         return {
-          status: "imported",
+          status: "unchanged",
+          version,
+          rowCount: input.invoices.length,
+        };
+      if (
+        expectedVersion !== version ||
+        (await tx.receivableSnapshot.findFirst({
+          where: { ...where, digest },
+        }))
+      )
+        throw conflict();
+      if (!apply)
+        return {
+          status: "dry_run",
           version: version + 1,
           rowCount: input.invoices.length,
         };
-      },
-      { isolationLevel: "ReadCommitted", timeout: 30000, maxWait: 15000 },
-    );
+      const id = randomUUID();
+      await tx.receivableSnapshot.create({
+        data: {
+          ...where,
+          id,
+          version: version + 1,
+          sourceName: input.sourceName,
+          sourceCapturedAt: new Date(input.sourceCapturedAt),
+          importingActorId: identity.userId,
+          digest,
+          rowCount: input.invoices.length,
+        },
+      });
+      for (let i = 0; i < input.invoices.length; i += 500)
+        await tx.receivableSnapshotInvoice.createMany({
+          data: input.invoices.slice(i, i + 500).map((v) => ({
+            ...where,
+            snapshotId: id,
+            invoiceId: v.invoiceId,
+            customerId: v.customerId,
+            customerName: v.customerName,
+            issuedOn: new Date(v.issuedOn + "T00:00:00Z"),
+            status: v.status,
+            amountCents: BigInt(v.amountCents),
+            paidCents: BigInt(v.paidCents),
+          })),
+        });
+      await recordAudit(tx, identity, "receivables.imported", id, entityId, {
+        version: version + 1,
+        rowCount: input.invoices.length,
+      });
+      return {
+        status: "imported",
+        version: version + 1,
+        rowCount: input.invoices.length,
+      };
+    };
+    return transaction
+      ? run(transaction)
+      : this.db.$transaction(run, {
+          isolationLevel: "ReadCommitted",
+          timeout: 30000,
+          maxWait: 15000,
+        });
   }
   async summary(identity: Identity, input: Scope) {
     return this.db.$transaction(
