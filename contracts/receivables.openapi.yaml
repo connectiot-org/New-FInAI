@@ -1,0 +1,394 @@
+openapi: 3.1.1
+info:
+  title: FinAI imported receivables
+  version: 1.0.0
+  description: 'Current cumulative invoice balances from the latest immutable complete
+    USD register. Period filters issue dates, not historical as-of balances. sourceCapturedAt
+    is owner source time, importedAt is server import time. No snapshot differs from
+    an imported empty register. Strict single-valued query; unknown/repeated fields
+    rejected. Maximum 5 MiB UTF-8 input and 10,000 invoices. Import requires normalized
+    consistent statuses, unique invoice IDs and customer names, Gregorian dates, paid
+    <= amount, expected version and active entity write permission. Future capture
+    allowance: five minutes. No public importer. Source refresh is operator-driven,
+    not real-time synchronization.'
+servers:
+- url: /
+paths:
+  /api/v1/receivables/outstanding-customers:
+    get:
+      operationId: outstandingCustomers
+      summary: Read latest authorized imported balances
+      security:
+      - Session: []
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: Single value; repeated and unknown fields rejected.
+      - name: period
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^(all|(?!0000)\d{4}-(0[1-9]|1[0-2]))$
+        description: Single value; repeated and unknown fields rejected.
+      responses:
+        '200':
+          description: Latest complete stored snapshot, or no imported snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+              examples:
+                ready:
+                  value:
+                    dataState: ready
+                    entityId: 22222222-2222-4222-8222-222222222222
+                    period: all
+                    currency: USD
+                    source:
+                      snapshotId: 33333333-3333-4333-8333-333333333333
+                      version: 1
+                      sourceName: Owner-approved export
+                      sourceCapturedAt: '2026-10-23T00:00:00Z'
+                      importedAt: '2026-10-24T00:00:00Z'
+                    totalCents: 75000
+                    invoiceCount: 1
+                    customerCount: 1
+                    rows:
+                    - customerId: source-customer-1
+                      customerName: Synthetic customer
+                      invoiceCount: 1
+                      remainingCents: 75000
+                zero:
+                  value:
+                    dataState: ready
+                    entityId: 22222222-2222-4222-8222-222222222222
+                    period: all
+                    currency: USD
+                    source:
+                      snapshotId: 33333333-3333-4333-8333-333333333333
+                      version: 1
+                      sourceName: Owner-approved export
+                      sourceCapturedAt: '2026-10-23T00:00:00Z'
+                      importedAt: '2026-10-24T00:00:00Z'
+                    totalCents: 0
+                    invoiceCount: 0
+                    customerCount: 0
+                    rows: []
+                no_snapshot:
+                  value:
+                    dataState: no_snapshot
+                    entityId: 22222222-2222-4222-8222-222222222222
+                    period: all
+                    currency: USD
+        '401':
+          description: UNAUTHENTICATED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: UNAUTHENTICATED
+                message: Request unavailable.
+                requestId: 44444444-4444-4444-8444-444444444444
+        '403':
+          description: FORBIDDEN
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: FORBIDDEN
+                message: Request unavailable.
+                requestId: 44444444-4444-4444-8444-444444444444
+        '404':
+          description: NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: NOT_FOUND
+                message: Request unavailable.
+                requestId: 44444444-4444-4444-8444-444444444444
+        '422':
+          description: VALIDATION_FAILED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: VALIDATION_FAILED
+                message: Request unavailable.
+                requestId: 44444444-4444-4444-8444-444444444444
+        '503':
+          description: UNAVAILABLE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: UNAVAILABLE
+                message: Request unavailable.
+                requestId: 44444444-4444-4444-8444-444444444444
+components:
+  securitySchemes:
+    Session:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+  schemas:
+    Scope:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - period
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        period:
+          type: string
+          pattern: ^(all|(?!0000)\d{4}-(0[1-9]|1[0-2]))$
+    Source:
+      type: object
+      additionalProperties: false
+      required:
+      - snapshotId
+      - version
+      - sourceName
+      - sourceCapturedAt
+      - importedAt
+      properties:
+        snapshotId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        sourceName:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        sourceCapturedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+        importedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+    Row:
+      type: object
+      additionalProperties: false
+      required:
+      - customerId
+      - customerName
+      - invoiceCount
+      - remainingCents
+      properties:
+        customerId:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        customerName:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+            pattern: ^[^\u0000-\u001f\u007f]+$
+          - type: 'null'
+        invoiceCount:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+        remainingCents:
+          type: integer
+          minimum: 1
+          maximum: 9007199254740991
+    Ready:
+      type: object
+      additionalProperties: false
+      required:
+      - dataState
+      - entityId
+      - period
+      - currency
+      - source
+      - totalCents
+      - invoiceCount
+      - customerCount
+      - rows
+      properties:
+        dataState:
+          const: ready
+        entityId:
+          type: string
+          format: uuid
+        period:
+          type: string
+          pattern: ^(all|(?!0000)\d{4}-(0[1-9]|1[0-2]))$
+        currency:
+          const: USD
+        source:
+          $ref: '#/components/schemas/Source'
+        totalCents:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        invoiceCount:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        customerCount:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        rows:
+          type: array
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/Row'
+    NoSnapshot:
+      type: object
+      additionalProperties: false
+      required:
+      - dataState
+      - entityId
+      - period
+      - currency
+      properties:
+        dataState:
+          const: no_snapshot
+        entityId:
+          type: string
+          format: uuid
+        period:
+          type: string
+          pattern: ^(all|(?!0000)\d{4}-(0[1-9]|1[0-2]))$
+        currency:
+          const: USD
+    Summary:
+      oneOf:
+      - $ref: '#/components/schemas/Ready'
+      - $ref: '#/components/schemas/NoSnapshot'
+    ImportInvoice:
+      type: object
+      additionalProperties: false
+      required:
+      - invoiceId
+      - customerId
+      - customerName
+      - issuedOn
+      - status
+      - amountCents
+      - paidCents
+      properties:
+        invoiceId:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        customerId:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        customerName:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+            pattern: ^[^\u0000-\u001f\u007f]+$
+          - type: 'null'
+        issuedOn:
+          type: string
+          format: date
+          pattern: ^(?!0000)\d{4}-\d{2}-\d{2}$
+        status:
+          enum:
+          - Draft
+          - Issued
+          - Partial
+          - Paid
+        amountCents:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+        paidCents:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+    ImportRegister:
+      type: object
+      additionalProperties: false
+      required:
+      - schemaVersion
+      - currency
+      - sourceName
+      - sourceCapturedAt
+      - completeRegister
+      - invoices
+      properties:
+        schemaVersion:
+          const: 1
+        currency:
+          const: USD
+        sourceName:
+          type: string
+          minLength: 1
+          maxLength: 200
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        sourceCapturedAt:
+          type: string
+          format: date-time
+          pattern: ^\d{4}-.*Z$
+        completeRegister:
+          const: true
+        invoices:
+          type: array
+          maxItems: 10000
+          items:
+            $ref: '#/components/schemas/ImportInvoice'
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+      - code
+      - message
+      - requestId
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^[^\u0000-\u001f\u007f]+$
+        requestId:
+          type: string
+          format: uuid
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
