@@ -4,14 +4,22 @@ import { sessionEnabled } from "../lib/api";
 export function SessionGate({
   children,
   title = "Sign in to your checklist",
+  headingLevel = 1,
 }: {
   children: ReactNode;
   title?: string;
+  headingLevel?: 1 | 2;
 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h1";
   const [authenticated, setAuthenticated] = useState(!sessionEnabled);
   const [checking, setChecking] = useState(sessionEnabled);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    const expired = () => setAuthenticated(false);
+    window.addEventListener("finai-session-expired", expired);
+    return () => window.removeEventListener("finai-session-expired", expired);
+  }, []);
   useEffect(() => {
     if (!sessionEnabled) return;
     let active = true;
@@ -36,7 +44,7 @@ export function SessionGate({
   if (!authenticated)
     return (
       <section className="panel">
-        <h1>{title}</h1>
+        <Heading>{title}</Heading>
         <p>Accounts are provided by your administrator.</p>
         {error && <p role="alert">{error}</p>}
         <form
@@ -127,6 +135,7 @@ export function SessionGate({
                   if (!result.ok)
                     throw new Error("Sign out failed. Try again.");
                 }
+                window.dispatchEvent(new Event("finai-session-expired"));
                 setAuthenticated(false);
               } catch (e) {
                 setError(e instanceof Error ? e.message : "Sign out failed.");

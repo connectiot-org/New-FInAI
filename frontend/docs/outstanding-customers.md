@@ -1,6 +1,6 @@
 # Outstanding by customer
 
-Adds one read-only card to `/overview`, immediately after FinanceSnapshot and before Recent activity. This summarizes existing **browser-owned demo invoice data**, not a live accounting integration.
+One read-only card appears on `/overview` after FinanceSnapshot and before Recent activity. The default remains independent **browser-owned demo invoice data**. The production extension adds an explicitly configured authenticated imported-snapshot mode; see the latest section below. Earlier implementation/evidence sections describe the original demo feature and remain dated history.
 
 ## Inspection and scope
 
@@ -101,3 +101,40 @@ Fresh visual evidence is outside the checkout at `/workspace/finai-outstanding-r
 External limits: GitHub API calls (`gh pr list` and `gh run view 39924929050`) returned HTTP 403/Forbidden; the cited hosted result is supplied historical evidence, not independently verified here. Native Git read access works. The live reference request to `https://new-f-in-ai.vercel.app/` was denied by the egress proxy with HTTP 403, so live navigation and deployment provenance remain unverified. No hosting/environment/secret/network configuration was changed to bypass those restrictions. Backend and database integration suites were not rerun for this frontend-only review; the earlier onboarding Prisma download blocker remains separate. No merge, main push or production deployment is authorized or claimed.
 
 Draft PR creation was attempted with the requested title/base/head and a prepared body using `gh pr create --draft --body-file /workspace/finai-outstanding-review-20261024/pr-body.md`; GitHub GraphQL returned Forbidden. No PR creation or status is confirmed. The body is retained for retry once API access is available.
+
+
+## Imported production snapshot extension — 24 October 2026
+
+The existing demo component, pure selector, seed behavior and tests are preserved. `VITE_RECEIVABLES_MODE=api` switches the same card to the imported backend read model. It requires `VITE_AUTH_MODE=session` and `VITE_API_BASE_URL=/api/v1`; missing/invalid configuration fails visibly with no API/demo fallback. Only this card uses the existing SessionGate. Authentication invalidation unmounts imported state. Authorized backend UUID entity discovery and the card-local Receivables entity / Invoice issue period controls are independent of the surrounding synthetic financial scope. Production choices and responses stay in memory and reset on full page reload; reselect the authorized entity when necessary.
+
+The card renders loading, sign-in/expiry, permission failure, invalid response, backend/proxy outage, no imported snapshot, valid ready zero and ready data. Source name, entity, USD, issue-period/current cumulative payment basis, source capture time, import time and version are explicit. Refresh rereads a stored snapshot, not an external source. Names are plain text and production customer/invoice links are omitted; existing authorized production detail routes do not exist. Default demo links/receipt behavior/no-request expectations are unchanged.
+
+Protocol/CLI/source/retention/release/rollback documentation: `../../contracts/receivables.openapi.yaml` (1.0.0), `../../backend/RECEIVABLES.md`, and `../../context/receivables-production.md`. API data comes only from complete normalized owner exports applied by an authorized server operator. No demo financial browser state or synthetic fixtures populate production. This is not real-time synchronization, an as-of report, ledger reconciliation or production deployment.
+
+Focused commands from frontend/: `npm run test:receivables` (API response/state mocks), `npm run test:receivables:production` (actual built assets → same-origin TLS proxy → session backend → isolated PostgreSQL). `npm test -- --workers=1` includes the original demo tests and focused bad-configuration tests; existing checklist/subscription/session commands remain independent and unchanged. `node scripts/check-assets.ts` now requires all three built directories (dist, artifacts/session-dist, artifacts/receivables-dist).
+
+Default demo homepage/Overview captures remain byte-identical to reviewed b5c275c/73618d8 captures at 1440/390/320px. New demo evidence/geometry: `/workspace/finai-receivables-extension-review/`. Imported-mode screenshots: `frontend/artifacts/receivables-production/{overview,card}-{1440,390,320}.png` (synthetic source only, ignored). The built flow verifies $750 source A → refresh/reselection/backend restart → $500 source B/version 2/new capture, no-snapshot second entity, denied access, missing proxy configuration and expiry, without financial storage contamination. No preview/deployment/live-site provenance is claimed. See context evidence for audited dependency and GitHub API blockers.
+
+Fresh extension verification (Node 24.19.0/npm 11.9.0; synthetic local data only):
+
+| Command / capability | Actual outcome |
+| --- | --- |
+| backend `npm run generate`, typecheck/lint/build | Passed; regenerated client includes the additive schema |
+| backend `npm test` | 27 passed, zero skipped (17 existing + 10 receivables); focused 10 rerun after final validation/SQL review passed |
+| frontend typecheck/lint/default build | Passed |
+| frontend `npm test -- --workers=1` | 51 passed, zero skipped (49 preserved + 2 configuration checks) |
+| `npm run test:receivables` | 5 passed |
+| `npm run test:receivables:production` | 1 passed against actual built assets/proxy/session/DB, rerun after final source/fixture review |
+| `npm run test:checklist`, `test:subscriptions`, `test:session` | 14 + 4 + 1 passed |
+| Unique automated test total | **103 passed, zero skipped**; retries/reruns are not added to this total |
+| Three contract validators | 23 existing, 5 subscription, 8 receivables examples and their negative checks passed |
+| Redocly 2.8.0 lint | All three specifications valid; two intentional unused-component warnings for operator/query schemas |
+| Asset/credential scan | Passed for default, session and receivables build directories |
+| Frontend `npm audit --cache /workspace/.npm-cache` | 0 vulnerabilities |
+| Backend `npm audit --cache /workspace/.npm-cache` | **Failed**: 5 existing advisories (1 moderate, 4 high); unchanged locks; release/CI audit gate remains unresolved |
+| Additive migrate + repeat, local safe seed, synthetic restore rehearsal | Passed; existing records preserved and snapshots/rows plus four migration records restored |
+| Production container build and smoke | Passed readiness, anonymous JSON 401, operator dry-run and refusal of production local identity; verified TLS/checksums retained |
+| Final image | `finai-backend:receivables-review`, `sha256:1ca11f523a3424ffffac08977416332990e77a3c7e980f385408a0445377999a` |
+| Protected paths/lockfiles, scope, whitespace | Unchanged protected baseline files; exactly 35 extension paths match declaration; diff checks passed |
+
+Build command used the existing supported platform CA mount, without disabling TLS/checksums: `BUILDX_CONFIG=/workspace/.finai-buildx docker build --secret id=cloud_ca,src="$NODE_EXTRA_CA_CERTS" -t finai-backend:receivables-review backend`. Fresh CI/PR creation and any preview/live verification remain unconfirmed because GitHub API access returns 403. A normal branch push does not establish that hosted checks passed. Production release is additionally blocked on dependency remediation, owner-approved real source data/target secure settings and separate deployment/import authorization. Rollback leaves additive snapshots intact; see backend/RECEIVABLES.md.

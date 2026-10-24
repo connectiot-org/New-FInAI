@@ -82,3 +82,35 @@
     padding: 10px 4px;
   }
 }
+.outstanding-customers .receivables-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+}
+.outstanding-customers .receivables-controls label {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.outstanding-customers .receivables-controls input,
+.outstanding-customers .receivables-controls select {
+  width: 100%;
+  min-width: 0;
+}
+.outstanding-customers .receivables-source {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.outstanding-customers button:focus-visible,
+.outstanding-customers input:focus-visible,
+.outstanding-customers select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.outstanding-customers .panel {
+  max-width: 100%;
+}
