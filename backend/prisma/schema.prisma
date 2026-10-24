@@ -19,6 +19,7 @@ model User {
   id          String       @id @db.Uuid
   memberships Membership[]
   account Account?
+  receivableImports ReceivableSnapshot[]
 }
 
 model Membership {
@@ -40,6 +41,7 @@ model Entity {
   access         EntityAccess[]
   tasks          ChecklistTask[]
   subscriptions SubscriptionRenewal[]
+  receivableSnapshots ReceivableSnapshot[]
 
   @@unique([organisationId, id])
 }
@@ -111,4 +113,38 @@ model SubscriptionRenewal {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
   entity Entity @relation(fields: [organisationId, entityId], references: [organisationId, id], onDelete: NoAction, onUpdate: NoAction)
   @@index([organisationId, entityId, archived, renewalDate, id], map: "SubscriptionRenewal_organisation_id_entity_id_archived_renewal_")
+}
+
+model ReceivableSnapshot {
+ id String @id @db.Uuid
+ organisationId String @map("organisation_id") @db.Uuid
+ entityId String @map("entity_id") @db.Uuid
+ version Int
+ sourceName String @map("source_name") @db.VarChar(200)
+ sourceCapturedAt DateTime @map("source_captured_at") @db.Timestamptz(3)
+ importedAt DateTime @default(now()) @map("imported_at") @db.Timestamptz(3)
+ importingActorId String @map("importing_actor_id") @db.Uuid
+ digest String @db.Char(64)
+ rowCount Int @map("row_count")
+ entity Entity @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
+ actor User @relation(fields:[importingActorId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ invoices ReceivableSnapshotInvoice[]
+ @@unique([organisationId,entityId,version],map:"receivable_version")
+ @@unique([organisationId,entityId,digest],map:"receivable_digest")
+ @@unique([organisationId,entityId,id],map:"receivable_scope")
+}
+model ReceivableSnapshotInvoice {
+ organisationId String @map("organisation_id") @db.Uuid
+ entityId String @map("entity_id") @db.Uuid
+ snapshotId String @map("snapshot_id") @db.Uuid
+ invoiceId String @map("invoice_id") @db.VarChar(200)
+ customerId String @map("customer_id") @db.VarChar(200)
+ customerName String? @map("customer_name") @db.VarChar(200)
+ issuedOn DateTime @map("issued_on") @db.Date
+ status String @db.VarChar(10)
+ amountCents BigInt @map("amount_cents")
+ paidCents BigInt @map("paid_cents")
+ snapshot ReceivableSnapshot @relation(fields:[organisationId,entityId,snapshotId],references:[organisationId,entityId,id],onDelete:NoAction,onUpdate:NoAction)
+ @@id([organisationId,entityId,snapshotId,invoiceId],map:"receivable_invoice_pk")
+ @@index([organisationId,entityId,snapshotId,issuedOn,customerId],map:"receivable_invoice_scope_date")
 }

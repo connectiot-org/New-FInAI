@@ -31,6 +31,10 @@ try {
  const source={entityId:entity,month:'2060-10',title:'Synthetic copied task'};
  await db.checklistTask.create({data:{id,organisationId:org,entityId:entity,month:new Date('2060-10-01T00:00:00Z'),title:source.title,completed:false,version:1,createDigest:createHash('sha256').update(JSON.stringify([entity,source.month,source.title])).digest('hex')}});
  await db.subscriptionRenewal.create({data:{id:randomUUID(),organisationId:org,entityId:entity,supplierName:'Synthetic supplier',subscriptionName:'Synthetic renewal',renewalDate:new Date('2060-11-01T00:00:00Z')}});
+ const actor=randomUUID(),snapshot=randomUUID();
+ await db.user.create({data:{id:actor}});
+ await db.receivableSnapshot.create({data:{id:snapshot,organisationId:org,entityId:entity,version:1,sourceName:'Synthetic restore export',sourceCapturedAt:new Date('2026-10-23T00:00:00Z'),importingActorId:actor,digest:createHash('sha256').update('synthetic restore content').digest('hex'),rowCount:1}});
+ await db.receivableSnapshotInvoice.create({data:{organisationId:org,entityId:entity,snapshotId:snapshot,invoiceId:'restore-invoice',customerId:'restore-customer',customerName:'Synthetic customer',issuedOn:new Date('2026-09-01T00:00:00Z'),status:'Partial',amountCents:100000n,paidCents:25000n}});
 } finally {await db.$disconnect();}
 JS
 docker compose exec -T db pg_dump -U finai -Fc "$source_db" > "$archive"
@@ -40,7 +44,9 @@ test "$result" = 1
 schema_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('Account','Session','RateLimit')")
 test "$schema_result" = 3
 migration_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c 'SELECT count(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL')
-test "$migration_result" = 3
+test "$migration_result" = 4
 renewal_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"SubscriptionRenewal\" WHERE \"supplierName\"='Synthetic supplier' AND archived=false AND version=1")
 test "$renewal_result" = 1
-printf 'PASS: migrated synthetic application database restored; task state, auth schema and migration history verified\n'
+snapshot_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"ReceivableSnapshot\" s JOIN \"ReceivableSnapshotInvoice\" i ON i.snapshot_id=s.id AND i.organisation_id=s.organisation_id AND i.entity_id=s.entity_id WHERE s.version=1 AND s.row_count=1 AND i.amount_cents=100000 AND i.paid_cents=25000")
+test "$snapshot_result" = 1
+printf 'PASS: migrated synthetic application database restored; task/subscription/snapshot state, auth schema and migration history verified\n'

@@ -39,6 +39,9 @@ import {
   SubscriptionService,
   organisationTimezones,
 } from "./subscription.service";
+import { ReceivablesController } from "./receivables/controller";
+import { ReceivablesService } from "./receivables/service";
+import { ReceivablesRepository } from "./receivables/repository";
 type AuthRequest = Request & { identity: Identity };
 const empty = z.strictObject({});
 @Controller("api/v1")
@@ -117,13 +120,19 @@ class ChecklistController {
   }
 }
 @Module({
-  controllers: [ChecklistController, SubscriptionController],
+  controllers: [
+    ChecklistController,
+    SubscriptionController,
+    ReceivablesController,
+  ],
   providers: [
     Database,
     ChecklistRepository,
     ChecklistService,
     SubscriptionService,
     SubscriptionRepository,
+    ReceivablesService,
+    ReceivablesRepository,
   ],
 })
 class AppModule {}
@@ -285,6 +294,8 @@ export async function createApplication(
         if (req.path === "/health/ready" && req.method === "GET") {
           await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
+          await db.$queryRaw`SELECT id, organisation_id, entity_id, version, source_name, source_captured_at, imported_at, importing_actor_id, digest, row_count FROM "ReceivableSnapshot" LIMIT 1`;
+          await db.$queryRaw`SELECT organisation_id, entity_id, snapshot_id, invoice_id, customer_id, customer_name, status, amount_cents, paid_cents, issued_on FROM "ReceivableSnapshotInvoice" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "Session" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "Account" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "RateLimit" LIMIT 1`;
@@ -318,6 +329,8 @@ export async function createApplication(
       if (req.path === "/health/ready") {
         await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
         await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
+        await db.$queryRaw`SELECT id, organisation_id, entity_id, version, source_name, source_captured_at, imported_at, importing_actor_id, digest, row_count FROM "ReceivableSnapshot" LIMIT 1`;
+        await db.$queryRaw`SELECT organisation_id, entity_id, snapshot_id, invoice_id, customer_id, customer_name, status, amount_cents, paid_cents, issued_on FROM "ReceivableSnapshotInvoice" LIMIT 1`;
         const membership = await db.membership.findUnique({
           where: { organisationId_userId: identity },
         });

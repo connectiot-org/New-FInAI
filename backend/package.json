@@ -13,7 +13,8 @@
     "db:migrate": "node --env-file=.env node_modules/prisma/build/index.js migrate deploy",
     "db:seed": "node --env-file=.env --import tsx prisma/seed.ts",
     "generate": "prisma generate",
-    "test": "node --env-file=.env --import tsx --test --test-concurrency=1 test/*.test.ts"
+    "test": "node --env-file=.env --import tsx --test --test-concurrency=1 test/*.test.ts",
+    "import:receivables": "node --import tsx scripts/import-receivables.mts"
   },
   "dependencies": {
     "@nestjs/common": "11.2.7",
