@@ -149,6 +149,9 @@ test("missing model configuration is explicit; no deterministic fallback or fals
   ).toBeDisabled();
   await expect(page.locator(".assistant-turn")).toHaveCount(0);
   await expect(page.locator(".finance-snapshot")).toHaveCount(0);
+  await expect(
+    page.getByText("OpenRouter · free models only.", { exact: false }),
+  ).toContainText("remaining provider quota is not available here");
 });
 test("uncertain send retries original UUID/payload, then displays only validated exact facts", async ({
   page,
@@ -382,4 +385,87 @@ test("preference conflict never claims saved; confirmed forget clears future pre
   await expect(page.getByLabel("Answer detail", { exact: true })).toHaveValue(
     "concise",
   );
+});
+
+test("creation retry retains its UUID only within the same scope after reopening another chat", async ({
+  page,
+}) => {
+  await routes(page);
+  const bodies: {
+    id: string;
+    entityId: string;
+    month: string;
+    currency: string;
+  }[] = [];
+  await page.route("**/api/v1/assistant/conversations", (r) => {
+    bodies.push(r.request().postDataJSON());
+    return r.fulfill({
+      status: 503,
+      json: { message: "Creation response uncertain" },
+    });
+  });
+  await page.goto(
+    `/workspace/assistant?entityId=${entityId}&month=2026-08&currency=USD`,
+  );
+  await expect(
+    page.getByRole("button", { name: /2026-09 · USD/ }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "New conversation", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Creation response uncertain",
+  );
+  await page
+    .getByRole("button", { name: "Retry conversation creation", exact: true })
+    .click();
+  await expect.poll(() => bodies.length).toBe(2);
+  expect(bodies[1]).toEqual(bodies[0]);
+  await expect(
+    page.getByRole("button", {
+      name: "Retry conversation creation",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: /2026-09 · USD/ }).click();
+  await expect(page.getByLabel("Assistant month", { exact: true })).toHaveValue(
+    "2026-09",
+  );
+  await page
+    .getByRole("button", { name: "New conversation", exact: true })
+    .click();
+  await expect.poll(() => bodies.length).toBe(3);
+  expect(bodies[2]).toMatchObject({
+    entityId,
+    month: "2026-09",
+    currency: "USD",
+  });
+  expect(bodies[2].id).not.toBe(bodies[0].id);
+});
+
+test("Ask FinAI and the explicit demo link open the real authenticated Assistant", async ({
+  page,
+}) => {
+  await routes(page, false);
+  await page.goto("/overview");
+  await page.getByRole("button", { name: "Ask FinAI", exact: true }).click();
+  await expect(page).toHaveURL(/\/workspace\/assistant/);
+  await expect(
+    page.getByRole("status").filter({ hasText: "Model unavailable" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "FinAI Assistant demo" }),
+  ).toHaveCount(0);
+  await page.goto("/demo/assistant");
+  await expect(
+    page.getByRole("heading", { name: "FinAI Assistant demo", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("link", {
+      name: "Open the authenticated FinAI Assistant",
+      exact: true,
+    })
+    .click();
+  await expect(page).toHaveURL(/\/workspace\/assistant/);
+  await expect(page.locator(".assistant-disclaimer")).toHaveCount(0);
 });

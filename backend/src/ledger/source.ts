@@ -253,6 +253,13 @@ export class LedgerService {
       expectedVersion >= 2147483647
     )
       throw new ApiError(422, "VALIDATION_FAILED", "Invalid expected version.");
+    const fingerprint = mappingDigest(content),
+      review = {
+        digest,
+        mappingId: content.mappingId,
+        mappingDigest: fingerprint,
+        mappingApproval: `${content.mappingId}@${fingerprint}`,
+      };
     return this.db.$transaction(
       async (tx) => {
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`ledger:${identity.organisationId}:${entityId}`},0))`;
@@ -269,7 +276,7 @@ export class LedgerService {
           current?.digest === digest &&
           (expectedVersion === version || expectedVersion === version - 1)
         )
-          return { status: "unchanged", version };
+          return { status: "unchanged", version, ...review };
         if (
           expectedVersion !== version ||
           (await tx.ledgerSnapshot.findFirst({ where: { ...where, digest } }))
@@ -279,7 +286,8 @@ export class LedgerService {
             "VERSION_CONFLICT",
             "Source version changed or historical source was retried.",
           );
-        if (!apply) return { status: "dry_run", version: version + 1 };
+        if (!apply)
+          return { status: "dry_run", version: version + 1, ...review };
         const row = await tx.ledgerSnapshot.create({
           data: {
             id: randomUUID(),
@@ -296,7 +304,7 @@ export class LedgerService {
           version: row.version,
           count: content.journals.length,
         });
-        return { status: "imported", version: row.version };
+        return { status: "imported", version: row.version, ...review };
       },
       { timeout: 30000 },
     );

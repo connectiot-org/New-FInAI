@@ -17,13 +17,11 @@ import {
   Menu,
   Search,
   Sparkles,
-  X,
 } from "lucide-react";
 import { navigation, routeTitles } from "./navigation";
 import { command, recoveredStorage, useAppDispatch, useDemo } from "../store";
 import { Modal, StatusControl, useToast } from "../components/ui";
 import { Help, PeriodSelector } from "../components/shared/Common";
-import { Assistant } from "../features/Assistant";
 import type { Role } from "../types/domain";
 export function Shell() {
   const s = useDemo(),
@@ -33,7 +31,6 @@ export function Shell() {
     toast = useToast();
   const [navExpanded, setNavExpanded] = useState(false);
   const [mobile, setMobile] = useState(false),
-    [assistant, setAssistant] = useState(false),
     [search, setSearch] = useState(""),
     [collapsed, setCollapsed] = useState<string[]>([]),
     [notice, setNotice] = useState(false);
@@ -268,7 +265,7 @@ export function Shell() {
             <PeriodSelector />
             <button
               className="assistant-button"
-              onClick={() => setAssistant(true)}
+              onClick={() => navigate("/workspace/assistant")}
             >
               <Sparkles size={15} />
               Ask FinAI
@@ -290,14 +287,6 @@ export function Shell() {
           <span>{s.role} persona · Data through Sep 2026</span>
         </footer>
       </div>
-      <Modal
-        open={assistant}
-        onOpenChange={setAssistant}
-        title="FinAI Assistant demo"
-        drawer
-      >
-        <Assistant embedded onNavigate={() => setAssistant(false)} />
-      </Modal>
       <Modal
         open={notice}
         onOpenChange={setNotice}
@@ -329,10 +318,6 @@ export function Shell() {
           View audit log
         </button>
       </Modal>
-      <button className="sr-only" onClick={() => setAssistant(false)}>
-        <X />
-        Close assistant
-      </button>
     </div>
   );
 }

@@ -102,3 +102,10 @@ Fresh workspace container sha256:6a3672b9dad2a372ace081b79a2aff536f7c018771d5883
 ## FinAI Assistant — 25 October 2026
 
 Implemented sequentially from main f51f983 on feat/production-assistant. Added scoped PostgreSQL conversations/turns/preferences/budget/deletion receipts, immutable approved ledger source, strict OpenRouter adapter and grounded fact-only answers; integrated private Assistant and real source viewers while preserving the explicit demo. Two additive migrations, no dependencies/lock changes. 49 backend and96 frontend tests pass locally; controlled providers do not prove actual model quality. Detailed evidence and release blockers: assistant-production.md; operational configuration/retention/import/recovery: ../backend/ASSISTANT.md. No production deployment, target settings change or real-data import.
+
+
+## Assistant engineering review and live entry fixes — 25 October 2026
+
+User screenshot revealed the demo-shell Ask FinAI button still opened the deterministic drawer. Remote main2586e3f already includes PR9. Fixed the entry and explicit demo link, production Compose Assistant variable forwarding, blank price validation, stale create scope retry and missing ledger import review metadata. Added regression coverage without removing assertions; review evidence and actual-provider/configuration blockers are in assistant-engineering-review.md. No deployment or target secret changes.
+
+User confirmed free models only. Adapter now rejects nonzero price settings and pins outbound prompt/completion price caps0; UI explains free-only routing without fabricated quota. Backend50 and affected UI9+built1 checks pass again. Entry/configuration CIeccda6b passed run40192396032; later free-only CI is separate. Backend host URL remains missing despite the selected response option; requested FINAI_BACKEND_ORIGIN without secrets.

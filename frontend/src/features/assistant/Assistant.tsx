@@ -38,6 +38,14 @@ export function ProductionAssistant() {
     >(undefined);
   useEffect(() => {
     const c = new AbortController();
+    const previous = pendingCreate.current;
+    if (
+      previous &&
+      (previous.entityId !== entityId ||
+        previous.month !== month ||
+        previous.currency !== currency)
+    )
+      pendingCreate.current = undefined;
     request.current?.abort();
     request.current = c;
     setChats(undefined);
@@ -78,12 +86,13 @@ export function ProductionAssistant() {
     const c = request.current!;
     setCreating(true);
     setError("");
-    const body = pendingCreate.current || {
-      id: crypto.randomUUID(),
-      entityId,
-      month,
-      currency,
-    };
+    const previous = pendingCreate.current;
+    const body =
+      previous?.entityId === entityId &&
+      previous.month === month &&
+      previous.currency === currency
+        ? previous
+        : { id: crypto.randomUUID(), entityId, month, currency };
     pendingCreate.current = body;
     try {
       const v = await api.create(body, c.signal);
@@ -198,6 +207,10 @@ export function ProductionAssistant() {
           facts.
         </p>
       )}
+      <p className="assistant-notice">
+        OpenRouter · free models only. Availability and rate limits apply;
+        remaining provider quota is not available here.
+      </p>
       <div className="assistant-layout">
         <aside aria-label="Saved conversations">
           <h2>Conversations</h2>
