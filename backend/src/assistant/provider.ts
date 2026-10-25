@@ -47,6 +47,8 @@ export class OpenRouterProvider implements AssistantProvider {
       Number.isInteger(this.dailyLimit) &&
       this.dailyLimit >= 50000 &&
       this.dailyLimit <= 100000000 &&
+      !!env.ASSISTANT_MAX_INPUT_PRICE?.trim() &&
+      !!env.ASSISTANT_MAX_OUTPUT_PRICE?.trim() &&
       Number.isFinite(this.inputPrice) &&
       this.inputPrice >= 0 &&
       this.inputPrice <= 1000 &&

@@ -256,12 +256,21 @@ test("complete ledger fixture reconciles exact openings/movements; drafts, bad m
 test("immutable ledger import dry-run/retry/A-B/source pin, independent import grant and strict approval fingerprint", async () => {
   const id = await entity(),
     x = fixtureLedger();
-  assert.equal((await ledger.import(identity, id, 0, x)).status, "dry_run");
+  const preview = await ledger.import(identity, id, 0, x);
+  assert.equal(preview.status, "dry_run");
+  assert.equal(preview.mappingDigest, mappingDigest(validateLedger(x)));
+  assert.equal(
+    preview.mappingApproval,
+    `${x.mappingId}@${preview.mappingDigest}`,
+  );
+  assert.match(preview.digest, /^[a-f0-9]{64}$/);
   assert.equal(await db.ledgerSnapshot.count({ where: { entityId: id } }), 0);
   await ledger.import(identity, id, 0, x, true);
   const a = await ledger.read(identity, id, "2026-09");
   assert.equal(a.dataState, "ready");
   if (a.dataState !== "ready") return;
+  assert.equal(a.source.digest, preview.digest);
+  assert.equal(a.source.mappingDigest, preview.mappingDigest);
   assert.equal(a.mappingVerified, false);
   assert.equal(a.metrics, null);
   assert.ok(a.accounts.every((a) => !("closing" in a)));
@@ -559,6 +568,24 @@ test("provider request pins model/privacy/price/no fallback and handles refusal,
     );
   }
   assert.equal(new OpenRouterProvider({}).configured, false);
+  for (const field of [
+    "ASSISTANT_MAX_INPUT_PRICE",
+    "ASSISTANT_MAX_OUTPUT_PRICE",
+  ]) {
+    for (const value of ["", "   "])
+      assert.equal(
+        new OpenRouterProvider({ ...e, [field]: value }).configured,
+        false,
+      );
+  }
+  assert.equal(
+    new OpenRouterProvider({
+      ...e,
+      ASSISTANT_MAX_INPUT_PRICE: "0",
+      ASSISTANT_MAX_OUTPUT_PRICE: "0",
+    }).configured,
+    true,
+  );
 });
 test("real HTTP session/CSRF/private owner guard and revocation during inference never publish", async () => {
   const key = randomBytes(32).toString("hex"),
@@ -1137,4 +1164,60 @@ test("entity access lost during planning blocks source disclosure/composition an
   } finally {
     service.provider = provider;
   }
+});
+
+test("production compose forwards secure Assistant settings and defaults to disabled", () => {
+  const settings = {
+    ASSISTANT_ENABLED: "true",
+    OPENROUTER_API_KEY: "synthetic-not-a-real-key",
+    ASSISTANT_MODEL: "test/model:free",
+    ASSISTANT_OPENROUTER_PROVIDERS: "ApprovedProvider",
+    ASSISTANT_DAILY_TOKEN_LIMIT: "100000",
+    ASSISTANT_MAX_INPUT_PRICE: "0",
+    ASSISTANT_MAX_OUTPUT_PRICE: "0",
+    ASSISTANT_LEDGER_MAPPING_IDS: "synthetic@fingerprint",
+  };
+  const render = (configured: boolean) => {
+    const clean = { ...process.env };
+    for (const name of Object.keys(settings)) delete clean[name];
+    const r = spawnSync(
+      "docker",
+      [
+        "compose",
+        "--env-file",
+        "/dev/null",
+        "-f",
+        "compose.production.yaml",
+        "config",
+        "--format",
+        "json",
+      ],
+      {
+        encoding: "utf8",
+        env: {
+          ...clean,
+          FINAI_IMAGE: "synthetic:test",
+          POSTGRES_PASSWORD: "synthetic-password",
+          DATABASE_URL: "postgresql://synthetic:synthetic@db:5432/synthetic",
+          API_TRUSTED_HOST: "backend.example",
+          PUBLIC_ORIGIN: "https://frontend.example",
+          API_PROXY_TOKEN: "synthetic-proxy-token",
+          ...(configured ? settings : {}),
+        },
+      },
+    );
+    assert.equal(r.status, 0, "Synthetic compose configuration must resolve");
+    return JSON.parse(r.stdout).services.api.environment as Record<
+      string,
+      string
+    >;
+  };
+  const configured = render(true);
+  for (const [name, value] of Object.entries(settings))
+    assert.equal(configured[name], value);
+  assert.equal(new OpenRouterProvider(configured).configured, true);
+  const disabled = render(false);
+  assert.equal(disabled.ASSISTANT_ENABLED, "false");
+  assert.equal(disabled.OPENROUTER_API_KEY, "");
+  assert.equal(new OpenRouterProvider(disabled).configured, false);
 });
