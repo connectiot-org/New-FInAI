@@ -29,7 +29,7 @@ export class OpenRouterProvider implements AssistantProvider {
     private transport: typeof fetch = fetch,
   ) {
     this.model = env.ASSISTANT_MODEL || "";
-    this.key = env.OPENROUTER_API_KEY || "";
+    this.key = env.OPENROUTER_API_KEY?.trim() || env.Openrouter?.trim() || "";
     this.providers = (env.ASSISTANT_OPENROUTER_PROVIDERS || "")
       .split(",")
       .map((s) => s.trim())

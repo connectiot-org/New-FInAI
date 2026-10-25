@@ -1177,6 +1177,7 @@ test("production compose forwards secure Assistant settings and defaults to disa
     ASSISTANT_MAX_INPUT_PRICE: "0",
     ASSISTANT_MAX_OUTPUT_PRICE: "0",
     ASSISTANT_LEDGER_MAPPING_IDS: "synthetic@fingerprint",
+    Openrouter: "synthetic-alias-key",
   };
   const render = (configured: boolean) => {
     const clean = { ...process.env };
@@ -1221,4 +1222,70 @@ test("production compose forwards secure Assistant settings and defaults to disa
   assert.equal(disabled.ASSISTANT_ENABLED, "false");
   assert.equal(disabled.OPENROUTER_API_KEY, "");
   assert.equal(new OpenRouterProvider(disabled).configured, false);
+});
+
+test("Openrouter server secret alias authorizes the fixed provider endpoint and canonical name takes precedence", async () => {
+  const settings = {
+    ASSISTANT_ENABLED: "true",
+    ASSISTANT_MODEL: "test/model:free",
+    ASSISTANT_OPENROUTER_PROVIDERS: "ApprovedProvider",
+    ASSISTANT_DAILY_TOKEN_LIMIT: "50000",
+    ASSISTANT_MAX_INPUT_PRICE: "0",
+    ASSISTANT_MAX_OUTPUT_PRICE: "0",
+  };
+  for (const [credentials, expected] of [
+    [{ Openrouter: " synthetic-alias " }, "synthetic-alias"],
+    [
+      {
+        OPENROUTER_API_KEY: "synthetic-canonical",
+        Openrouter: "synthetic-alias",
+      },
+      "synthetic-canonical",
+    ],
+    [
+      { OPENROUTER_API_KEY: "  ", Openrouter: "synthetic-alias" },
+      "synthetic-alias",
+    ],
+  ] as const) {
+    let calls = 0;
+    const transport = (async (url, options) => {
+      calls++;
+      assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
+      assert.equal(
+        new Headers(options?.headers).get("Authorization"),
+        `Bearer ${expected}`,
+      );
+      const request = JSON.parse(String(options?.body));
+      assert.deepEqual(request.provider.max_price, {
+        prompt: 0,
+        completion: 0,
+      });
+      assert.equal(request.provider.allow_fallbacks, false);
+      return Response.json({
+        model: settings.ASSISTANT_MODEL,
+        provider: "ApprovedProvider",
+        choices: [
+          {
+            finish_reason: "stop",
+            message: { content: JSON.stringify({ operations: [operation()] }) },
+          },
+        ],
+      });
+    }) as typeof fetch;
+    const adapter = new OpenRouterProvider(
+      { ...settings, ...credentials },
+      transport,
+    );
+    assert.equal(adapter.configured, true);
+    const result = await adapter.plan(
+      { question: "synthetic source question" },
+      new AbortController().signal,
+    );
+    assert.equal(result.operations.length, 1);
+    assert.equal(calls, 1);
+  }
+  assert.equal(
+    new OpenRouterProvider({ ...settings, Openrouter: "  " }).configured,
+    false,
+  );
 });
