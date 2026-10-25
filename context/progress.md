@@ -113,3 +113,8 @@ User confirmed free models only. Adapter now rejects nonzero price settings and 
 Follow-up: free-only CI40193161315 failed in combined browser checks (backend/contracts passed); detailed logs denied. Added per-suite CI names and failure artifacts, preserving every gate. Vercel-only report reveals checked-in config deploys proxy/frontend rather than Nest; exact key variable name and DATABASE_URL presence requested without secrets. See assistant-engineering-review.md.
 
 Openrouter server variable alias implemented after user supplied the name. Backend51 tests pass including controlled Authorization/header precedence and strict free routing; assets scan both names. Actual provider evaluation remains blocked: key/model/provider absent locally, private Vercel settings unavailable and backend hosting unverified. See assistant-engineering-review.md.
+
+
+## Assistant model selector — 25 October 2026
+
+Added bounded authenticated free/structured text-model catalog and per-question model choice (contract1.1.0). Chosen instance is pinned across both provider calls and safe retries; cold replicas validate outside reservation transactions. No migration/dependency/lock changes. Backend53, Assistant UI11 and built fixture1 pass locally; actual OpenRouter access remains blocked/unconfigured, so no real model output claimed. Detail: assistant-model-selection.md.
