@@ -116,6 +116,7 @@ export const routeTitles: Record<string, string> = {
   "/entities": "Entities",
   "/entities/consolidation": "Consolidation",
   "/assistant": "FinAI Assistant",
+  "/demo/assistant": "FinAI Assistant demo",
   "/automations": "Automations",
   "/integrations": "Integrations",
   "/audit-log": "Audit log",

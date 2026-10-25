@@ -1,3 +1,4 @@
+import { controlledAssistantProvider } from "./assistant-provider-fixture";
 // Synthetic HTTPS test harness only; never a deployment server.
 import { createServer, globalAgent } from "node:https";
 import proxy from "../api/proxy";
@@ -40,7 +41,13 @@ await db.organisation.create({
   data: { id: organisationId, name: "Synthetic session organisation" },
 });
 await db.user.create({ data: { id: userId } });
-await db.membership.create({ data: { organisationId, userId, isAdministrator: process.env.FINAI_TEST_WORKSPACE === "1" } });
+await db.membership.create({
+  data: {
+    organisationId,
+    userId,
+    isAdministrator: process.env.FINAI_TEST_WORKSPACE === "1",
+  },
+});
 await db.entity.create({
   data: { id: entityId, organisationId, name: "Synthetic entity" },
 });
@@ -85,7 +92,7 @@ const origin = "https://127.0.0.1:18443";
 const applicationOptions = {
   env: {
     ...process.env,
-    NODE_ENV: "production",
+    NODE_ENV: process.env.FINAI_TEST_ASSISTANT ? "test" : "production",
     CHECKLIST_IDENTITY: "session",
     API_HOST: "127.0.0.1",
     API_PORT: "0",
@@ -94,6 +101,9 @@ const applicationOptions = {
     API_PROXY_TOKEN: proxyToken,
   },
   quiet: true,
+  ...(process.env.FINAI_TEST_ASSISTANT
+    ? { assistantProvider: controlledAssistantProvider }
+    : {}),
 };
 let app = await createApplication(applicationOptions);
 let backend = await app.getUrl();
@@ -127,11 +137,13 @@ await new Promise<void>((resolve) =>
   backendTLS.listen(18444, "127.0.0.1", resolve),
 );
 const root = resolve(
-  process.env.FINAI_TEST_WORKSPACE
-    ? "artifacts/workspace-dist"
-    : process.env.FINAI_TEST_RECEIVABLES
-      ? "artifacts/receivables-dist"
-      : "artifacts/session-dist",
+  process.env.FINAI_TEST_ASSISTANT
+    ? "artifacts/assistant-dist"
+    : process.env.FINAI_TEST_WORKSPACE
+      ? "artifacts/workspace-dist"
+      : process.env.FINAI_TEST_RECEIVABLES
+        ? "artifacts/receivables-dist"
+        : "artifacts/session-dist",
 );
 mkdirSync(root, { recursive: true });
 const server = createServer(
@@ -233,6 +245,24 @@ const importSource = async (expected: number, paid: number, name: string) => {
   );
 };
 if (receivables) await importSource(0, 25000, "Synthetic source A");
+if (process.env.FINAI_TEST_ASSISTANT) {
+  const { LedgerService, mappingDigest, validateLedger } =
+    await import("../../backend/dist/src/ledger/source.js");
+  const source = JSON.parse(
+    readFileSync(
+      "../contracts/examples/assistant-ledger.synthetic.json",
+      "utf8",
+    ),
+  );
+  await app
+    .get(LedgerService)
+    .import({ organisationId, userId }, entityId, 0, source, true);
+  app
+    .get(LedgerService)
+    .approved.add(
+      `${source.mappingId}@${mappingDigest(validateLedger(source))}`,
+    );
+}
 process.send?.({ origin, organisationId, entityId, secondEntityId });
 process.on("message", async (command) => {
   if (!receivables) return;
@@ -241,6 +271,21 @@ process.on("message", async (command) => {
       await app.close();
       app = await createApplication(applicationOptions);
       backend = await app.getUrl();
+      if (process.env.FINAI_TEST_ASSISTANT) {
+        const { LedgerService, mappingDigest, validateLedger } =
+          await import("../../backend/dist/src/ledger/source.js");
+        const source = JSON.parse(
+          readFileSync(
+            "../contracts/examples/assistant-ledger.synthetic.json",
+            "utf8",
+          ),
+        );
+        app
+          .get(LedgerService)
+          .approved.add(
+            `${source.mappingId}@${mappingDigest(validateLedger(source))}`,
+          );
+      }
     } else if (command === "importB")
       await importSource(1, 50000, "Synthetic source B");
     else if (command === "deny")
