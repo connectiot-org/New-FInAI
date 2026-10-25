@@ -1,0 +1,8 @@
+import {createRequire} from 'node:module';import {readFileSync} from 'node:fs';import assert from 'node:assert/strict';
+const require=createRequire(new URL('../backend/package.json',import.meta.url)),Ajv=require('ajv/dist/2020').default,formats=require('ajv-formats').default,ajv=new Ajv({strict:false});formats(ajv);
+const root=new URL('./',import.meta.url),doc=JSON.parse(readFileSync(new URL('assistant.schema.json',root),'utf8')),ledger=JSON.parse(readFileSync(new URL('ledger.schema.json',root),'utf8'));
+for(const schema of Object.values(doc.$defs))assert.equal(ajv.validateSchema({...schema,$defs:doc.$defs}),true);
+const fixture=JSON.parse(readFileSync(new URL('examples/assistant-ledger.synthetic.json',root),'utf8'));assert.equal(ajv.validate(ledger,fixture),true,JSON.stringify(ajv.errors));
+const check=(name,v)=>ajv.validate({...doc.$defs[name],$defs:doc.$defs},v);
+const id='22222222-2222-4222-8222-222222222222';assert.equal(check('ConversationCreate',{id,entityId:id,month:'2026-09',currency:'USD'}),true);assert.equal(check('ConversationCreate',{id,entityId:id,month:'0000-09',currency:'USD'}),false);assert.equal(check('TurnCreate',{id,question:'synthetic',expectedVersion:1,userId:id}),false);assert.equal(check('Plan',{operations:[{kind:'ledger',period:'current',customerId:null,accountId:'bank',metric:'cash',reason:'none'}]}),true);assert.equal(check('Plan',{operations:[{kind:'arbitrary_sql'}]}),false);assert.equal(check('Composition',{factIds:['f1'],noteIds:[],amount:123}),false);
+console.log('PASS: Assistant1.0 schemas, strict requests/plans/output references and synthetic ledger source contract; financial arithmetic is separately integration-tested.');

@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "sourceName": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    },
+    "mappingId": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "precision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 6
+    },
+    "periodStart": {
+      "type": "string",
+      "pattern": "^(?!0000)\\d{4}-(0[1-9]|1[0-2])-\\d{2}$"
+    },
+    "periodEnd": {
+      "type": "string",
+      "pattern": "^(?!0000)\\d{4}-(0[1-9]|1[0-2])-\\d{2}$"
+    },
+    "completePostedRegister": {
+      "type": "boolean",
+      "const": true
+    },
+    "accounts": {
+      "minItems": 1,
+      "maxItems": 500,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "receivable",
+              "asset",
+              "liability",
+              "equity",
+              "revenue",
+              "expense"
+            ]
+          },
+          "normal": {
+            "type": "string",
+            "enum": [
+              "debit",
+              "credit"
+            ]
+          },
+          "openingDebit": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,15})$"
+          },
+          "openingCredit": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,15})$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "classification",
+          "normal",
+          "openingDebit",
+          "openingCredit"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "journals": {
+      "maxItems": 5000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "date": {
+            "type": "string",
+            "pattern": "^(?!0000)\\d{4}-(0[1-9]|1[0-2])-\\d{2}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Posted",
+              "Draft"
+            ]
+          },
+          "lines": {
+            "minItems": 2,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "accountId": {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                "debit": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})$"
+                },
+                "credit": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})$"
+                }
+              },
+              "required": [
+                "id",
+                "accountId",
+                "debit",
+                "credit"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "date",
+          "status",
+          "lines"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "basis": {
+      "type": "string",
+      "enum": [
+        "accrual",
+        "cash"
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "sourceName",
+    "capturedAt",
+    "mappingId",
+    "currency",
+    "precision",
+    "periodStart",
+    "periodEnd",
+    "completePostedRegister",
+    "accounts",
+    "journals",
+    "basis"
+  ],
+  "additionalProperties": false
+}
