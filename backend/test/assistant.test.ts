@@ -519,8 +519,8 @@ test("provider request pins model/privacy/price/no fallback and handles refusal,
     ASSISTANT_MODEL: "test/model",
     ASSISTANT_OPENROUTER_PROVIDERS: "ApprovedProvider",
     ASSISTANT_DAILY_TOKEN_LIMIT: "100000",
-    ASSISTANT_MAX_INPUT_PRICE: "1",
-    ASSISTANT_MAX_OUTPUT_PRICE: "2",
+    ASSISTANT_MAX_INPUT_PRICE: "0",
+    ASSISTANT_MAX_OUTPUT_PRICE: "0",
   };
   let mode = "good";
   const transport = (async (url: any, opts: any) => {
@@ -528,6 +528,7 @@ test("provider request pins model/privacy/price/no fallback and handles refusal,
     const b = JSON.parse(opts.body);
     assert.deepEqual(b.provider.only, ["ApprovedProvider"]);
     assert.equal(b.provider.allow_fallbacks, false);
+    assert.deepEqual(b.provider.max_price, { prompt: 0, completion: 0 });
     assert.equal(b.provider.data_collection, "deny");
     assert.equal(b.provider.zdr, true);
     assert.equal(b.response_format.type, "json_schema");
@@ -572,7 +573,7 @@ test("provider request pins model/privacy/price/no fallback and handles refusal,
     "ASSISTANT_MAX_INPUT_PRICE",
     "ASSISTANT_MAX_OUTPUT_PRICE",
   ]) {
-    for (const value of ["", "   "])
+    for (const value of ["", "   ", "0.01", "1", "-1"])
       assert.equal(
         new OpenRouterProvider({ ...e, [field]: value }).configured,
         false,
@@ -1067,8 +1068,8 @@ test("provider byte/deadline/context and rate boundaries fail safely without fal
     ASSISTANT_MODEL: "test/model",
     ASSISTANT_OPENROUTER_PROVIDERS: "ApprovedProvider",
     ASSISTANT_DAILY_TOKEN_LIMIT: "100000",
-    ASSISTANT_MAX_INPUT_PRICE: "1",
-    ASSISTANT_MAX_OUTPUT_PRICE: "2",
+    ASSISTANT_MAX_INPUT_PRICE: "0",
+    ASSISTANT_MAX_OUTPUT_PRICE: "0",
   };
   let mode = "large",
     calls = 0;

@@ -49,12 +49,8 @@ export class OpenRouterProvider implements AssistantProvider {
       this.dailyLimit <= 100000000 &&
       !!env.ASSISTANT_MAX_INPUT_PRICE?.trim() &&
       !!env.ASSISTANT_MAX_OUTPUT_PRICE?.trim() &&
-      Number.isFinite(this.inputPrice) &&
-      this.inputPrice >= 0 &&
-      this.inputPrice <= 1000 &&
-      Number.isFinite(this.outputPrice) &&
-      this.outputPrice >= 0 &&
-      this.outputPrice <= 1000;
+      this.inputPrice === 0 &&
+      this.outputPrice === 0;
   }
   async call<T>(
     name: string,
@@ -96,8 +92,8 @@ export class OpenRouterProvider implements AssistantProvider {
               data_collection: "deny",
               zdr: true,
               max_price: {
-                prompt: this.inputPrice,
-                completion: this.outputPrice,
+                prompt: 0,
+                completion: 0,
               },
             },
             messages: [
