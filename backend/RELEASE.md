@@ -51,3 +51,6 @@ Use the same `run --rm api` prefix for administrative `node --import tsx scripts
 ## Imported receivables release
 
 See `RECEIVABLES.md` for the ordered snapshot migration, owner-reviewed source import, readiness/smoke checks and rollback. Frontend flags: `VITE_RECEIVABLES_MODE=api`, `VITE_AUTH_MODE=session`, `VITE_API_BASE_URL=/api/v1`. Preserve checklist mode separately. FINAI_PUBLIC_ORIGIN is one exact frontend HTTPS origin; API_TRUSTED_HOST is a separate backend host setting, not a second line of that origin value. No target secrets, production import or deployment is performed by implementation tests.
+
+
+FinAI Assistant adds two migrations (seven total). Read [ASSISTANT.md](ASSISTANT.md) for explicit provider/price/budget/privacy controls, approved ledger mapping, retention, evaluation and rollback gates. Keep disabled until approved configuration and staging verification.

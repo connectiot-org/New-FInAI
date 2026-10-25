@@ -15,6 +15,8 @@ model Organisation {
   sessions Session[]
   auditEvents ServerAudit[]
   importStages ReceivableImportStage[]
+  assistantBudgets AssistantBudget[]
+  assistantDeletions AssistantDeletion[]
 }
 
 model User {
@@ -24,6 +26,8 @@ model User {
   receivableImports ReceivableSnapshot[]
   auditEvents ServerAudit[]
   importStages ReceivableImportStage[]
+  ledgerImports LedgerSnapshot[]
+  assistantDeletions AssistantDeletion[]
 }
 
 model Membership {
@@ -35,6 +39,8 @@ model Membership {
   organisation   Organisation   @relation(fields: [organisationId], references: [id])
   user           User           @relation(fields: [userId], references: [id])
   access         EntityAccess[]
+  assistantConversations AssistantConversation[]
+  assistantPreferences AssistantPreference[]
 
   @@id([organisationId, userId])
 }
@@ -50,6 +56,9 @@ model Entity {
   receivableSnapshots ReceivableSnapshot[]
   auditEvents ServerAudit[]
   importStages ReceivableImportStage[]
+  assistantConversations AssistantConversation[]
+  assistantPreferences AssistantPreference[]
+  ledgerSnapshots LedgerSnapshot[]
 
   @@unique([organisationId, id])
 }
@@ -197,4 +206,91 @@ model ReceivableImportStage {
  actor User @relation(fields:[actorId],references:[id],onDelete:NoAction,onUpdate:NoAction)
  entity Entity @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
  @@index([organisationId,actorId,expiresAt],map:"import_stage_actor_expiry")
+}
+
+model AssistantConversation {
+ id String @id @db.Uuid
+ organisationId String @map("organisation_id") @db.Uuid
+ userId String @map("user_id") @db.Uuid
+ entityId String @map("entity_id") @db.Uuid
+ month String @db.Char(7)
+ currency String @db.Char(3)
+ version Int @default(1)
+ createDigest String @map("create_digest") @db.Char(64)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+ turns AssistantTurn[]
+ membership Membership @relation(fields:[organisationId,userId],references:[organisationId,userId],onDelete:NoAction,onUpdate:NoAction)
+ entity Entity @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
+ @@index([organisationId,userId,entityId,createdAt])
+}
+model AssistantTurn {
+ id String @id @db.Uuid
+ conversationId String @map("conversation_id") @db.Uuid
+ question String @db.VarChar(2000)
+ digest String @db.Char(64)
+ status String @db.VarChar(16)
+ lease String @db.Uuid
+ leaseUntil DateTime @map("lease_until") @db.Timestamptz(3)
+ sessionHash String? @map("session_hash") @db.Char(64)
+ answer Json? @db.JsonB
+ plan Json? @db.JsonB
+ failureCode String? @map("failure_code") @db.VarChar(64)
+ model String @db.VarChar(200)
+ policy String @db.VarChar(64)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ finishedAt DateTime? @map("finished_at") @db.Timestamptz(3)
+ conversation AssistantConversation @relation(fields:[conversationId],references:[id],onDelete:Cascade,onUpdate:NoAction)
+ @@index([conversationId,createdAt,id])
+ @@index([status,leaseUntil])
+}
+model AssistantPreference {
+ id String @id @db.Uuid
+ organisationId String @map("organisation_id") @db.Uuid
+ userId String @map("user_id") @db.Uuid
+ entityId String @map("entity_id") @db.Uuid
+ detail String @db.VarChar(16)
+ note String @db.VarChar(500)
+ version Int @default(1)
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+ expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+ membership Membership @relation(fields:[organisationId,userId],references:[organisationId,userId],onDelete:NoAction,onUpdate:NoAction)
+ entity Entity @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
+ @@unique([organisationId,userId,entityId])
+}
+model AssistantBudget {
+ organisationId String @map("organisation_id") @db.Uuid
+ day DateTime @db.Date
+ tokens Int
+ organisation Organisation @relation(fields:[organisationId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ @@id([organisationId,day])
+}
+model LedgerSnapshot {
+ id String @id @db.Uuid
+ organisationId String @map("organisation_id") @db.Uuid
+ entityId String @map("entity_id") @db.Uuid
+ version Int
+ digest String @db.Char(64)
+ actorId String @map("actor_id") @db.Uuid
+ sourceName String @map("source_name") @db.VarChar(200)
+ capturedAt DateTime @map("captured_at") @db.Timestamptz(3)
+ importedAt DateTime @default(now()) @map("imported_at") @db.Timestamptz(3)
+ content Json @db.JsonB
+ entity Entity @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
+ actor User @relation(fields:[actorId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ @@unique([organisationId,entityId,version])
+ @@unique([organisationId,entityId,digest])
+}
+model AssistantDeletion {
+ id String @db.Uuid
+ kind String @db.VarChar(16)
+ organisationId String @map("organisation_id") @db.Uuid
+ userId String @map("user_id") @db.Uuid
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+ organisation Organisation @relation(fields:[organisationId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ user User @relation(fields:[userId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ @@id([id,kind])
+ @@index([expiresAt])
 }

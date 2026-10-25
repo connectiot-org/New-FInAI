@@ -1,4 +1,12 @@
 import "reflect-metadata";
+import { AssistantController } from "./assistant/controller";
+import { AssistantService } from "./assistant/service";
+import { AssistantFacts } from "./assistant/facts";
+import {
+  OpenRouterProvider,
+  type AssistantProvider,
+} from "./assistant/provider";
+import { LedgerService, LedgerController } from "./ledger/source";
 import {
   Controller,
   Delete,
@@ -135,6 +143,8 @@ class ChecklistController {
 }
 @Module({
   controllers: [
+    AssistantController,
+    LedgerController,
     WorkspaceController,
     ReceivablesImportController,
     ChecklistController,
@@ -143,6 +153,9 @@ class ChecklistController {
     ReceivablesDetailController,
   ],
   providers: [
+    AssistantService,
+    AssistantFacts,
+    LedgerService,
     WorkspaceService,
     ReceivablesImportService,
     Database,
@@ -162,6 +175,7 @@ export async function createApplication(
     env?: NodeJS.ProcessEnv;
     identity?: Identity;
     quiet?: boolean;
+    assistantProvider?: AssistantProvider;
   } = {},
 ) {
   const timezones = organisationTimezones(
@@ -183,6 +197,16 @@ export async function createApplication(
   });
   app.enableShutdownHooks();
   app.get(SubscriptionService).timezones = timezones;
+  const assistantEnv = options.env || process.env;
+  if (options.assistantProvider && assistantEnv.NODE_ENV !== "test")
+    throw new Error("Provider injection is test-only");
+  app.get(AssistantService).provider =
+    options.assistantProvider || new OpenRouterProvider(assistantEnv);
+  app.get(LedgerService).approved = new Set(
+    (assistantEnv.ASSISTANT_LEDGER_MAPPING_IDS || "")
+      .split(",")
+      .filter(Boolean),
+  );
   const db = app.get(Database);
   const auth = new Auth(db);
   const server = app.getHttpServer();
@@ -361,6 +385,12 @@ export async function createApplication(
           await db.$queryRaw`SELECT is_administrator, version FROM "Membership" LIMIT 1`;
           await db.$queryRaw`SELECT can_import, version FROM "EntityAccess" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "ServerAudit" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "AssistantConversation" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "AssistantTurn" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "AssistantPreference" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "AssistantBudget" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "AssistantDeletion" LIMIT 1`;
+          await db.$queryRaw`SELECT 1 FROM "LedgerSnapshot" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "ReceivableImportStage" LIMIT 1`;
           res.json({ status: "ready", mode: "session" });
           return;
