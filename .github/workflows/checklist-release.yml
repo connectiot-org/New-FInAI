@@ -42,25 +42,58 @@ jobs:
           /tmp/finai-contracts/bin/python contracts/validate_receivables_detail.py
           node contracts/validate_assistant.mjs
           npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml contracts/receivables-detail.openapi.yaml contracts/workspace.openapi.yaml contracts/assistant.openapi.yaml --extends minimal
-      - name: Browser and production session checks
+      - name: Install browser and check frontend
         working-directory: frontend
         run: |
           npx playwright install --with-deps chromium
           npm run typecheck
           npm run lint
           npm run build
-          npm test
-          npm run test:checklist
-          npm run test:subscriptions
-          npm run test:session
-          npm run test:receivables
-          npm run test:receivables:production
-          npm run test:workspace
-          npm run test:workspace:production
-          npm run test:assistant
-          npm run test:assistant:production
+      - name: Demo browser tests
+        working-directory: frontend
+        run: npm run test
+      - name: Checklist integration tests
+        working-directory: frontend
+        run: npm run test:checklist
+      - name: Subscription integration tests
+        working-directory: frontend
+        run: npm run test:subscriptions
+      - name: Built session integration tests
+        working-directory: frontend
+        run: npm run test:session
+      - name: Receivables browser tests
+        working-directory: frontend
+        run: npm run test:receivables
+      - name: Built receivables integration tests
+        working-directory: frontend
+        run: npm run test:receivables:production
+      - name: Workspace browser tests
+        working-directory: frontend
+        run: npm run test:workspace
+      - name: Built workspace integration tests
+        working-directory: frontend
+        run: npm run test:workspace:production
+      - name: Assistant browser tests
+        working-directory: frontend
+        run: npm run test:assistant
+      - name: Built Assistant integration tests
+        working-directory: frontend
+        run: npm run test:assistant:production
+      - name: Frontend asset and dependency audit
+        working-directory: frontend
+        run: |
           node scripts/check-assets.ts
           npm audit
+      - name: Retain browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-evidence
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Container build and synthetic application restore
         run: |
           docker build -t finai-backend:ci backend
