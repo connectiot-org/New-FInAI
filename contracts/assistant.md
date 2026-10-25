@@ -18,3 +18,8 @@ GET /assistant/source?entityId&month&kind=checklist|subscriptions&offset&limit p
 
 
 Deployment policy (user-selected, 25 October 2026): OpenRouter free-only routing. Both explicit server price caps must be zero; nonzero/blank settings leave the provider unconfigured. Requests always pin prompt/completion max_price to0 with no fallback. This is a routing constraint, not a guarantee of catalog availability, provider quota or compatibility of every model. HTTP shapes are unchanged.
+
+
+## Model selection — contract1.1.0
+
+Authenticated GET /api/v1/assistant/models returns ModelList (items id/name, retrievedAt, defaultModel nullable, freeOnly:true). The server fetches only the fixed OpenRouter public catalog, bounds bytes/time/count and caches eligible text models for5 minutes. Eligibility requires zero prompt/completion/request pricing and advertised strict structured_outputs support; it does not guarantee live availability, routing/provider/privacy compatibility or quota. Catalog failures are explicit; no invented catalog or provider output. TurnCreate accepts optional model; existing clients may omit it for the configured default. Nondefault IDs must be in the fresh server catalog. The chosen provider instance is pinned to the reserved turn and persisted via its existing model column; stable UUID/digest retries cannot switch model or repeat spend. Both planning/composition use that instance. No new migration or change to tenant/user/session authorization. All paid/fallback routing stays prohibited.

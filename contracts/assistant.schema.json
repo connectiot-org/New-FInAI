@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:finai:assistant:1.0.0",
+  "$id": "urn:finai:assistant:1.1.0",
   "$defs": {
     "ConversationCreate": {
       "type": "object",
@@ -52,6 +52,10 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 2147483647
+        },
+        "model": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._:/-]{1,200}$"
         }
       }
     },
@@ -959,6 +963,59 @@
               }
             ]
           }
+        }
+      }
+    },
+    "ModelList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "retrievedAt",
+        "defaultModel",
+        "freeOnly"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "maxItems": 500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9._:/-]{1,200}$"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              }
+            }
+          }
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "defaultModel": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9._:/-]{1,200}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freeOnly": {
+          "const": true
         }
       }
     }
