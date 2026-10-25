@@ -293,7 +293,7 @@ export function Shell() {
       <Modal
         open={assistant}
         onOpenChange={setAssistant}
-        title="FinAI Assistant"
+        title="FinAI Assistant demo"
         drawer
       >
         <Assistant embedded onNavigate={() => setAssistant(false)} />

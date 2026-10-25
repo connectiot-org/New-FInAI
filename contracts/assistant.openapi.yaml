@@ -1,0 +1,1499 @@
+openapi: 3.1.1
+info:
+  title: FinAI Assistant
+  version: 1.0.0
+  description: See assistant.md for immutable scope, no duplicate inference, retention,
+    model restrictions and source semantics.
+servers:
+- url: /
+paths:
+  /api/v1/assistant/capabilities:
+    get:
+      summary: Assistant capabilities
+      operationId: Assistantcapabilities
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Capabilities'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/assistant/conversations:
+    get:
+      summary: List private conversations
+      operationId: Listprivateconversations
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationList'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+    post:
+      summary: Create private conversation
+      operationId: Createprivateconversation
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Conversation'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationCreate'
+  /api/v1/assistant/conversations/{id}:
+    get:
+      summary: Read private conversation
+      operationId: Readprivateconversation
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationRead'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      summary: Delete private conversation
+      operationId: Deleteprivateconversation
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deleted'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Version'
+  /api/v1/assistant/conversations/{id}/turns:
+    get:
+      summary: Page saved turns
+      operationId: Pagesavedturns
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationRead'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+    post:
+      summary: Reserve private turn
+      operationId: Reserveprivateturn
+      security:
+      - Session: []
+      responses:
+        '202':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TurnResult'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TurnCreate'
+  /api/v1/assistant/conversations/{id}/turns/{turnId}:
+    delete:
+      summary: Cancel pending turn
+      operationId: Cancelpendingturn
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cancelled'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: turnId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Version'
+  /api/v1/assistant/preferences:
+    get:
+      summary: List explicit preferences
+      operationId: Listexplicitpreferences
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preferences'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/v1/assistant/preferences/{id}:
+    put:
+      summary: Save explicit preference
+      operationId: Saveexplicitpreference
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Saved'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreferenceWrite'
+    delete:
+      summary: Forget explicit preference
+      operationId: Forgetexplicitpreference
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forgotten'
+        '401':
+          description: Expired/invalid session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Permission/CSRF/origin denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Unavailable or foreign resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Version/UUID/quota conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Strict input validation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Budget/concurrency/rate limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Unavailable provider/source/database
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Forget'
+  /api/v1/assistant/source:
+    get:
+      summary: Read current scoped operational source behind a dated answer
+      operationId: readAssistantOperationalSource
+      security:
+      - Session: []
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema: &id001
+          type: string
+          format: uuid
+      - name: month
+        in: query
+        required: true
+        schema:
+          type: string
+          pattern: ^(?!0000)\d{4}-(0[1-9]|1[0-2])$
+      - name: kind
+        in: query
+        required: true
+        schema:
+          enum:
+          - checklist
+          - subscriptions
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      responses:
+        '200':
+          description: Current source with explicit scope and retrieval time; mutable
+            records may differ from dated answers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationalSource'
+        '401':
+          description: Session invalid
+        '404':
+          description: Absent or inaccessible entity
+        '422':
+          description: Invalid source scope
+components:
+  securitySchemes:
+    Session:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+  schemas:
+    ConversationCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entityId
+      - month
+      - currency
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        month:
+          type: string
+          pattern: ^(?!0000)\d{4}-(0[1-9]|1[0-2])$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+    TurnCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - question
+      - expectedVersion
+      properties:
+        id:
+          type: string
+          format: uuid
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    PreferenceWrite:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - detail
+      - note
+      - expectedVersion
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        detail:
+          enum:
+          - concise
+          - detailed
+        note:
+          type: string
+          maxLength: 500
+        expectedVersion:
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+    Fact:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - label
+      - value
+      - unit
+      - currency
+      - precision
+      - sourceId
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        value:
+          type: string
+        unit:
+          enum:
+          - text
+          - minor
+          - count
+        currency:
+          type:
+          - string
+          - 'null'
+        precision:
+          type: integer
+          minimum: 0
+          maximum: 6
+        sourceId:
+          type: string
+        recordId:
+          type: string
+          maxLength: 200
+        recordKind:
+          enum:
+          - customer
+          - account
+    Source:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - label
+      - href
+      - basis
+      - capturedAt
+      - importedAt
+      - retrievedAt
+      - version
+      - snapshotId
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        href:
+          type: string
+          pattern: ^/workspace/
+        basis:
+          type: string
+        capturedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        importedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        retrievedAt:
+          type: string
+          format: date-time
+        version:
+          type:
+          - integer
+          - 'null'
+        snapshotId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+    Plan:
+      type: object
+      additionalProperties: false
+      required:
+      - operations
+      properties:
+        operations:
+          type: array
+          minItems: 1
+          maxItems: 3
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - kind
+            - period
+            - customerId
+            - metric
+            - reason
+            - accountId
+            properties:
+              kind:
+                enum:
+                - receivables
+                - invoices
+                - checklist
+                - subscriptions
+                - ledger
+                - clarify
+                - unsupported
+              period:
+                enum:
+                - current
+                - previous
+              customerId:
+                type:
+                - string
+                - 'null'
+                maxLength: 200
+              metric:
+                enum:
+                - all
+                - cash
+                - revenue
+                - expense
+                - profit
+                - receivable
+                - assets
+                - equity
+              reason:
+                enum:
+                - none
+                - ambiguous
+                - unsupported
+                - missing_ledger
+                - scope_change
+              accountId:
+                type:
+                - string
+                - 'null'
+                maxLength: 200
+    Composition:
+      type: object
+      additionalProperties: false
+      required:
+      - factIds
+      - noteIds
+      properties:
+        factIds:
+          type: array
+          maxItems: 12
+          items:
+            type: string
+        noteIds:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+    Answer:
+      type: object
+      additionalProperties: false
+      required:
+      - facts
+      - sources
+      - notes
+      - basis
+      - detail
+      properties:
+        facts:
+          type: array
+          maxItems: 12
+          items:
+            $ref: '#/components/schemas/Fact'
+        sources:
+          type: array
+          maxItems: 6
+          items:
+            $ref: '#/components/schemas/Source'
+        notes:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+        basis:
+          type: string
+        detail:
+          enum:
+          - concise
+          - detailed
+    Conversation:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entityId
+      - month
+      - currency
+      - version
+      - createdAt
+      - expiresAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        month:
+          type: string
+          pattern: ^(?!0000)\d{4}-(0[1-9]|1[0-2])$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    Turn:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - question
+      - status
+      - answer
+      - failureCode
+      - model
+      - policy
+      - createdAt
+      - finishedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        question:
+          type: string
+        status:
+          enum:
+          - pending
+          - completed
+          - failed
+          - cancelled
+        answer:
+          anyOf:
+          - $ref: '#/components/schemas/Answer'
+          - type: 'null'
+        failureCode:
+          type:
+          - string
+          - 'null'
+        model:
+          type: string
+        policy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        finishedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ConversationRead:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entityId
+      - month
+      - currency
+      - version
+      - createdAt
+      - expiresAt
+      - offset
+      - limit
+      - total
+      - turns
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        month:
+          type: string
+          pattern: ^(?!0000)\d{4}-(0[1-9]|1[0-2])$
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        offset:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+          maximum: 200
+        turns:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Turn'
+    ConversationList:
+      type: object
+      additionalProperties: false
+      required:
+      - offset
+      - limit
+      - total
+      - items
+      properties:
+        offset:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/Conversation'
+    TurnResult:
+      type: object
+      additionalProperties: false
+      required:
+      - conversationVersion
+      - turn
+      properties:
+        conversationVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        turn:
+          $ref: '#/components/schemas/Turn'
+    Preference:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entityId
+      - detail
+      - note
+      - version
+      - createdAt
+      - updatedAt
+      - expiresAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityId:
+          type: string
+          format: uuid
+        detail:
+          enum:
+          - concise
+          - detailed
+        note:
+          type: string
+          maxLength: 500
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    Preferences:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          maxItems: 1
+          items:
+            $ref: '#/components/schemas/Preference'
+    Version:
+      type: object
+      additionalProperties: false
+      required:
+      - expectedVersion
+      properties:
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    Forget:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - expectedVersion
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    Saved:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - version
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    Deleted:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          const: deleted
+    Forgotten:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          const: forgotten
+    Cancelled:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          const: cancelled
+    Capabilities:
+      type: object
+      additionalProperties: false
+      required:
+      - configured
+      - ledgerMappingsEnabled
+      - model
+      - policy
+      - limits
+      properties:
+        configured:
+          type: boolean
+        ledgerMappingsEnabled:
+          type: boolean
+        model:
+          type:
+          - string
+          - 'null'
+        policy:
+          type: string
+        limits:
+          type: object
+          additionalProperties: false
+          required:
+          - conversations
+          - turns
+          - questionCharacters
+          - leaseSeconds
+          - conversationDays
+          - preferenceDays
+          - maxTools
+          - tokenReservation
+          properties:
+            conversations:
+              type: integer
+              minimum: 0
+            turns:
+              type: integer
+              minimum: 0
+            questionCharacters:
+              type: integer
+              minimum: 0
+            leaseSeconds:
+              type: integer
+              minimum: 0
+            conversationDays:
+              type: integer
+              minimum: 0
+            preferenceDays:
+              type: integer
+              minimum: 0
+            maxTools:
+              type: integer
+              minimum: 0
+            tokenReservation:
+              type: integer
+              minimum: 0
+    Error:
+      type: object
+      required:
+      - code
+      - message
+      - requestId
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        requestId:
+          type: string
+          format: uuid
+        fieldErrors:
+          type: array
+    OperationalSource:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - month
+      - kind
+      - retrievedAt
+      - basis
+      - offset
+      - limit
+      - total
+      - nextOffset
+      - items
+      properties:
+        entityId: *id001
+        month: &id002
+          type: string
+        kind:
+          enum:
+          - checklist
+          - subscriptions
+        retrievedAt:
+          type: string
+          format: date-time
+        basis: *id002
+        offset: &id003
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total: *id003
+        nextOffset:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+        items:
+          type: array
+          maxItems: 50
+          items:
+            oneOf:
+            - type: object
+              additionalProperties: false
+              required:
+              - id
+              - title
+              - completed
+              - version
+              properties:
+                id: *id001
+                title: *id002
+                completed:
+                  type: boolean
+                version:
+                  type: integer
+                  minimum: 1
+            - type: object
+              additionalProperties: false
+              required:
+              - id
+              - supplierName
+              - subscriptionName
+              - renewalDate
+              - cancellationDeadline
+              - version
+              properties:
+                id: *id001
+                supplierName: *id002
+                subscriptionName: *id002
+                renewalDate:
+                  type: string
+                  format: date
+                cancellationDeadline:
+                  type:
+                  - string
+                  - 'null'
+                  format: date
+                version:
+                  type: integer
+                  minimum: 1

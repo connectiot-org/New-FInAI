@@ -70,7 +70,7 @@ export function FinanceSnapshot({ compact = false }: { compact?: boolean }) {
     <div className={`finance-snapshot ${compact ? "is-compact" : ""}`}>
       <div className="finance-snapshot-intro">
         <h2>Rise and reconcile.</h2>
-        <Link to="/assistant" className="finance-ask">
+        <Link to="/demo/assistant" className="finance-ask">
           <span>
             <Sparkles size={15} />
           </span>
@@ -82,7 +82,7 @@ export function FinanceSnapshot({ compact = false }: { compact?: boolean }) {
           <Link to="/close">What’s left on my close?</Link>
           <Link to="/reports/cash-flow">Explore the cash flow statement</Link>
           <Link to="/payables/bills">What needs a review?</Link>
-          <Link to="/assistant">Ask a demo question</Link>
+          <Link to="/demo/assistant">Ask a demo question</Link>
         </div>
       </div>
       <div className="finance-section-label">

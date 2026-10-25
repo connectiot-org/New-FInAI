@@ -1,3 +1,6 @@
+import { OperationalSource } from "../features/assistant/OperationalSource";
+import { ProductionAssistant } from "../features/assistant/Assistant";
+import { LedgerSource } from "../features/assistant/LedgerSource";
 import { Imports } from "../features/workspace/Imports";
 import { Administration as WorkspaceAdministration } from "../features/workspace/Administration";
 import { BrandMark } from "../components/shared/BrandMark";
@@ -182,9 +185,16 @@ const router = createBrowserRouter([
   },
   { path: "/welcome", element: <Welcome /> },
   {
+    path: "/assistant",
+    element: <Navigate to="/workspace/assistant" replace />,
+  },
+  {
     path: "/workspace",
     element: <Workspace />,
     children: [
+      { path: "assistant", element: <ProductionAssistant /> },
+      { path: "assistant/source", element: <OperationalSource /> },
+      { path: "ledger", element: <LedgerSource /> },
       { path: "imports", element: <Imports /> },
       { path: "administration", element: <WorkspaceAdministration /> },
       { index: true, element: <Navigate to="/workspace/overview" replace /> },
@@ -243,7 +253,7 @@ const router = createBrowserRouter([
       { path: "reports/cash-flow", element: <Statement kind="cash-flow" /> },
       { path: "entities", element: <Entities /> },
       { path: "entities/consolidation", element: <Consolidation /> },
-      { path: "assistant", element: <Assistant /> },
+      { path: "demo/assistant", element: <Assistant /> },
       { path: "automations", element: <Automations /> },
       { path: "automations/:id", element: <AutomationDetail /> },
       { path: "integrations", element: <Integrations /> },

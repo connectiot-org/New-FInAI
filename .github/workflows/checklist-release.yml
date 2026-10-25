@@ -40,7 +40,8 @@ jobs:
           /tmp/finai-contracts/bin/python contracts/validate_subscriptions.py
           /tmp/finai-contracts/bin/python contracts/validate_receivables.py
           /tmp/finai-contracts/bin/python contracts/validate_receivables_detail.py
-          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml contracts/receivables-detail.openapi.yaml contracts/workspace.openapi.yaml --extends minimal
+          node contracts/validate_assistant.mjs
+          npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml contracts/receivables-detail.openapi.yaml contracts/workspace.openapi.yaml contracts/assistant.openapi.yaml --extends minimal
       - name: Browser and production session checks
         working-directory: frontend
         run: |
@@ -56,6 +57,8 @@ jobs:
           npm run test:receivables:production
           npm run test:workspace
           npm run test:workspace:production
+          npm run test:assistant
+          npm run test:assistant:production
           node scripts/check-assets.ts
           npm audit
       - name: Container build and synthetic application restore

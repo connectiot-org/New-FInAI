@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "sourceName": "Synthetic September complete books",
+  "capturedAt": "2026-10-24T00:00:00Z",
+  "mappingId": "engineering-v1",
+  "currency": "USD",
+  "precision": 2,
+  "periodStart": "2026-09-01",
+  "periodEnd": "2026-09-30",
+  "completePostedRegister": true,
+  "accounts": [
+    {
+      "id": "bank",
+      "name": "bank",
+      "classification": "cash",
+      "normal": "debit",
+      "openingDebit": "100000",
+      "openingCredit": "0"
+    },
+    {
+      "id": "ar",
+      "name": "ar",
+      "classification": "receivable",
+      "normal": "debit",
+      "openingDebit": "0",
+      "openingCredit": "0"
+    },
+    {
+      "id": "equity",
+      "name": "equity",
+      "classification": "equity",
+      "normal": "credit",
+      "openingDebit": "0",
+      "openingCredit": "100000"
+    },
+    {
+      "id": "sales",
+      "name": "sales",
+      "classification": "revenue",
+      "normal": "credit",
+      "openingDebit": "0",
+      "openingCredit": "0"
+    },
+    {
+      "id": "cost",
+      "name": "cost",
+      "classification": "expense",
+      "normal": "debit",
+      "openingDebit": "0",
+      "openingCredit": "0"
+    }
+  ],
+  "journals": [
+    {
+      "id": "sale",
+      "date": "2026-09-10",
+      "status": "Posted",
+      "lines": [
+        {
+          "id": "d",
+          "accountId": "ar",
+          "debit": "25000",
+          "credit": "0"
+        },
+        {
+          "id": "c",
+          "accountId": "sales",
+          "debit": "0",
+          "credit": "25000"
+        }
+      ]
+    },
+    {
+      "id": "expense",
+      "date": "2026-09-10",
+      "status": "Posted",
+      "lines": [
+        {
+          "id": "d",
+          "accountId": "cost",
+          "debit": "5000",
+          "credit": "0"
+        },
+        {
+          "id": "c",
+          "accountId": "bank",
+          "debit": "0",
+          "credit": "5000"
+        }
+      ]
+    },
+    {
+      "id": "receipt",
+      "date": "2026-09-10",
+      "status": "Posted",
+      "lines": [
+        {
+          "id": "d",
+          "accountId": "bank",
+          "debit": "10000",
+          "credit": "0"
+        },
+        {
+          "id": "c",
+          "accountId": "ar",
+          "debit": "0",
+          "credit": "10000"
+        }
+      ]
+    }
+  ],
+  "basis": "accrual"
+}

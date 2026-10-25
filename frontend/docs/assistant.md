@@ -1,0 +1,11 @@
+# Authenticated FinAI Assistant
+
+/assistant redirects to /workspace/assistant inside the existing session gate. The former deterministic Assistant is explicitly /demo/assistant. Workspace session configuration remains VITE_AUTH_MODE=session and VITE_API_BASE_URL=/api/v1, with existing checklist/receivables API flags. Provider secrets are server-only; see ../../backend/ASSISTANT.md.
+
+Choose an authorized entity, month and currency before creating a conversation. Reopen saved conversations, page older turns, cancel a pending question, or explicitly delete history. Enter sends; Shift+Enter adds a line. Network uncertainty keeps the same request UUID for safe retry. Source/identity changes discard private displayed state. Questions and answers live in scoped PostgreSQL records, not local storage. Retention and expiry are visible.
+
+Answers render validated exact server facts, source timestamps, basis and local source links. Supported sources are imported receivables/invoices, incomplete monthly checklist tasks, saved monthly subscription renewals and finance-approved ledger snapshots. The ledger page shows source accounts/journals and only approved derived totals. /workspace/assistant/source shows current scoped operational rows with a warning that a historical answer may differ. Missing/unapproved data and provider failures remain visible. No live fixture fallback, generated financial actions, arbitrary HTML or invented report totals.
+
+Preferences are explicit per user/entity saves with version conflicts, concise/detailed selection and optional notes, edit/forget confirmation and expiry. Concise selects at most three facts; detailed twelve. Notes are untrusted preferences, never financial evidence or access permission. Translation/tone settings are unsupported. Nothing is silently learned from chat.
+
+Run npm run test:assistant (seven hostile/UI cases) and npm run test:assistant:production (built HTTPS proxy/session/PostgreSQL journey with a controlled test provider). The fixture is injected only under backend NODE_ENV=test and is not runtime model behavior. The production-named suite proves the built application's integration, not a real model or hosted production deployment. Synthetic screenshots under artifacts/assistant are ignored generated artifacts, captured at 1440, 390 and 320 pixels.
