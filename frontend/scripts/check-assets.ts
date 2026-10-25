@@ -7,6 +7,7 @@ const names = [
   "API_PROXY_TOKEN",
   "FINAI_PROXY_TOKEN",
   "OPENROUTER_API_KEY",
+  "Openrouter",
 ];
 const secrets = names
   .map((name) => process.env[name])
