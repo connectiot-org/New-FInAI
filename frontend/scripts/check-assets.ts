@@ -17,9 +17,16 @@ function files(root: string): string[] {
       : [resolve(root, entry.name)],
   );
 }
-for (const root of ["dist", "artifacts/session-dist", "artifacts/receivables-dist"]) {
+for (const root of [
+  "dist",
+  "artifacts/session-dist",
+  "artifacts/receivables-dist",
+  "artifacts/workspace-dist",
+]) {
   if (!existsSync(root))
-    throw new Error("Build demo, session and receivables assets before scanning.");
+    throw new Error(
+      "Build demo, session, receivables and workspace assets before scanning.",
+    );
   const assets = files(root).filter((path) => /\.(js|css|html)$/.test(path));
   for (const path of assets) {
     const text = readFileSync(path, "utf8");
@@ -28,7 +35,9 @@ for (const root of ["dist", "artifacts/session-dist", "artifacts/receivables-dis
         "Credential value found in frontend assets; release blocked.",
       );
     if (
-      (root.includes("session-dist") || root.includes("receivables-dist")) &&
+      (root.includes("session-dist") ||
+        root.includes("receivables-dist") ||
+        root.includes("workspace-dist")) &&
       text.includes("http://127.0.0.1:3000/api/v1")
     )
       throw new Error(
@@ -37,5 +46,5 @@ for (const root of ["dist", "artifacts/session-dist", "artifacts/receivables-dis
   }
 }
 console.log(
-  "PASS: demo/session/receivables assets contain none of the available backend credential values; production session API uses no localhost fallback",
+  "PASS: demo/session/receivables/workspace assets contain none of the available backend credential values; production session API uses no localhost fallback",
 );

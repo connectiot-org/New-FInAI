@@ -40,12 +40,12 @@ await db.organisation.create({
   data: { id: organisationId, name: "Synthetic session organisation" },
 });
 await db.user.create({ data: { id: userId } });
-await db.membership.create({ data: { organisationId, userId } });
+await db.membership.create({ data: { organisationId, userId, isAdministrator: process.env.FINAI_TEST_WORKSPACE === "1" } });
 await db.entity.create({
   data: { id: entityId, organisationId, name: "Synthetic entity" },
 });
 await db.entityAccess.create({
-  data: { organisationId, userId, entityId, canWrite: true },
+  data: { organisationId, userId, entityId, canWrite: true, canImport: true },
 });
 await db.account.create({
   data: {
@@ -127,9 +127,11 @@ await new Promise<void>((resolve) =>
   backendTLS.listen(18444, "127.0.0.1", resolve),
 );
 const root = resolve(
-  process.env.FINAI_TEST_RECEIVABLES
-    ? "artifacts/receivables-dist"
-    : "artifacts/session-dist",
+  process.env.FINAI_TEST_WORKSPACE
+    ? "artifacts/workspace-dist"
+    : process.env.FINAI_TEST_RECEIVABLES
+      ? "artifacts/receivables-dist"
+      : "artifacts/session-dist",
 );
 mkdirSync(root, { recursive: true });
 const server = createServer(
@@ -170,7 +172,9 @@ const server = createServer(
 await new Promise<void>((resolve) =>
   server.listen(18443, "127.0.0.1", resolve),
 );
-const receivables = !!process.env.FINAI_TEST_RECEIVABLES;
+const receivables = !!(
+  process.env.FINAI_TEST_RECEIVABLES || process.env.FINAI_TEST_WORKSPACE
+);
 const secondEntityId = randomUUID();
 if (receivables) {
   await db.entity.create({
@@ -181,7 +185,13 @@ if (receivables) {
     },
   });
   await db.entityAccess.create({
-    data: { organisationId, userId, entityId: secondEntityId, canWrite: true },
+    data: {
+      organisationId,
+      userId,
+      entityId: secondEntityId,
+      canWrite: true,
+      canImport: true,
+    },
   });
 }
 const importedSource = (paidCents: number, sourceName: string) => ({
@@ -241,7 +251,13 @@ process.on("message", async (command) => {
       });
     else if (command === "allow")
       await db.entityAccess.create({
-        data: { organisationId, userId, entityId, canWrite: true },
+        data: {
+          organisationId,
+          userId,
+          entityId,
+          canWrite: true,
+          canImport: true,
+        },
       });
     else if (command === "proxyOff") delete process.env.FINAI_BACKEND_ORIGIN;
     else if (command === "proxyOn")

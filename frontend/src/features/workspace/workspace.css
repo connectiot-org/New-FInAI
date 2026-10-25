@@ -1,0 +1,131 @@
+.production-workspace.app {
+  display: block;
+  min-height: 100vh;
+}
+.production-workspace > header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+}
+.production-workspace > header > a:last-child {
+  margin-left: auto;
+}
+.production-workspace > main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.production-workspace nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+.production-workspace nav a {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+}
+.production-workspace nav a.active {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+.production-workspace .session-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.production-workspace :is(input, select, textarea) {
+  max-width: 100%;
+  min-width: 0;
+}
+.production-workspace :is(h1, h2, p, a, td, dd) {
+  overflow-wrap: anywhere;
+}
+.production-workspace :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  .production-workspace > main {
+    padding: 16px;
+  }
+  .production-workspace > header {
+    padding: 16px;
+  }
+  .production-workspace > header > a:last-child {
+    margin-left: 0;
+  }
+}
+.production-workspace .register-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.production-workspace .register-filters label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 160px;
+}
+.production-workspace .register-filters form {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  max-width: 100%;
+}
+.production-workspace .register-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.production-workspace .register-scroll table {
+  width: 100%;
+  min-width: 0;
+}
+.production-workspace .register-scroll table.register-invoices {
+  min-width: 850px;
+}
+.production-workspace .register-scroll :is(th, td) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.production-workspace .register-provenance {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.production-workspace .register-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.production-workspace .workspace-digest,
+.production-workspace dd,
+.production-workspace li {
+  overflow-wrap: anywhere;
+}
+.production-workspace form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+}
+.production-workspace label {
+  display: grid;
+  gap: 0.35rem;
+}
+.production-workspace dd {
+  margin: 0 0 0.75rem;
+}
+.production-workspace .workspace-identity {
+  color: var(--muted);
+  margin-block: 0 1rem;
+}

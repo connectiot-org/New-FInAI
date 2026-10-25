@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
+import { usdCents } from "./format";
 import { useEffect, useId, useState } from "react";
 import { SessionGate } from "../../components/SessionGate";
 import { ApiError, sessionEnabled } from "../../lib/api";
-import { money } from "../../demo/selectors";
+
 import {
   receivablesApi as api,
   validPeriod,
@@ -21,7 +23,7 @@ function message(e: unknown) {
   }
   return e instanceof Error ? e.message : "Receivables unavailable. Retry.";
 }
-function ImportedBody() {
+function ImportedBody({ workspace = false }: { workspace?: boolean }) {
   const [entities, setEntities] = useState<{ id: string; name: string }[]>([]),
     [entity, setEntity] = useState(""),
     [period, setPeriod] = useState("all"),
@@ -88,8 +90,9 @@ function ImportedBody() {
   return (
     <>
       <p className="outstanding-customers-note">
-        Imported balances use their own selection below. Surrounding financial
-        panels and their entity/period controls remain demo data.
+        {workspace
+          ? "Select an authorized entity and invoice issue period. These balances come from its imported accounting register."
+          : "Imported balances use their own selection below. Surrounding financial panels and their entity/period controls remain demo data."}
       </p>
       <div className="receivables-controls">
         <label>
@@ -173,7 +176,7 @@ function ImportedBody() {
           <dl className="outstanding-customers-totals">
             <div>
               <dt>Total current outstanding</dt>
-              <dd>{money(data.totalCents)}</dd>
+              <dd>{usdCents(data.totalCents)}</dd>
             </div>
             <div>
               <dt>Outstanding invoices</dt>
@@ -200,9 +203,27 @@ function ImportedBody() {
               <tbody>
                 {data.rows.map((row) => (
                   <tr key={row.customerId}>
-                    <td>{row.customerName ?? "Customer unavailable"}</td>
+                    <td>
+                      {workspace && row.customerName ? (
+                        <Link
+                          to={
+                            "/workspace/receivables/invoices?" +
+                            new URLSearchParams({
+                              entityId,
+                              period,
+                              snapshotId: data.source.snapshotId,
+                              customerId: row.customerId,
+                            })
+                          }
+                        >
+                          {row.customerName}
+                        </Link>
+                      ) : (
+                        (row.customerName ?? "Customer unavailable")
+                      )}
+                    </td>
                     <td>{row.invoiceCount}</td>
-                    <td>{money(row.remainingCents)}</td>
+                    <td>{usdCents(row.remainingCents)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -212,14 +233,33 @@ function ImportedBody() {
           )}
         </>
       )}
+      {workspace && data?.dataState === "ready" && (
+        <Link
+          to={
+            "/workspace/receivables/invoices?" +
+            new URLSearchParams({
+              entityId,
+              period,
+              snapshotId: data.source.snapshotId,
+            })
+          }
+        >
+          View imported invoices
+        </Link>
+      )}
       <p className="outstanding-customers-note">
-        Imported invoice balances may differ from ledger-based receivables. No
-        production record links are available in this demo workspace.
+        Imported invoice balances may differ from ledger-based receivables.
+        {!workspace &&
+          " No production record links are available in this demo workspace."}
       </p>
     </>
   );
 }
-export function ImportedOutstandingCustomers() {
+export function ImportedOutstandingCustomers({
+  workspace = false,
+}: {
+  workspace?: boolean;
+}) {
   const id = useId();
   const configured =
     sessionEnabled && import.meta.env.VITE_API_BASE_URL === "/api/v1";
@@ -230,7 +270,7 @@ export function ImportedOutstandingCustomers() {
       </div>
       {configured ? (
         <SessionGate title="Sign in for imported receivables" headingLevel={2}>
-          <ImportedBody />
+          <ImportedBody workspace={workspace} />
         </SessionGate>
       ) : (
         <p role="alert">

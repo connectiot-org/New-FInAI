@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { expireSession, sessionEpoch } from "../../lib/session";
 
 export const checklistMode = import.meta.env.VITE_CHECKLIST_MODE || "demo";
 export const sessionEnabled = import.meta.env.VITE_AUTH_MODE === "session";
@@ -96,6 +97,7 @@ class ApiClient implements ChecklistClient {
     signal?: AbortSignal,
     headers: Record<string, string> = {},
   ): Promise<unknown> {
+    const epoch = sessionEpoch();
     if (checklistMode !== "api")
       throw new ChecklistError("Checklist mode is not configured correctly.");
     const base =
@@ -123,11 +125,12 @@ class ApiClient implements ChecklistClient {
         credentials: "same-origin",
         signal: AbortSignal.timeout(10000),
       });
+      if (session.status === 401) expireSession(epoch);
       if (!session.ok)
         throw new ChecklistError(
           "Your session expired. Sign in again.",
-          401,
-          "UNAUTHENTICATED",
+          session.status,
+          session.status === 401 ? "UNAUTHENTICATED" : "UNAVAILABLE",
         );
       const body = z
         .strictObject({ csrfToken: z.string().regex(/^[a-f0-9]{64}$/) })
@@ -154,6 +157,8 @@ class ApiClient implements ChecklistClient {
         "Cannot reach the checklist backend. Check the connection and try again.",
       );
     }
+    if (response.status === 401 && sessionEnabled && !signal?.aborted)
+      expireSession(epoch);
     if (response.status === 204 && method === "DELETE") return;
     let data: unknown;
     try {

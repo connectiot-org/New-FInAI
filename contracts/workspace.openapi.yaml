@@ -1,0 +1,768 @@
+openapi: 3.1.1
+info:
+  title: FinAI production workspace operations
+  version: 1.0.0
+  description: Additive context/admin/import contract. Existing csrf-only auth/session/login
+    and receivables v1 remain unchanged. All unknown/repeated query/body fields rejected.
+    Administrator/read/import/write are distinct; all import operations require canImport,
+    independent of workflow canWrite. Upgrade migration preserves existing CLI write-to-import
+    grants explicitly. No public bootstrap/signup; trusted operator initializes administrator.
+    Entity grant expectedVersion is the target membership version (incremented even
+    for removal/regrant). Last enabled active admin cannot be removed. Access changes
+    invalidate affected sessions. Browser preview TTL15min, max2 active per actor,
+    actor/session/tenant/entity bound, no source mutation until reviewed apply. Raw1MiB
+    preview endpoint alone has a higher body cap; normal16KiB limits, CSRF/proxy/origin
+    checks and rate limiting remain. CLI5MiB remains available. Preview stores temporary
+    private bytes, applies zeroize bytes and safe history remains in immutable snapshots/audit.
+    No financial payloads in audit/logs.
+paths:
+  /api/v1/workspace/context:
+    get:
+      summary: Validated server-owned identity/permission bootstrap
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success with server-side derivation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+      operationId: getApiV1WorkspaceContext
+  /api/v1/admin/members:
+    get:
+      summary: Bounded current-organisation member/access inventory
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Members'
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      operationId: getApiV1AdminMembers
+  /api/v1/admin/members/{userId}:
+    patch:
+      summary: Admin-only membership change; preserve last active administrator, CAS
+        and revoke affected sessions
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberResult'
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberChange'
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema: &id001
+          type: string
+          format: uuid
+      operationId: patchApiV1AdminMembersUserid
+  /api/v1/admin/entities:
+    get:
+      summary: Admin-only organisation entities
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entities'
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      operationId: getApiV1AdminEntities
+    post:
+      summary: Create an entity without implicit grants
+      security:
+      - Session: []
+      responses:
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+        '201':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entity'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntityCreate'
+      operationId: postApiV1AdminEntities
+  /api/v1/admin/access:
+    post:
+      summary: Admin-only scoped grants/revocation; active same-org target required;
+        revoke sessions
+      security:
+      - Session: []
+      responses:
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+        '201':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessChange'
+      operationId: postApiV1AdminAccess
+  /api/v1/admin/audit:
+    get:
+      summary: Admin-only paginated safe production audit
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Audit'
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 10000
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      operationId: getApiV1AdminAudit
+  /api/v1/receivables/imports/preview:
+    post:
+      summary: Import-granted session only, dedicated max1MiB raw UTF8 JSON; no URL
+        fetching, no compressed/executable formats
+      security:
+      - Session: []
+      responses:
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+        '201':
+          description: Scoped success with server-side derivation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preview'
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: Raw JSON file bytes, max1048576, no compression; source
+                format remains ImportRegister1.0.0
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema: *id001
+      - name: expectedVersion
+        in: query
+        required: true
+        schema: &id003
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+      operationId: postApiV1ReceivablesImportsPreview
+  /api/v1/receivables/imports/{stageId}/apply:
+    post:
+      summary: Apply exact session-bound reviewed preview atomically; source/permission
+        recheck and safe retry
+      security:
+      - Session: []
+      responses:
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+        '201':
+          description: Scoped success with server-side derivation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportResult'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplyImport'
+      parameters:
+      - name: stageId
+        in: path
+        required: true
+        schema: *id001
+      operationId: postApiV1ReceivablesImportsStageidApply
+  /api/v1/receivables/imports/{stageId}:
+    delete:
+      summary: Discard owned session-bound preview; no snapshot deletion
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Scoped success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscardResult'
+        '401':
+          description: Session absent/expired/revoked
+        '403':
+          description: Permission/CSRF/origin denied
+        '404':
+          description: Unavailable/foreign resource, including expired previews
+        '409':
+          description: Version/confirmation conflict or last-admin guard
+        '422':
+          description: Strict bounded fields/file validation
+        '429':
+          description: Existing rate limits or bounded preview quota
+        '503':
+          description: Unavailable dependency or unsupported aggregate
+      parameters:
+      - name: stageId
+        in: path
+        required: true
+        schema: *id001
+      operationId: deleteApiV1ReceivablesImportsStageid
+components:
+  securitySchemes:
+    Session:
+      type: apiKey
+      in: cookie
+      name: __Host-finai_session
+  schemas:
+    Context:
+      type: object
+      additionalProperties: false
+      required:
+      - userId
+      - organisationId
+      - organisationName
+      - administrator
+      - revision
+      - entities
+      properties:
+        userId: *id001
+        organisationId: *id001
+        organisationName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        administrator: &id002
+          type: boolean
+        revision:
+          type: string
+          minLength: 1
+          maxLength: 64
+        entities:
+          type: array
+          maxItems: 1000
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            - canWrite
+            - canImport
+            properties:
+              id: *id001
+              name:
+                type: string
+                minLength: 1
+                maxLength: 200
+              canWrite: *id002
+              canImport: *id002
+    MemberChange:
+      type: object
+      additionalProperties: false
+      required:
+      - active
+      - administrator
+      - expectedVersion
+      properties:
+        active: *id002
+        administrator: *id002
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    EntityCreate:
+      type: object
+      additionalProperties: false
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+    AccessChange:
+      type: object
+      additionalProperties: false
+      required:
+      - userId
+      - entityId
+      - access
+      - canWrite
+      - canImport
+      - expectedVersion
+      properties:
+        userId: *id001
+        entityId: *id001
+        access: *id002
+        canWrite: *id002
+        canImport: *id002
+        expectedVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+    ApplyImport:
+      type: object
+      additionalProperties: false
+      required:
+      - expectedVersion
+      - confirmDigest
+      properties:
+        expectedVersion: *id003
+        confirmDigest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+    ImportResult:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      - version
+      - rowCount
+      properties:
+        status:
+          enum:
+          - imported
+          - unchanged
+        version:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        rowCount:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    Preview:
+      type: object
+      additionalProperties: false
+      required:
+      - stageId
+      - entityId
+      - expectedVersion
+      - nextVersion
+      - digest
+      - sourceName
+      - sourceCapturedAt
+      - expiresAt
+      - rowCount
+      - invoiceCount
+      - customerCount
+      - totalCents
+      properties:
+        stageId: *id001
+        entityId: *id001
+        expectedVersion: *id003
+        nextVersion:
+          type: integer
+          minimum: 1
+          maximum: 2147483647
+        digest:
+          type: string
+          pattern: ^[a-f0-9]{64}$
+        sourceName:
+          type: string
+          minLength: 1
+          maxLength: 200
+        sourceCapturedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        rowCount:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        invoiceCount:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        customerCount:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        totalCents:
+          type: integer
+          minimum: 0
+          maximum: 9007199254740991
+    Entity: &id007
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - name
+      properties:
+        id: &id005
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+    Members:
+      type: object
+      additionalProperties: false
+      required:
+      - offset
+      - limit
+      - total
+      - items
+      properties:
+        offset: &id004
+          type: integer
+          minimum: 0
+          maximum: 2147483647
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total: *id004
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - userId
+            - username
+            - disabled
+            - active
+            - administrator
+            - version
+            - access
+            properties:
+              userId: *id005
+              username:
+                type:
+                - string
+                - 'null'
+                maxLength: 100
+              disabled: &id006
+                type: boolean
+              active: *id006
+              administrator: *id006
+              version:
+                type: integer
+                minimum: 1
+              access:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - entityId
+                  - canWrite
+                  - canImport
+                  - version
+                  properties:
+                    entityId: *id005
+                    canWrite: *id006
+                    canImport: *id006
+                    version:
+                      type: integer
+                      minimum: 1
+    Entities:
+      type: object
+      additionalProperties: false
+      required:
+      - offset
+      - limit
+      - total
+      - items
+      properties:
+        offset: *id004
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total: *id004
+        items:
+          type: array
+          maxItems: 50
+          items: *id007
+    Audit:
+      type: object
+      additionalProperties: false
+      required:
+      - offset
+      - limit
+      - total
+      - items
+      properties:
+        offset: *id004
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        total: *id004
+        items:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - actorId
+            - entityId
+            - requestId
+            - createdAt
+            - action
+            - reference
+            - outcome
+            - metadata
+            properties:
+              id: *id005
+              actorId: *id005
+              entityId:
+                type:
+                - string
+                - 'null'
+                format: uuid
+              requestId: *id005
+              createdAt:
+                type: string
+                format: date-time
+              action:
+                type: string
+                maxLength: 64
+              reference:
+                type: string
+                maxLength: 100
+              outcome:
+                const: success
+              metadata:
+                type: object
+                maxProperties: 13
+                additionalProperties:
+                  type:
+                  - string
+                  - integer
+                  - boolean
+    MemberResult:
+      type: object
+      additionalProperties: false
+      required:
+      - userId
+      - active
+      - administrator
+      - version
+      properties:
+        userId: *id005
+        active: *id006
+        administrator: *id006
+        version:
+          type: integer
+          minimum: 1
+    AccessResult:
+      type: object
+      additionalProperties: false
+      required:
+      - userId
+      - entityId
+      - access
+      - canWrite
+      - canImport
+      - version
+      properties:
+        userId: *id005
+        entityId: *id005
+        access: *id006
+        canWrite: *id006
+        canImport: *id006
+        version:
+          type: integer
+          minimum: 1
+    DiscardResult:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      properties:
+        status:
+          const: discarded
+servers:
+- url: /

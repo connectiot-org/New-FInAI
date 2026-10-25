@@ -36,6 +36,9 @@ for (const [mode, port, expected] of [
       page.on("request", (r) => {
         if (["fetch", "xhr"].includes(r.resourceType())) requests.push(r.url());
       });
+      await page.goto(origin + "/workspace");
+      await expect(page.getByRole("heading",{name:"Workspace configuration required"})).toBeVisible();
+      expect(requests).toEqual([]);
       await page.goto(origin + "/welcome");
       await page.getByRole("button", { name: "Enter demo workspace" }).click();
       const card = page.locator(".outstanding-customers");

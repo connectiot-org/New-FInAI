@@ -73,6 +73,20 @@ const validate = ajv.compile({
   ...spec.components.schemas.Summary,
   components: spec.components,
 });
+const workspaceSpec = yaml(
+  readFileSync("../contracts/workspace.openapi.yaml", "utf8"),
+);
+function matchesWorkspace(name: string, value: unknown) {
+  const validator = ajv.compile({
+    ...workspaceSpec.components.schemas[name],
+    components: workspaceSpec.components,
+  });
+  assert.equal(
+    validator(JSON.parse(JSON.stringify(value))),
+    true,
+    JSON.stringify(validator.errors),
+  );
+}
 async function entity() {
   const id = randomUUID();
   await db.entity.create({
@@ -83,7 +97,7 @@ async function entity() {
     },
   });
   await db.entityAccess.create({
-    data: { ...identity, entityId: id, canWrite: true },
+    data: { ...identity, entityId: id, canWrite: true, canImport: true },
   });
   return id;
 }
@@ -649,4 +663,544 @@ test("database outage returns safe JSON unavailable for the receivables route", 
   assert.equal(r.status, 503);
   assert.ok(!JSON.stringify(r.data).includes("postgresql"));
   assert.equal((await request("/health/ready", {}, origin)).status, 503);
+});
+
+test("pinned detail pages, customer/issue-period reports and exact export reconcile across newer imports", async () => {
+  const id = await entity();
+  const source = input(
+    Array.from({ length: 7 }, (_, i) => ({
+      ...input().invoices[0],
+      invoiceId: `invoice-${i}`,
+      customerId: `customer-${i}`,
+      customerName: `Customer ${i}`,
+      issuedOn: i === 0 ? "2026-08-01" : "2026-09-01",
+      amountCents: 10000 + i,
+      paidCents: 0,
+      status: "Issued",
+    })),
+  );
+  const root = `/api/v1/receivables/`,
+    history = () => request(root + `snapshots?entityId=${id}`);
+  assert.equal((await history()).data.items.length, 0);
+  await repo.import(identity, id, 0, source, true);
+  const snapshot = (await history()).data.items[0];
+  const scope = `entityId=${id}&snapshotId=${snapshot.snapshotId}&period=all`,
+    first = await request(root + "invoices?" + scope + "&limit=3");
+  assert.equal(first.status, 200);
+  assert.equal(first.data.total, 7);
+  assert.equal(first.data.invoiceCount, 7);
+  assert.equal(first.data.items.length, 3);
+  assert.equal(first.data.nextOffset, 3);
+  assert.equal(first.data.remainingCents, 70021);
+  assert.equal(first.data.source.snapshotId, snapshot.snapshotId);
+  await repo.import(
+    identity,
+    id,
+    1,
+    {
+      ...source,
+      sourceName: "New complete source",
+      invoices: source.invoices.map((v) => ({
+        ...v,
+        paidCents: 5000,
+        status: "Partial",
+      })),
+    },
+    true,
+  );
+  const second = await request(
+    root + "invoices?" + scope + "&limit=3&offset=3",
+  );
+  assert.equal(second.data.source.version, 1);
+  assert.equal(second.data.remainingCents, 70021);
+  assert.equal(second.data.items[0].invoiceId, "invoice-3");
+  assert.equal((await history()).data.items[0].version, 2);
+  const customers = await request(root + "customers?" + scope + "&limit=5");
+  assert.equal(customers.data.total, 7);
+  assert.equal(customers.data.remainingCents, 70021);
+  assert.equal(customers.data.items.length, 5);
+  assert.equal(customers.data.items[0].customerId, "customer-6");
+  const periods = await request(root + "issue-periods?" + scope);
+  assert.deepEqual(
+    periods.data.items.map((v: any) => [
+      v.period,
+      v.invoiceCount,
+      v.remainingCents,
+    ]),
+    [
+      ["2026-08", 1, 10000],
+      ["2026-09", 6, 60021],
+    ],
+  );
+  const filtered = await request(
+    root + "invoices?" + scope + "&customerId=customer-1&period=all",
+  );
+  assert.equal(filtered.status, 422);
+  const one = await request(
+    root + "invoices?" + scope + "&customerId=customer-1",
+  );
+  assert.equal(one.data.total, 1);
+  assert.equal(one.data.items[0].remainingCents, 10001);
+  const exported = await request(root + "export?" + scope);
+  assert.equal(exported.status, 200);
+  assert.equal(exported.data.items.length, 7);
+  assert.equal(exported.data.nextOffset, null);
+  assert.equal(exported.data.limit, 10000);
+  assert.equal(
+    exported.data.items.reduce((n: number, r: any) => n + r.remainingCents, 0),
+    exported.data.remainingCents,
+  );
+  assert.equal(
+    (await request(root + "invoices?" + scope + "&search=%25")).data.total,
+    0,
+  );
+});
+test("detail scope, export bounds, foreign/missing snapshot IDs and read-only authorization fail safely", async () => {
+  const id = await entity(),
+    other = await entity();
+  await repo.import(identity, id, 0, input(), true);
+  const h = await request(`/api/v1/receivables/snapshots?entityId=${id}`),
+    snapshot = h.data.items[0].snapshotId;
+  const path = `/api/v1/receivables/invoices?entityId=${id}&snapshotId=${snapshot}&period=all`;
+  for (const suffix of [
+    "&limit=51",
+    "&offset=10001",
+    "&search=" + "a".repeat(101),
+    "&sort=amount",
+    "&period=all",
+    "&status=bogus",
+  ])
+    assert.equal((await request(path + suffix)).status, 422);
+  const foreign = await request(path.replace(id, other)),
+    absent = await request(path.replace(snapshot, randomUUID()));
+  assert.equal(foreign.status, 404);
+  assert.equal(absent.status, 404);
+  assert.equal(foreign.data.message, absent.data.message);
+  const reader = randomUUID();
+  await db.user.create({ data: { id: reader } });
+  await db.membership.create({
+    data: { organisationId: identity.organisationId, userId: reader },
+  });
+  await db.entityAccess.create({
+    data: {
+      organisationId: identity.organisationId,
+      userId: reader,
+      entityId: id,
+      canWrite: false,
+    },
+  });
+  const server = await createApplication({
+    env,
+    identity: { organisationId: identity.organisationId, userId: reader },
+    quiet: true,
+  });
+  apps.push(server);
+  const r = await request(path, {}, await server.getUrl());
+  assert.equal(r.status, 200);
+  assert.equal(
+    (
+      await request(
+        path.replace("invoices", "export"),
+        {},
+        await server.getUrl(),
+      )
+    ).status,
+    200,
+  );
+  await db.membership.update({
+    where: {
+      organisationId_userId: {
+        organisationId: identity.organisationId,
+        userId: reader,
+      },
+    },
+    data: { active: false },
+  });
+  assert.equal((await request(path, {}, await server.getUrl())).status, 401);
+});
+
+test("workspace administration scopes roles, prevents lockout and stale regrant, revokes sessions and audits atomically", async () => {
+  const { WorkspaceService } = await import("../src/workspace/service");
+  const service = new WorkspaceService(db),
+    id = await entity();
+  const memberKey = { organisationId_userId: identity };
+  await db.account.upsert({
+    where: { userId: identity.userId },
+    create: {
+      userId: identity.userId,
+      username: "workspace-admin-test",
+      passwordHash: "not-used",
+    },
+    update: { disabled: false },
+  });
+  await db.membership.update({
+    where: memberKey,
+    data: { isAdministrator: true },
+  });
+  matchesWorkspace("Context", await service.context(identity));
+  assert.equal((await service.context(identity)).administrator, true);
+  await assert.rejects(
+    service.member(identity, identity.userId, {
+      active: false,
+      administrator: false,
+      expectedVersion: 1,
+    }),
+    (e: any) => e.code === "LAST_ADMINISTRATOR",
+  );
+  const userId = randomUUID();
+  await db.user.create({ data: { id: userId } });
+  await db.membership.create({
+    data: { organisationId: identity.organisationId, userId },
+  });
+  const reader = { organisationId: identity.organisationId, userId };
+  await assert.rejects(
+    service.list(reader, "members", 0, 20),
+    (e: any) => e.status === 403,
+  );
+  const grant = {
+    userId,
+    entityId: id,
+    access: true,
+    canWrite: false,
+    canImport: true,
+    expectedVersion: 1,
+  };
+  await db.account.create({
+    data: { userId, username: "revoked-" + userId, passwordHash: "not-used" },
+  });
+  const revokedToken = randomBytes(32).toString("hex");
+  await db.session.create({
+    data: {
+      tokenHash: digest(revokedToken),
+      csrfHash: digest("csrf"),
+      ...reader,
+      expiresAt: new Date(Date.now() + 60000),
+    },
+  });
+  const g = await service.access(identity, grant);
+  matchesWorkspace("AccessResult", g);
+  assert.equal(await db.session.count({ where: { userId } }), 0);
+  assert.equal(g.version, 2);
+  await service.access(identity, {
+    ...grant,
+    access: false,
+    expectedVersion: 2,
+  });
+  await assert.rejects(
+    service.access(identity, grant),
+    (e: any) => e.status === 409,
+  );
+  await service.access(identity, { ...grant, expectedVersion: 3 });
+  const ctx = await service.context(reader);
+  assert.equal(ctx.entities[0].canImport, true);
+  assert.equal(ctx.entities[0].canWrite, false);
+  const importEntity = await service.entity(
+    identity,
+    "Importer-only permission fixture",
+  );
+  await service.access(identity, {
+    ...grant,
+    entityId: importEntity.id,
+    expectedVersion: 4,
+  });
+  assert.equal(
+    (await repo.import(reader, importEntity.id, 0, input(), true)).status,
+    "imported",
+  );
+  await assert.rejects(
+    new ChecklistRepository(db).create(reader, {
+      id: randomUUID(),
+      entityId: importEntity.id,
+      month: "2026-09",
+      title: "Forbidden write",
+    }),
+    (e: any) => e.status === 403,
+  );
+
+  for (const [kind, schemaName] of [
+    ["audit", "Audit"],
+    ["members", "Members"],
+    ["entities", "Entities"],
+  ] as const)
+    matchesWorkspace(schemaName, await service.list(identity, kind, 0, 50));
+  assert.ok((await service.list(identity, "audit", 0, 50)).items.length);
+  const old = await db.entity.count();
+  await db.$executeRawUnsafe(
+    `ALTER TABLE "ServerAudit" ADD CONSTRAINT test_audit_failure CHECK (action <> 'access.entity_created') NOT VALID`,
+  );
+  try {
+    await assert.rejects(service.entity(identity, "Must roll back"));
+    assert.equal(await db.entity.count(), old);
+  } finally {
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "ServerAudit" DROP CONSTRAINT test_audit_failure`,
+    );
+  }
+});
+
+test("staged browser imports pin actor/session/digest, preview no snapshots, stale/retry/expiry and audit rollback", async () => {
+  const { ReceivablesImportService } =
+    await import("../src/receivables/import.service");
+  const service = new ReceivablesImportService(db, repo),
+    id = await entity(),
+    hash = "a".repeat(64);
+  const preview = await service.preview(
+    identity,
+    hash,
+    id,
+    0,
+    Buffer.from(JSON.stringify(input())),
+  );
+  assert.equal(
+    await db.receivableSnapshot.count({ where: { entityId: id } }),
+    0,
+  );
+  matchesWorkspace("Preview", preview);
+  assert.equal(preview.totalCents, 75000);
+  const confirm = { expectedVersion: 0, confirmDigest: preview.digest };
+  await assert.rejects(
+    service.apply(identity, "b".repeat(64), preview.stageId, confirm),
+    (e: any) => e.status === 404,
+  );
+  await assert.rejects(
+    service.apply(identity, hash, preview.stageId, {
+      ...confirm,
+      confirmDigest: "0".repeat(64),
+    }),
+    (e: any) => e.status === 409,
+  );
+  await db.$executeRawUnsafe(
+    `ALTER TABLE "ServerAudit" ADD CONSTRAINT test_apply_failure CHECK (action <> 'receivables.preview_applied')`,
+  );
+  try {
+    await assert.rejects(
+      service.apply(identity, hash, preview.stageId, confirm),
+    );
+    assert.equal(
+      await db.receivableSnapshot.count({ where: { entityId: id } }),
+      0,
+    );
+  } finally {
+    await db.$executeRawUnsafe(
+      `ALTER TABLE "ServerAudit" DROP CONSTRAINT test_apply_failure`,
+    );
+  }
+  assert.equal(
+    (await service.apply(identity, hash, preview.stageId, confirm)).status,
+    "imported",
+  );
+  assert.equal(
+    (await service.apply(identity, hash, preview.stageId, confirm)).status,
+    "unchanged",
+  );
+  assert.equal(
+    (
+      await db.receivableImportStage.findUniqueOrThrow({
+        where: { id: preview.stageId },
+      })
+    ).content.length,
+    0,
+  );
+  const b = { ...input(), sourceName: "Next synthetic source" };
+  await repo.import(identity, id, 1, b, true);
+  await assert.rejects(
+    service.apply(identity, hash, preview.stageId, confirm),
+    (e: any) => e.status === 409,
+  );
+  const next = await service.preview(
+    identity,
+    hash,
+    id,
+    2,
+    Buffer.from(JSON.stringify({ ...b, sourceName: "Third source" })),
+  );
+  await db.receivableImportStage.update({
+    where: { id: next.stageId },
+    data: { expiresAt: new Date(0) },
+  });
+  await assert.rejects(
+    service.apply(identity, hash, next.stageId, {
+      expectedVersion: 2,
+      confirmDigest: next.digest,
+    }),
+    (e: any) => e.status === 404,
+  );
+  await assert.rejects(
+    service.preview(identity, hash, id, 2, Buffer.alloc(1048577)),
+    (e: any) => e.status === 422,
+  );
+  const audit = await db.serverAudit.findMany({ where: { entityId: id } });
+  assert.ok(audit.length >= 3);
+  assert.ok(!JSON.stringify(audit).includes("Synthetic export"));
+});
+
+test("raw preview HTTP authenticates before parsing, retains ordinary cap, rejects compression and revocation", async () => {
+  const id = await entity(),
+    token = randomBytes(32).toString("hex"),
+    proxy = randomBytes(32).toString("hex"),
+    csrf = "test-csrf";
+  await db.session.create({
+    data: {
+      tokenHash: digest(token),
+      csrfHash: digest(csrf),
+      ...identity,
+      expiresAt: new Date(Date.now() + 60000),
+    },
+  });
+  const server = await createApplication({
+    env: {
+      ...env,
+      CHECKLIST_IDENTITY: "session",
+      PUBLIC_ORIGIN: "https://frontend.example",
+      API_TRUSTED_HOST: "backend.example",
+      API_PROXY_TOKEN: proxy,
+    },
+    quiet: true,
+  });
+  apps.push(server);
+  const origin = await server.getUrl();
+  const headers = {
+    Host: "backend.example",
+    "x-finai-proxy-token": proxy,
+    "x-finai-public-host": "frontend.example",
+    "x-forwarded-proto": "https",
+    Cookie: `__Host-finai_session=${token}`,
+    Origin: "https://frontend.example",
+    "X-CSRF-Token": csrf,
+    "Content-Type": "application/octet-stream",
+  };
+  const post = (
+    path: string,
+    body: Buffer,
+    patch: Record<string, string> = {},
+  ) =>
+    new Promise<{ status: number; data: any }>((resolve, reject) => {
+      const req = httpRequest(
+        origin + path,
+        { method: "POST", headers: { ...headers, ...patch } },
+        (res) => {
+          let text = "";
+          res.on("data", (c) => (text += c));
+          res.on("end", () =>
+            resolve({ status: res.statusCode!, data: JSON.parse(text) }),
+          );
+        },
+      );
+      req.on("error", reject);
+      req.end(body);
+    });
+  const path = `/api/v1/receivables/imports/preview?entityId=${id}&expectedVersion=0`,
+    bytes = Buffer.from(JSON.stringify(input()));
+  assert.equal(
+    (await post(path, bytes, { "X-CSRF-Token": "wrong" })).status,
+    403,
+  );
+  assert.equal(
+    (await post(path, bytes, { "Content-Encoding": "gzip" })).status,
+    403,
+  );
+  assert.equal((await post(path, Buffer.alloc(1048577))).status, 422);
+  assert.equal(
+    (
+      await post(
+        "/api/v1/admin/entities",
+        Buffer.from(JSON.stringify({ name: "x".repeat(20000) })),
+        { "Content-Type": "application/json" },
+      )
+    ).status,
+    422,
+  );
+  const valid = await post(
+    path,
+    Buffer.from(" ".repeat(17000) + JSON.stringify(input())),
+  );
+  assert.equal(valid.status, 201);
+  assert.equal(
+    await db.receivableSnapshot.count({ where: { entityId: id } }),
+    0,
+  );
+  await db.entityAccess.update({
+    where: { organisationId_userId_entityId: { ...identity, entityId: id } },
+    data: { canImport: false },
+  });
+  assert.equal(
+    (
+      await post(
+        `/api/v1/receivables/imports/${valid.data.stageId}/apply`,
+        Buffer.from(
+          JSON.stringify({
+            expectedVersion: 0,
+            confirmDigest: valid.data.digest,
+          }),
+        ),
+        { "Content-Type": "application/json" },
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    await db.receivableSnapshot.count({ where: { entityId: id } }),
+    0,
+  );
+});
+
+test("trusted administrator recovery and cleanup default to dry run and preserve business history", async () => {
+  const account = await db.account.findUniqueOrThrow({
+      where: { userId: identity.userId },
+    }),
+    before = await db.membership.findUniqueOrThrow({
+      where: { organisationId_userId: identity },
+    });
+  const run = (file: string, args: string[]) =>
+    spawnSync(
+      process.execPath,
+      ["--import", "tsx", `scripts/${file}.mts`, ...args],
+      {
+        env: { ...process.env, DATABASE_URL: env.DATABASE_URL },
+        encoding: "utf8",
+      },
+    );
+  const args = [identity.organisationId, account.username, "--recovery"];
+  assert.equal(run("workspace-admin", args).status, 0);
+  assert.equal(
+    (
+      await db.membership.findUniqueOrThrow({
+        where: { organisationId_userId: identity },
+      })
+    ).version,
+    before.version,
+  );
+  const n = await db.serverAudit.count();
+  assert.equal(run("workspace-admin", [...args, "--apply"]).status, 0);
+  assert.equal(
+    (
+      await db.membership.findUniqueOrThrow({
+        where: { organisationId_userId: identity },
+      })
+    ).version,
+    before.version + 1,
+  );
+  assert.equal(await db.serverAudit.count(), n + 1);
+  const snapshots = await db.receivableSnapshot.count(),
+    events = await db.serverAudit.count(),
+    expired = await db.receivableImportStage.count({
+      where: { expiresAt: { lte: new Date() } },
+    });
+  assert.ok(expired > 0);
+  assert.equal(run("cleanup", []).status, 0);
+  assert.equal(
+    await db.receivableImportStage.count({
+      where: { expiresAt: { lte: new Date() } },
+    }),
+    expired,
+  );
+  assert.equal(run("cleanup", ["--apply"]).status, 0);
+  assert.equal(
+    await db.receivableImportStage.count({
+      where: { expiresAt: { lte: new Date() } },
+    }),
+    0,
+  );
+  assert.equal(await db.receivableSnapshot.count(), snapshots);
+  assert.equal(await db.serverAudit.count(), events);
 });

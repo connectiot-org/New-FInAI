@@ -5,6 +5,7 @@ import { Database } from "./database";
 import { Identity } from "./config";
 import { ApiError } from "./errors";
 import { CreateInput, previousMonth } from "./validation";
+import { recordAudit } from "./audit";
 export const creationDigest = (input: {
   entityId: string;
   month: string;
@@ -95,17 +96,23 @@ export class ChecklistRepository {
             "CAPACITY_REACHED",
             "This entity and month already has 200 tasks.",
           );
-        return {
-          task: await tx.checklistTask.create({
-            data: {
-              ...where,
-              id: input.id,
-              title: input.title,
-              createDigest: digest,
-            },
-          }),
-          created: true,
-        };
+        const task = await tx.checklistTask.create({
+          data: {
+            ...where,
+            id: input.id,
+            title: input.title,
+            createDigest: digest,
+          },
+        });
+        await recordAudit(
+          tx,
+          identity,
+          "checklist.created",
+          task.id,
+          input.entityId,
+          { version: task.version },
+        );
+        return { task, created: true };
       },
       { isolationLevel: "ReadCommitted", timeout: 15000, maxWait: 15000 },
     );
@@ -154,6 +161,15 @@ export class ChecklistRepository {
               }),
             })),
           });
+        if (source.length)
+          await recordAudit(
+            tx,
+            identity,
+            "checklist.copied",
+            randomUUID(),
+            entityId,
+            { count: source.length },
+          );
         return {
           sourceMonth,
           destinationMonth: month,
@@ -188,6 +204,14 @@ export class ChecklistRepository {
             "VERSION_CONFLICT",
             "Task changed. Reload before retrying.",
           );
+        await recordAudit(
+          tx,
+          identity,
+          "checklist.deleted",
+          id,
+          task.entityId,
+          { version },
+        );
         return null;
       }
       if (version === 2147483647)
@@ -206,6 +230,14 @@ export class ChecklistRepository {
           "VERSION_CONFLICT",
           "Task changed. Reload before retrying.",
         );
+      await recordAudit(
+        tx,
+        identity,
+        "checklist.completed",
+        id,
+        task.entityId,
+        { version: rows[0].version, completed: rows[0].completed },
+      );
       return rows[0];
     });
   }

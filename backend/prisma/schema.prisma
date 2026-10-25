@@ -13,6 +13,8 @@ model Organisation {
   entities    Entity[]
   memberships Membership[]
   sessions Session[]
+  auditEvents ServerAudit[]
+  importStages ReceivableImportStage[]
 }
 
 model User {
@@ -20,12 +22,16 @@ model User {
   memberships Membership[]
   account Account?
   receivableImports ReceivableSnapshot[]
+  auditEvents ServerAudit[]
+  importStages ReceivableImportStage[]
 }
 
 model Membership {
   organisationId String         @map("organisation_id") @db.Uuid
   userId         String         @map("user_id") @db.Uuid
   active         Boolean        @default(true)
+  isAdministrator Boolean @default(false) @map("is_administrator")
+  version Int @default(1)
   organisation   Organisation   @relation(fields: [organisationId], references: [id])
   user           User           @relation(fields: [userId], references: [id])
   access         EntityAccess[]
@@ -42,6 +48,8 @@ model Entity {
   tasks          ChecklistTask[]
   subscriptions SubscriptionRenewal[]
   receivableSnapshots ReceivableSnapshot[]
+  auditEvents ServerAudit[]
+  importStages ReceivableImportStage[]
 
   @@unique([organisationId, id])
 }
@@ -51,6 +59,8 @@ model EntityAccess {
   userId         String     @map("user_id") @db.Uuid
   entityId       String     @map("entity_id") @db.Uuid
   canWrite       Boolean    @default(false) @map("can_write")
+  canImport Boolean @default(false) @map("can_import")
+  version Int @default(1)
   membership     Membership @relation(fields: [organisationId, userId], references: [organisationId, userId])
   entity         Entity     @relation(fields: [organisationId, entityId], references: [organisationId, id])
 
@@ -147,4 +157,44 @@ model ReceivableSnapshotInvoice {
  snapshot ReceivableSnapshot @relation(fields:[organisationId,entityId,snapshotId],references:[organisationId,entityId,id],onDelete:NoAction,onUpdate:NoAction)
  @@id([organisationId,entityId,snapshotId,invoiceId],map:"receivable_invoice_pk")
  @@index([organisationId,entityId,snapshotId,issuedOn,customerId],map:"receivable_invoice_scope_date")
+}
+
+model ServerAudit {
+ id String @id @db.Uuid
+ organisationId String @map("organisation_id") @db.Uuid
+ actorId String @map("actor_id") @db.Uuid
+ entityId String? @map("entity_id") @db.Uuid
+ requestId String @map("request_id") @db.Uuid
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+ action String @db.VarChar(64)
+ reference String @db.VarChar(100)
+ outcome String @db.VarChar(20)
+ metadata Json @db.JsonB
+ organisation Organisation @relation(fields:[organisationId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ actor User @relation(fields:[actorId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ entity Entity? @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
+ @@index([organisationId,createdAt,id],map:"audit_organisation_time")
+}
+model ReceivableImportStage {
+ id String @id @db.Uuid
+ organisationId String @map("organisation_id") @db.Uuid
+ entityId String @map("entity_id") @db.Uuid
+ actorId String @map("actor_id") @db.Uuid
+ sessionHash String @map("session_hash") @db.Char(64)
+ expectedVersion Int @map("expected_version")
+ nextVersion Int @map("next_version")
+ digest String @db.Char(64)
+ content Bytes
+ rowCount Int @map("row_count")
+ invoiceCount Int @map("invoice_count")
+ customerCount Int @map("customer_count")
+ totalCents BigInt @map("total_cents")
+ sourceName String @map("source_name") @db.VarChar(200)
+ sourceCapturedAt DateTime @map("source_captured_at") @db.Timestamptz(3)
+ expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+ appliedVersion Int? @map("applied_version")
+ organisation Organisation @relation(fields:[organisationId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ actor User @relation(fields:[actorId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ entity Entity @relation(fields:[organisationId,entityId],references:[organisationId,id],onDelete:NoAction,onUpdate:NoAction)
+ @@index([organisationId,actorId,expiresAt],map:"import_stage_actor_expiry")
 }

@@ -1,45 +1,71 @@
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { Field } from "./ui";
 import { sessionEnabled } from "../lib/api";
-export function SessionGate({
+import {
+  readSession,
+  sessionSchema,
+  logoutSchema,
+  authenticateSession,
+  expireSession,
+} from "../lib/session";
+const Authenticated = createContext(false);
+type Props = { children: ReactNode; title?: string; headingLevel?: 1 | 2 };
+export function SessionGate(props: Props) {
+  const inherited = useContext(Authenticated);
+  return inherited ? <>{props.children}</> : <OwnedSessionGate {...props} />;
+}
+function OwnedSessionGate({
   children,
   title = "Sign in to your checklist",
   headingLevel = 1,
-}: {
-  children: ReactNode;
-  title?: string;
-  headingLevel?: 1 | 2;
-}) {
+}: Props) {
   const Heading = headingLevel === 2 ? "h2" : "h1";
-  const [authenticated, setAuthenticated] = useState(!sessionEnabled);
-  const [checking, setChecking] = useState(sessionEnabled);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [authenticated, setAuthenticated] = useState(!sessionEnabled),
+    [checking, setChecking] = useState(sessionEnabled),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [retry, setRetry] = useState(0);
   useEffect(() => {
-    const expired = () => setAuthenticated(false);
+    const expired = () => {
+      setAuthenticated(false);
+      setError("Session expired. Sign in again.");
+    };
     window.addEventListener("finai-session-expired", expired);
     return () => window.removeEventListener("finai-session-expired", expired);
   }, []);
   useEffect(() => {
     if (!sessionEnabled) return;
+    const c = new AbortController();
     let active = true;
-    fetch("/auth/session", {
-      credentials: "same-origin",
-      signal: AbortSignal.timeout(10000),
-    })
-      .then((r) => {
-        if (active) setAuthenticated(r.ok);
+    setChecking(true);
+    setError("");
+    readSession(c.signal)
+      .then(() => {
+        if (active) setAuthenticated(true);
       })
-      .catch(() => {
-        if (active) setError("Cannot reach sign-in service.");
+      .catch((e) => {
+        if (active) {
+          setAuthenticated(false);
+          if (e?.status !== 401)
+            setError(
+              e instanceof Error ? e.message : "Cannot reach sign-in service.",
+            );
+        }
       })
       .finally(() => {
         if (active) setChecking(false);
       });
     return () => {
       active = false;
+      c.abort();
     };
-  }, []);
+  }, [retry]);
   if (checking) return <p role="status">Checking session…</p>;
   if (!authenticated)
     return (
@@ -51,8 +77,8 @@ export function SessionGate({
           onSubmit={async (event) => {
             event.preventDefault();
             if (busy) return;
-            const form = event.currentTarget;
-            const fields = new FormData(form);
+            const form = event.currentTarget,
+              fields = new FormData(form);
             setBusy(true);
             setError("");
             try {
@@ -71,7 +97,12 @@ export function SessionGate({
                 throw new Error(
                   "Sign-in failed. Check your details or try again later.",
                 );
+              if (!sessionSchema.safeParse(await r.json()).success)
+                throw new Error(
+                  "Sign-in service returned an invalid response.",
+                );
               form.reset();
+              authenticateSession();
               setAuthenticated(true);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Sign-in failed.");
@@ -104,12 +135,19 @@ export function SessionGate({
             {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setRetry((v) => v + 1)}
+        >
+          Check session again
+        </button>
       </section>
     );
   return (
-    <>
+    <Authenticated.Provider value={true}>
       {sessionEnabled && (
-        <>
+        <div className="session-actions">
           <button
             disabled={busy}
             onClick={async () => {
@@ -117,25 +155,31 @@ export function SessionGate({
               setBusy(true);
               setError("");
               try {
-                const r = await fetch("/auth/session", {
-                  credentials: "same-origin",
-                });
-                if (r.ok) {
-                  const session = await r.json();
-                  const result = await fetch("/auth/logout", {
-                    method: "POST",
-                    credentials: "same-origin",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "X-CSRF-Token": session.csrfToken,
-                    },
-                    body: "{}",
-                    signal: AbortSignal.timeout(10000),
-                  });
-                  if (!result.ok)
-                    throw new Error("Sign out failed. Try again.");
+                let session;
+                try {
+                  session = await readSession();
+                } catch (e) {
+                  if ((e as { status?: number }).status === 401) {
+                    expireSession();
+                    setAuthenticated(false);
+                    return;
+                  }
+                  throw e;
                 }
-                window.dispatchEvent(new Event("finai-session-expired"));
+                const r = await fetch("/auth/logout", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": session.csrfToken,
+                  },
+                  body: "{}",
+                  signal: AbortSignal.timeout(10000),
+                });
+                if (!r.ok || !logoutSchema.safeParse(await r.json()).success)
+                  throw new Error("Sign out failed. Try again.");
+                expireSession();
+                setError("");
                 setAuthenticated(false);
               } catch (e) {
                 setError(e instanceof Error ? e.message : "Sign out failed.");
@@ -147,9 +191,9 @@ export function SessionGate({
             Sign out
           </button>
           {error && <p role="alert">{error}</p>}
-        </>
+        </div>
       )}
       {children}
-    </>
+    </Authenticated.Provider>
   );
 }

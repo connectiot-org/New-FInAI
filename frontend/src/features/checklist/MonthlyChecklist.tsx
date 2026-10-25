@@ -18,7 +18,7 @@ import {
 import "./checklist.css";
 import { SessionGate } from "../../components/SessionGate";
 
-function ChecklistBody() {
+function ChecklistBody({ workspace = false }: { workspace?: boolean }) {
   const [params, setParams] = useSearchParams();
   const [entities, setEntities] = useState<ChecklistEntity[]>([]);
   const [entityError, setEntityError] = useState("");
@@ -255,7 +255,9 @@ function ChecklistBody() {
       <p className="notice">
         {checklistMode === "demo"
           ? "Session-only checklist demo. Tasks clear on page refresh."
-          : "Tasks are saved to the connected backend. Demo workspace controls and persona changes do not change checklist access."}
+          : workspace
+            ? "Tasks are saved for this authorized entity and month. Completion is not an accounting approval or period lock."
+            : "Tasks are saved to the connected backend. Demo workspace controls and persona changes do not change checklist access."}
       </p>
       {entityError && (
         <div role="alert" className="notice error">
@@ -456,10 +458,14 @@ function ChecklistBody() {
   );
 }
 
-export function MonthlyChecklist() {
+export function MonthlyChecklist({
+  workspace = false,
+}: {
+  workspace?: boolean;
+}) {
   return (
     <SessionGate>
-      <ChecklistBody />
+      <ChecklistBody workspace={workspace} />
     </SessionGate>
   );
 }

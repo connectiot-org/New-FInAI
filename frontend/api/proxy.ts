@@ -61,9 +61,21 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   incoming.searchParams.delete("route");
   target.pathname = "/" + route;
   target.search = incoming.searchParams.toString();
+  const upload =
+    route === "api/v1/receivables/imports/preview" && req.method === "POST";
+  const maxBytes = upload ? 1024 * 1024 : 16384;
+  if (
+    upload &&
+    (req.headers["content-type"] !== "application/octet-stream" ||
+      req.headers["content-encoding"])
+  )
+    return fail(403, "Uncompressed raw upload required.");
   let body: Buffer;
   try {
-    if (req.body !== undefined)
+    if (upload && req.body !== undefined && !Buffer.isBuffer(req.body))
+      return fail(400, "Raw upload bytes required.");
+    if (Buffer.isBuffer(req.body)) body = req.body;
+    else if (req.body !== undefined)
       body = Buffer.from(
         typeof req.body === "string" ? req.body : JSON.stringify(req.body),
       );
@@ -73,12 +85,12 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
       for await (const chunk of req) {
         const b = Buffer.from(chunk);
         size += b.length;
-        if (size > 16384) return fail(422, "Request too large.");
+        if (size > maxBytes) return fail(422, "Request too large.");
         chunks.push(b);
       }
       body = Buffer.concat(chunks);
     }
-    if (body.length > 16384) return fail(422, "Request too large.");
+    if (body.length > maxBytes) return fail(422, "Request too large.");
   } catch {
     return fail(400, "Invalid request.");
   }
