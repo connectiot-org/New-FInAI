@@ -51,6 +51,11 @@ export class AssistantController {
       this.hash(r),
     );
   }
+  @Get("models") models(@Req() r: R, @Query() q: unknown) {
+    this.hash(r);
+    parse(empty, q);
+    return this.service.models();
+  }
   @Get("capabilities") capabilities(@Req() r: R, @Query() q: unknown) {
     this.hash(r);
     parse(empty, q);

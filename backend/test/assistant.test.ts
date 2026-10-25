@@ -525,6 +525,7 @@ test("provider request pins model/privacy/price/no fallback and handles refusal,
   let mode = "good";
   const transport = (async (url: any, opts: any) => {
     assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
+    assert.equal(opts.redirect, "error");
     const b = JSON.parse(opts.body);
     assert.deepEqual(b.provider.only, ["ApprovedProvider"]);
     assert.equal(b.provider.allow_fallbacks, false);
@@ -1288,4 +1289,190 @@ test("Openrouter server secret alias authorizes the fixed provider endpoint and 
     new OpenRouterProvider({ ...settings, Openrouter: "  " }).configured,
     false,
   );
+});
+
+test("free catalog filters unsupported/priced models, shares fetches and pins chosen model across grounded calls and retries", async () => {
+  const originalProvider = service.provider;
+  const settings = {
+    ASSISTANT_ENABLED: "true",
+    OPENROUTER_API_KEY: "synthetic-catalog-key",
+    ASSISTANT_MODEL: "test/default:free",
+    ASSISTANT_OPENROUTER_PROVIDERS: "ApprovedProvider",
+    ASSISTANT_DAILY_TOKEN_LIMIT: "100000000",
+    ASSISTANT_MAX_INPUT_PRICE: "0",
+    ASSISTANT_MAX_OUTPUT_PRICE: "0",
+  };
+  const eligible = (id: string) => ({
+    id,
+    name: id,
+    pricing: { prompt: "0", completion: "0", request: "0" },
+    supported_parameters: ["structured_outputs"],
+    architecture: { input_modalities: ["text"], output_modalities: ["text"] },
+  });
+  let catalogs = 0;
+  const sent: string[] = [];
+  const transport = (async (url, options) => {
+    if (String(url).endsWith("/models")) {
+      catalogs++;
+      assert.equal(new Headers(options?.headers).has("Authorization"), false);
+      return Response.json({
+        data: [
+          eligible(settings.ASSISTANT_MODEL),
+          eligible("test/other:free"),
+          {
+            ...eligible("test/paid"),
+            pricing: { prompt: "0.01", completion: "0" },
+          },
+          {
+            ...eligible("test/per-request"),
+            pricing: { prompt: "0", completion: "0", request: "0.01" },
+          },
+          {
+            ...eligible("test/json-only:free"),
+            supported_parameters: ["response_format"],
+          },
+          {
+            ...eligible("test/image:free"),
+            architecture: {
+              input_modalities: ["image"],
+              output_modalities: ["image"],
+            },
+          },
+        ],
+      });
+    }
+    const b = JSON.parse(String(options?.body));
+    sent.push(b.model);
+    assert.deepEqual(b.provider.max_price, { prompt: 0, completion: 0 });
+    assert.equal(b.provider.allow_fallbacks, false);
+    const input = JSON.parse(b.messages.at(-1).content);
+    const result =
+      b.response_format.json_schema.name === "plan"
+        ? { operations: [operation("checklist")] }
+        : {
+            factIds: input.evidence.facts.slice(0, 3).map((f: any) => f.id),
+            noteIds: Object.keys(input.evidence.notes).slice(0, 8),
+          };
+    return Response.json({
+      model: b.model,
+      provider: "ApprovedProvider",
+      choices: [
+        { finish_reason: "stop", message: { content: JSON.stringify(result) } },
+      ],
+    });
+  }) as typeof fetch;
+  const adapter = new OpenRouterProvider(settings, transport);
+  assert.throws(() => adapter.selectModel("test/other:free"));
+  const [a, b] = await Promise.all([adapter.models(), adapter.models()]);
+  assert.deepEqual(a, b);
+  assert.equal(catalogs, 1);
+  matches("ModelList", a);
+  assert.deepEqual(
+    a.items.map((m) => m.id),
+    [settings.ASSISTANT_MODEL, "test/other:free"],
+  );
+  await adapter.models();
+  assert.equal(catalogs, 1);
+  for (const id of [
+    "test/paid",
+    "test/json-only:free",
+    "https://evil.example/model",
+    "not-in-catalog",
+  ])
+    assert.throws(() => adapter.selectModel(id));
+  service.provider = new OpenRouterProvider(settings, transport);
+  try {
+    const c = await chat(await entity());
+    const input = {
+      id: randomUUID(),
+      question: "Which saved tasks are incomplete?",
+      expectedVersion: c.version,
+      model: "test/other:free",
+    };
+    const r = await service.reserve(identity, c.id, input);
+    assert.equal(r.turn.model, input.model);
+    assert.equal(catalogs, 2); // Cold replica validates independently of GET.
+    const done = await awaitTurn(c.id);
+    assert.equal(done.turns[0].status, "completed");
+    assert.equal(done.turns[0].model, input.model);
+    assert.deepEqual(sent, [input.model, input.model]);
+    assert.equal(adapter.model, settings.ASSISTANT_MODEL);
+    await service.reserve(identity, c.id, input);
+    await assert.rejects(
+      service.reserve(identity, c.id, {
+        ...input,
+        model: settings.ASSISTANT_MODEL,
+      }),
+    );
+    await assert.rejects(
+      service.reserve(identity, c.id, {
+        ...input,
+        id: randomUUID(),
+        expectedVersion: done.version,
+        model: "test/paid",
+      }),
+    );
+    assert.equal(sent.length, 2);
+  } finally {
+    service.provider = originalProvider;
+  }
+  const broken = new OpenRouterProvider(
+    settings,
+    (async () => new Response("unavailable", { status: 503 })) as typeof fetch,
+  );
+  await assert.rejects(
+    broken.models(),
+    (e: any) => e.code === "MODEL_CATALOG_UNAVAILABLE",
+  );
+});
+
+test("expired or oversized model catalogs fail closed instead of accepting stale selections", async () => {
+  const settings = { ASSISTANT_MODEL: "default/model" };
+  let unavailable = false;
+  const adapter = new OpenRouterProvider(settings, (async () =>
+    unavailable
+      ? new Response("unavailable", { status: 503 })
+      : Response.json({
+          data: [
+            {
+              id: "test/free",
+              name: "Synthetic free",
+              pricing: { prompt: "0", completion: "0" },
+              supported_parameters: ["structured_outputs"],
+              architecture: {
+                input_modalities: ["text"],
+                output_modalities: ["text"],
+              },
+            },
+          ],
+        })) as typeof fetch);
+  await adapter.models();
+  assert.equal(adapter.selectModel("test/free").model, "test/free");
+  const realNow = Date.now;
+  try {
+    Date.now = () => realNow() + 300001;
+    assert.throws(() => adapter.selectModel("test/free"));
+    unavailable = true;
+    await assert.rejects(adapter.models());
+    assert.throws(() => adapter.selectModel("test/free"));
+  } finally {
+    Date.now = realNow;
+  }
+  let cancelled = false;
+  const oversized = new OpenRouterProvider(
+    settings,
+    (async () =>
+      new Response(
+        new ReadableStream({
+          start(c) {
+            c.enqueue(new Uint8Array(8 * 1024 * 1024 + 1));
+          },
+          cancel() {
+            cancelled = true;
+          },
+        }),
+      )) as typeof fetch,
+  );
+  await assert.rejects(oversized.models());
+  assert.equal(cancelled, true);
 });
