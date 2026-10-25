@@ -107,3 +107,5 @@ Implemented sequentially from main f51f983 on feat/production-assistant. Added s
 ## Assistant engineering review and live entry fixes — 25 October 2026
 
 User screenshot revealed the demo-shell Ask FinAI button still opened the deterministic drawer. Remote main2586e3f already includes PR9. Fixed the entry and explicit demo link, production Compose Assistant variable forwarding, blank price validation, stale create scope retry and missing ledger import review metadata. Added regression coverage without removing assertions; review evidence and actual-provider/configuration blockers are in assistant-engineering-review.md. No deployment or target secret changes.
+
+User confirmed free models only. Adapter now rejects nonzero price settings and pins outbound prompt/completion price caps0; UI explains free-only routing without fabricated quota. Backend50 and affected UI9+built1 checks pass again. Entry/configuration CIeccda6b passed run40192396032; later free-only CI is separate. Backend host URL remains missing despite the selected response option; requested FINAI_BACKEND_ORIGIN without secrets.

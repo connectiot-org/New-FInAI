@@ -207,6 +207,10 @@ export function ProductionAssistant() {
           facts.
         </p>
       )}
+      <p className="assistant-notice">
+        OpenRouter · free models only. Availability and rate limits apply;
+        remaining provider quota is not available here.
+      </p>
       <div className="assistant-layout">
         <aside aria-label="Saved conversations">
           <h2>Conversations</h2>

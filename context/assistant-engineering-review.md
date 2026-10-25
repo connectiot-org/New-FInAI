@@ -26,3 +26,9 @@ Next: provide the backend host/configuration status without secret values, appro
 
 
 Final frozen-tree rerun: default51, Assistant9 and built Assistant1 all passed; five-mode credential/fallback asset scan passed. The earlier execution-context failure did not recur, and its assertions remained unchanged. Actual-provider and hosted deployment limits above still apply.
+
+
+User subsequently selected free models only. The adapter now rejects nonzero as well as blank price caps, and independently hardcodes outbound prompt/completion max_price0. Regression checks cover positive/negative/blank rejection and actual outbound zero caps. No paid routing is permitted; exact approved model/provider settings and real provider access remain external.
+
+
+Hosted release checks for entry/configuration fixeccda6b passed: https://github.com/connectiot-org/New-FInAI/actions/runs/40192396032 (exact head confirmed). The later requested free-only restriction is a separate increment: backend50, Assistant UI9 and built integration1 pass again, with typecheck/lint/build/contract validation and container smoke. Free-only image sha256:928255412001e3f60970f685146a2addbeaeaefe2cff4fa60c482517a48c83d4. Latest-increment CI is checked separately after pushing; the earlier successful run does not cover that increment. The UI labels free-only routing and explicitly says provider quota is unavailable, rather than showing invented free tokens.

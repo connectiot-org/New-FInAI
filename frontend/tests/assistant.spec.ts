@@ -149,6 +149,9 @@ test("missing model configuration is explicit; no deterministic fallback or fals
   ).toBeDisabled();
   await expect(page.locator(".assistant-turn")).toHaveCount(0);
   await expect(page.locator(".finance-snapshot")).toHaveCount(0);
+  await expect(
+    page.getByText("OpenRouter · free models only.", { exact: false }),
+  ).toContainText("remaining provider quota is not available here");
 });
 test("uncertain send retries original UUID/payload, then displays only validated exact facts", async ({
   page,
