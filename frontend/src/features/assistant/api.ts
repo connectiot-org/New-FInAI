@@ -112,7 +112,22 @@ export const capabilities = z.strictObject({
 export type Conversation = z.infer<typeof conversation>;
 export type ReadConversation = z.infer<typeof readSchema>;
 export type Preference = z.infer<typeof preference>;
+export const modelList = z.strictObject({
+  items: z
+    .array(
+      z.strictObject({
+        id: z.string().regex(/^[a-zA-Z0-9._:/-]{1,200}$/),
+        name: z.string().min(1).max(200),
+      }),
+    )
+    .max(500),
+  retrievedAt: date,
+  defaultModel: z.string().nullable(),
+  freeOnly: z.literal(true),
+});
 export const assistantApi = {
+  models: (signal: AbortSignal) =>
+    apiRequest("/assistant/models", modelList, { signal }),
   capabilities: (signal: AbortSignal) =>
     apiRequest("/assistant/capabilities", capabilities, { signal }),
   list: (entityId: string, offset: number, signal: AbortSignal) =>
@@ -146,7 +161,12 @@ export const assistantApi = {
   },
   send: (
     id: string,
-    body: { id: string; question: string; expectedVersion: number },
+    body: {
+      id: string;
+      question: string;
+      expectedVersion: number;
+      model?: string;
+    },
     signal: AbortSignal,
   ) =>
     apiRequest(
