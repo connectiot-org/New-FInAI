@@ -55,12 +55,10 @@ export function Assistant({
       answer = {
         question,
         text: `${list.length} invoices in the selected period are outstanding, totaling ${money(list.reduce((v, i) => v + i.amount - i.paid, 0))}. Closing receivables are ${money(m.receivables)}; a monthly closing balance also includes earlier open items.`,
-        evidence: list
-          .slice(0, 4)
-          .map((i) => ({
-            label: `${i.id} · ${money(i.amount - i.paid)}`,
-            to: `/receivables/invoices/${i.id}`,
-          })),
+        evidence: list.slice(0, 4).map((i) => ({
+          label: `${i.id} · ${money(i.amount - i.paid)}`,
+          to: `/receivables/invoices/${i.id}`,
+        })),
       };
     } else if (/close|task/.test(q)) {
       const tasks = s.tasks.filter(
@@ -87,7 +85,7 @@ export function Assistant({
     <div className={embedded ? "assistant embedded" : "assistant"}>
       {!embedded && (
         <PageHeader
-          title="FinAI Assistant"
+          title="FinAI Assistant demo"
           description="Explore your books with answers grounded in the demo ledger."
         />
       )}
@@ -96,6 +94,12 @@ export function Assistant({
         <strong>Demo responses</strong>
         <span>Deterministic local answers · No LLM connection</span>
       </div>
+      <p>
+        <Link to="/workspace/assistant" onClick={onNavigate}>
+          Open the authenticated FinAI Assistant
+        </Link>{" "}
+        for model-backed answers from authorized records.
+      </p>
       {!answers.length && (
         <div className="assistant-intro">
           <div className="assistant-orb">
