@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: FinAI Assistant
-  version: 1.0.0
+  version: 1.1.0
   description: See assistant.md for immutable scope, no duplicate inference, retention,
     model restrictions and source semantics.
 servers:
@@ -795,6 +795,23 @@ paths:
           description: Absent or inaccessible entity
         '422':
           description: Invalid source scope
+  /api/v1/assistant/models:
+    get:
+      summary: Eligible free text models from the bounded cached OpenRouter catalog
+      operationId: AssistantModels
+      security:
+      - Session: []
+      responses:
+        '200':
+          description: Catalog eligibility is not proof of live provider compatibility
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelList'
+        '401':
+          description: Session required
+        '503':
+          description: Catalog unavailable or invalid; no model list fabricated
 components:
   securitySchemes:
     Session:
@@ -842,6 +859,9 @@ components:
           type: integer
           minimum: 1
           maximum: 2147483647
+        model: &id004
+          type: string
+          pattern: ^[a-zA-Z0-9._:/-]{1,200}$
     PreferenceWrite:
       type: object
       additionalProperties: false
@@ -1497,3 +1517,36 @@ components:
                 version:
                   type: integer
                   minimum: 1
+    ModelList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - retrievedAt
+      - defaultModel
+      - freeOnly
+      properties:
+        items:
+          type: array
+          maxItems: 500
+          items:
+            type: object
+            additionalProperties: false
+            required:
+            - id
+            - name
+            properties:
+              id: *id004
+              name:
+                type: string
+                minLength: 1
+                maxLength: 200
+        retrievedAt:
+          type: string
+          format: date-time
+        defaultModel:
+          anyOf:
+          - *id004
+          - type: 'null'
+        freeOnly:
+          const: true

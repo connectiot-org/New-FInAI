@@ -12,3 +12,6 @@ Run npm run test:assistant (seven hostile/UI cases) and npm run test:assistant:p
 
 
 The demo-shell Ask FinAI button now navigates to the private Assistant instead of opening a deterministic demo drawer. /demo/assistant is explicitly titled as a demo and links to the private Assistant. OpenRouter settings belong on the Nest backend host; a key only in the Vercel frontend environment does not reach it. Free models still need approved model/provider/privacy settings and may have quotas; no OpenRouter token balance is invented or shown. See the backend runbook for explicit zero-price caps.
+
+
+The Chat model dropdown offers the server's compatible free-model catalog. Reload models refreshes it; catalog errors or an empty list disable sending rather than fabricate a choice. Choose a model before asking; completed turns display the actual pinned model. An uncertain retry keeps the original model/question/UUID and locks model changes. Eligibility is not a guarantee that the approved provider can serve it. Changing model does not change entity/month/currency, grant permissions or enable paid fallback. No model preference is silently persisted.

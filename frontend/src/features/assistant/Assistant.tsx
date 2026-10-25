@@ -299,11 +299,37 @@ function Chat({
     [refresh, setRefresh] = useState(0),
     [confirm, setConfirm] = useState(false),
     [page, setPage] = useState<number | undefined>(undefined),
-    [retry, setRetry] = useState(false);
+    [retry, setRetry] = useState(false),
+    [models, setModels] = useState<{ id: string; name: string }[]>(),
+    [model, setModel] = useState(""),
+    [modelError, setModelError] = useState(""),
+    [modelReload, setModelReload] = useState(0);
   const request = useRef<AbortController | null>(null),
     sendRequest = useRef<
-      { id: string; question: string; expectedVersion: number } | undefined
+      | { id: string; question: string; expectedVersion: number; model: string }
+      | undefined
     >(undefined);
+  useEffect(() => {
+    const c = new AbortController();
+    setModels(undefined);
+    setModelError("");
+    setModel("");
+    api
+      .models(c.signal)
+      .then((v) => {
+        if (c.signal.aborted) return;
+        setModels(v.items);
+        setModel(
+          v.items.some((m) => m.id === v.defaultModel)
+            ? v.defaultModel!
+            : v.items[0]?.id || "",
+        );
+      })
+      .catch((e: Error) => {
+        if (!c.signal.aborted) setModelError(e.message);
+      });
+    return () => c.abort();
+  }, [modelReload]);
   useEffect(() => {
     const c = new AbortController();
     request.current = c;
@@ -364,11 +390,12 @@ function Chat({
     }
   }
   async function sendQuestion() {
-    if (!chat) return;
+    if (!chat || (!model && !sendRequest.current)) return;
     const payload = sendRequest.current || {
       id: crypto.randomUUID(),
       question: question.trim(),
       expectedVersion: chat.version,
+      model,
     };
     sendRequest.current = payload;
     await act(async (signal) => {
@@ -545,6 +572,49 @@ function Chat({
                 }}
               >
                 <label>
+                  Chat model
+                  <select
+                    aria-label="Chat model"
+                    value={model}
+                    disabled={
+                      !configured ||
+                      !models?.length ||
+                      busy ||
+                      retry ||
+                      !!pending
+                    }
+                    onChange={(e) => setModel(e.target.value)}
+                  >
+                    {!model && (
+                      <option value="">Choose an eligible free model</option>
+                    )}
+                    {models?.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} · {m.id}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <p>
+                  Free text models advertising structured-output support.
+                  Availability, provider approval and quotas are checked on each
+                  request; listing does not guarantee a response.
+                </p>
+                {modelError && <p role="alert">{modelError}</p>}
+                {models && !models.length && (
+                  <p role="status">
+                    No compatible free models are listed. Ask your administrator
+                    to check OpenRouter availability and configuration.
+                  </p>
+                )}
+                <button
+                  type="button"
+                  disabled={busy || retry || !!pending}
+                  onClick={() => setModelReload((n) => n + 1)}
+                >
+                  Reload models
+                </button>
+                <label>
                   Ask FinAI
                   <textarea
                     aria-label="Ask FinAI"
@@ -561,6 +631,7 @@ function Chat({
                         e.preventDefault();
                         if (
                           configured &&
+                          !!model &&
                           !pending &&
                           !busy &&
                           (question.trim() || retry)
@@ -578,6 +649,7 @@ function Chat({
                 <button
                   disabled={
                     !configured ||
+                    !model ||
                     busy ||
                     !!pending ||
                     (!retry && !question.trim())

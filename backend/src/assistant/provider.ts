@@ -5,12 +5,20 @@ export interface AssistantProvider {
   model: string;
   configured: boolean;
   dailyLimit: number;
+  models?(): Promise<ModelList>;
+  selectModel?(id: string): AssistantProvider;
   plan(input: unknown, signal: AbortSignal): Promise<Plan>;
   compose(
     input: unknown,
     signal: AbortSignal,
   ): Promise<z.infer<typeof composition>>;
 }
+export type ModelList = {
+  items: { id: string; name: string }[];
+  retrievedAt: string;
+  defaultModel: string | null;
+  freeOnly: true;
+};
 export class ProviderFailure extends Error {
   constructor(public code: string) {
     super(code);
@@ -24,8 +32,11 @@ export class OpenRouterProvider implements AssistantProvider {
   private providers: string[];
   private inputPrice: number;
   private outputPrice: number;
+  private catalog?: ModelList;
+  private catalogUntil = 0;
+  private catalogRequest?: Promise<ModelList>;
   constructor(
-    env: NodeJS.ProcessEnv = process.env,
+    private readonly env: NodeJS.ProcessEnv = process.env,
     private transport: typeof fetch = fetch,
   ) {
     this.model = env.ASSISTANT_MODEL || "";
@@ -52,6 +63,114 @@ export class OpenRouterProvider implements AssistantProvider {
       this.inputPrice === 0 &&
       this.outputPrice === 0;
   }
+  async models(): Promise<ModelList> {
+    if (this.catalog && Date.now() < this.catalogUntil) return this.catalog;
+    if (this.catalogRequest) return this.catalogRequest;
+    this.catalogRequest = this.fetchModels();
+    try {
+      return await this.catalogRequest;
+    } finally {
+      this.catalogRequest = undefined;
+    }
+  }
+  private async fetchModels(): Promise<ModelList> {
+    try {
+      const r = await this.transport("https://openrouter.ai/api/v1/models", {
+        signal: AbortSignal.timeout(8000),
+        redirect: "error",
+      });
+      if (!r.ok) {
+        await r.body?.cancel();
+        throw new Error();
+      }
+      const reader = r.body?.getReader();
+      if (!reader) throw new Error();
+      const chunks: Uint8Array[] = [];
+      let bytes = 0;
+      for (;;) {
+        const next = await reader.read();
+        if (next.done) break;
+        bytes += next.value.length;
+        if (bytes > 8 * 1024 * 1024) {
+          await reader.cancel();
+          throw new Error();
+        }
+        chunks.push(next.value);
+      }
+      const raw = z
+        .object({ data: z.array(z.unknown()).max(5000) })
+        .parse(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      const model = z.object({
+        id: z.string().regex(/^[a-zA-Z0-9._:/-]{1,200}$/),
+        name: z
+          .string()
+          .min(1)
+          .max(200)
+          .refine((v) => !/[\u0000-\u001f\u007f]/.test(v)),
+        pricing: z.object({
+          prompt: z.string(),
+          completion: z.string(),
+          request: z.string().optional(),
+        }),
+        supported_parameters: z.array(z.string()),
+        architecture: z.object({
+          input_modalities: z.array(z.string()),
+          output_modalities: z.array(z.string()),
+        }),
+      });
+      const zero = (v: string) => /^0(?:\.0+)?$/.test(v);
+      const items = new Map<string, { id: string; name: string }>();
+      for (const value of raw.data) {
+        const parsed = model.safeParse(value);
+        if (!parsed.success) continue;
+        const m = parsed.data;
+        if (
+          !zero(m.pricing.prompt) ||
+          !zero(m.pricing.completion) ||
+          !zero(m.pricing.request || "0") ||
+          !m.supported_parameters.includes("structured_outputs") ||
+          !m.architecture.input_modalities.includes("text") ||
+          !m.architecture.output_modalities.includes("text")
+        )
+          continue;
+        items.set(m.id, { id: m.id, name: m.name });
+      }
+      const list: ModelList = {
+        items: [...items.values()]
+          .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+          .slice(0, 500),
+        retrievedAt: new Date().toISOString(),
+        defaultModel: this.model || null,
+        freeOnly: true,
+      };
+      this.catalog = list;
+      this.catalogUntil = Date.now() + 300000;
+      return list;
+    } catch {
+      throw new ApiError(
+        503,
+        "MODEL_CATALOG_UNAVAILABLE",
+        "OpenRouter model catalog is unavailable. Reload models before selecting one.",
+      );
+    }
+  }
+  selectModel(id: string): AssistantProvider {
+    if (id === this.model) return this;
+    if (
+      !this.catalog ||
+      Date.now() >= this.catalogUntil ||
+      !this.catalog.items.some((m) => m.id === id)
+    )
+      throw new ApiError(
+        422,
+        "MODEL_UNAVAILABLE",
+        "Choose an eligible free model from the refreshed server catalog.",
+      );
+    return new OpenRouterProvider(
+      { ...this.env, ASSISTANT_MODEL: id },
+      this.transport,
+    );
+  }
   async call<T>(
     name: string,
     schema: z.ZodType<T>,
@@ -76,6 +195,7 @@ export class OpenRouterProvider implements AssistantProvider {
         "https://openrouter.ai/api/v1/chat/completions",
         {
           method: "POST",
+          redirect: "error",
           headers: {
             Authorization: `Bearer ${this.key}`,
             "Content-Type": "application/json",

@@ -76,6 +76,17 @@ export class AssistantService {
       },
     };
   }
+  async models() {
+    if (this.provider.models) return this.provider.models();
+    return {
+      items: this.provider.configured
+        ? [{ id: this.provider.model, name: this.provider.model }]
+        : [],
+      defaultModel: this.provider.configured ? this.provider.model : null,
+      retrievedAt: new Date().toISOString(),
+      freeOnly: true as const,
+    };
+  }
   async guard(
     tx: Tx,
     identity: Identity,
@@ -471,9 +482,35 @@ export class AssistantService {
   async reserve(
     i: Identity,
     id: string,
-    input: { id: string; question: string; expectedVersion: number },
+    input: {
+      id: string;
+      question: string;
+      expectedVersion: number;
+      model?: string;
+    },
     hash?: string,
   ) {
+    // A catalog fetched by GET may be on another replica. Validate here too,
+    // outside the reservation transaction, while letting stable retries replay
+    // without needing a still-available catalog/provider.
+    if (input.model && input.model !== this.provider.model) {
+      const replay = await this.db.$transaction(async (tx) => {
+        await this.lock(tx, i);
+        const c = await this.owned(tx, i, id, hash);
+        await this.expire(tx, i, c);
+        const t = await tx.assistantTurn.findUnique({
+          where: { id: input.id },
+        });
+        if (!t) return null;
+        if (t.conversationId !== id) throw missing();
+        if (t.digest !== digest({ conversationId: id, ...input }))
+          throw conflict();
+        return { conversationVersion: c.version, turn: turn(t) };
+      });
+      if (replay) return replay;
+      if (this.provider.configured && this.provider.models)
+        await this.provider.models();
+    }
     const result = await this.db.$transaction(async (tx) => {
       await this.lock(tx, i);
       const c = await this.owned(tx, i, id, hash);
@@ -492,6 +529,14 @@ export class AssistantService {
           503,
           "ASSISTANT_NOT_CONFIGURED",
           "Configure an approved assistant model/provider and budget before asking a question.",
+        );
+      const selected = input.model || this.provider.model;
+      const provider = this.provider.selectModel?.(selected) || this.provider;
+      if (provider.model !== selected)
+        throw new ApiError(
+          422,
+          "MODEL_UNAVAILABLE",
+          "Choose a configured server model.",
         );
       if (c.version !== input.expectedVersion || c.version === 2147483647)
         throw conflict();
@@ -555,7 +600,7 @@ export class AssistantService {
           lease: randomUUID(),
           leaseUntil: new Date(Date.now() + 40000),
           sessionHash: hash || null,
-          model: this.provider.model,
+          model: provider.model,
           policy: POLICY,
         },
       });
@@ -566,12 +611,12 @@ export class AssistantService {
       await recordAudit(tx, i, "assistant.turn_reserved", t.id, c.entityId, {
         version: updated.version,
       });
-      return { c: updated, t, run: true };
+      return { c: updated, t, run: true, provider };
     });
     if (result.run) {
       const controller = new AbortController();
       this.running.set(result.t.id, controller);
-      void this.execute(i, result.c, result.t, controller)
+      void this.execute(i, result.c, result.t, controller, result.provider)
         .finally(() => this.running.delete(result.t.id))
         .catch(() => {});
     }
@@ -582,6 +627,7 @@ export class AssistantService {
     c: AssistantConversation,
     t: AssistantTurn,
     controller: AbortController,
+    provider: AssistantProvider = this.provider,
   ) {
     let output: zAnswer | undefined,
       planned: ReturnType<typeof plan.parse> | undefined,
@@ -622,7 +668,7 @@ export class AssistantService {
         };
       });
       planned = plan.parse(
-        await this.provider.plan(
+        await provider.plan(
           {
             scope: {
               entityId: c.entityId,
@@ -665,7 +711,7 @@ export class AssistantService {
       const evidence = await this.facts.retrieve(i, c, planned);
       await this.db.$transaction((tx) => this.guard(tx, i, c.entityId, hash));
       const selected = composition.parse(
-        await this.provider.compose(
+        await provider.compose(
           {
             question: t.question,
             scope: { month: c.month, currency: c.currency },

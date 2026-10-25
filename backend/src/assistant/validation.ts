@@ -21,6 +21,10 @@ export const create = z.strictObject({
 export const send = z.strictObject({
   id: uuid,
   question: text(2000).refine((v) => v.length > 0),
+  model: z
+    .string()
+    .regex(/^[a-zA-Z0-9._:/-]{1,200}$/)
+    .optional(),
   expectedVersion: version,
 });
 export const preference = z.strictObject({

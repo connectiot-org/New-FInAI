@@ -49,3 +49,12 @@ The demo is /demo/assistant. The main Ask FinAI button and /assistant must open 
 
 
 The exact case-sensitive server variable `Openrouter` is accepted as an alias for `OPENROUTER_API_KEY`. The canonical nonblank value takes precedence; whitespace around either value is trimmed. Production Compose forwards both names and frontend asset scanning checks both values. This does not copy a Vercel project's secret to another runtime or deploy backend code. The alias must be present in the runtime executing the Assistant adapter; never use a VITE prefix.
+
+
+## User-selected models (contract1.1.0)
+
+The authenticated Assistant fetches GET /api/v1/assistant/models. The server reads only the fixed public OpenRouter model catalog, with an8-second deadline,8MiB/5000-record input bound and5-minute cache. Choices require advertised text input/output, strict structured_outputs support and zero prompt/completion/request prices. At most500 sorted choices are returned; empty/unavailable catalog is visible. Catalog inclusion is not live compatibility or quota verification. Existing provider allowlist/privacy/zero-price/daily reservation controls apply to every choice.
+
+The browser sends an optional model ID with each new question. The backend validates it against its own fresh catalog; a cold replica refreshes outside the database transaction after authorization. Both provider calls use one pinned instance, and the existing turn model column stores the selection. A same-ID retry replays its original outcome even if the catalog later fails; changing its model conflicts. Existing clients omitting model still use the configured default. No new migration or source import. Frontend1.1 needs the matching backend catalog endpoint; deploy both through the normal authorized release path.
+
+Live quickstart/catalog access remained blocked403 in the engineering environment; actual selected-model requests require securely configured server credentials and settings. Controlled catalog/provider tests and the built browser fixture do not prove real-model output. Never commit or log API keys shared in chat; rotate an exposed key and configure only its replacement through secure runtime settings.

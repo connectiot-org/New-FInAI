@@ -100,6 +100,24 @@ async function routes(p: Page, configured = true) {
       },
     }),
   );
+  await p.route("**/api/v1/assistant/models", (r) =>
+    r.fulfill({
+      json: {
+        items: configured
+          ? [
+              { id: "controlled-fixture", name: "Controlled default" },
+              {
+                id: "controlled-alternative:free",
+                name: "Controlled alternative",
+              },
+            ]
+          : [],
+        retrievedAt: date,
+        defaultModel: configured ? "controlled-fixture" : null,
+        freeOnly: true,
+      },
+    }),
+  );
   await p.route("**/api/v1/assistant/capabilities", (r) =>
     r.fulfill({ json: caps(configured) }),
   );
@@ -468,4 +486,72 @@ test("Ask FinAI and the explicit demo link open the real authenticated Assistant
     .click();
   await expect(page).toHaveURL(/\/workspace\/assistant/);
   await expect(page.locator(".assistant-disclaimer")).toHaveCount(0);
+});
+
+test("model chooser sends the selected free model and uncertain retries cannot switch it", async ({
+  page,
+}) => {
+  await routes(page);
+  const bodies: { model: string }[] = [];
+  await page.route(
+    `**/api/v1/assistant/conversations/${conversationId}/turns`,
+    (r) => {
+      bodies.push(r.request().postDataJSON());
+      return r.abort();
+    },
+  );
+  await page.goto(chatPath);
+  const picker = page.getByLabel("Chat model", { exact: true });
+  await expect(picker).toHaveValue("controlled-fixture");
+  await picker.selectOption("controlled-alternative:free");
+  await page
+    .getByLabel("Ask FinAI", { exact: true })
+    .fill("What is incomplete?");
+  await page
+    .getByRole("button", { name: "Send question", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Retry same question", exact: true }),
+  ).toBeVisible();
+  await expect(picker).toBeDisabled();
+  await page
+    .getByRole("button", { name: "Retry same question", exact: true })
+    .click();
+  await expect.poll(() => bodies.length).toBe(2);
+  expect(bodies[0].model).toBe("controlled-alternative:free");
+  expect(bodies[1]).toEqual(bodies[0]);
+});
+
+test("catalog failure and empty catalog block sending without inventing model choices", async ({
+  page,
+}) => {
+  await routes(page);
+  await page.route("**/api/v1/assistant/models", (r) =>
+    r.fulfill({ status: 503, json: { message: "Catalog unavailable" } }),
+  );
+  await page.goto(chatPath);
+  await expect(page.getByRole("alert")).toContainText("Catalog unavailable");
+  await page.getByLabel("Ask FinAI", { exact: true }).fill("Cash?");
+  await expect(
+    page.getByRole("button", { name: "Send question", exact: true }),
+  ).toBeDisabled();
+  await page.route("**/api/v1/assistant/models", (r) =>
+    r.fulfill({
+      json: {
+        items: [],
+        retrievedAt: date,
+        defaultModel: null,
+        freeOnly: true,
+      },
+    }),
+  );
+  await page
+    .getByRole("button", { name: "Reload models", exact: true })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "No compatible free models" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Send question", exact: true }),
+  ).toBeDisabled();
 });
