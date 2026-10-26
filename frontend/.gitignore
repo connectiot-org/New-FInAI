@@ -5,3 +5,6 @@ playwright-report/
 *.local
 *.tsbuildinfo
 artifacts/
+
+.finai-server/
+.vercel/

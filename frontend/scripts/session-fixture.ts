@@ -109,6 +109,7 @@ let app = await createApplication(applicationOptions);
 let backend = await app.getUrl();
 // Trust only this ephemeral test CA for the real proxy's outbound TLS verification.
 globalAgent.options.ca = readFileSync(`${certificateDir}/cert.pem`);
+process.env.FINAI_API_MODE = "remote";
 process.env.FINAI_BACKEND_ORIGIN = "https://127.0.0.1:18444";
 process.env.FINAI_PUBLIC_ORIGIN = origin;
 process.env.FINAI_PROXY_TOKEN = proxyToken;
