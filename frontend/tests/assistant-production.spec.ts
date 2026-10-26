@@ -55,7 +55,7 @@ test("built HTTPS proxy/session/PostgreSQL with controlled provider: grounded A/
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(info.origin + "/assistant");
+  await page.goto(info.origin + "/workspace/assistant/records");
   await page.getByLabel("Account name").fill("browser-test");
   await page.getByLabel("Organisation ID").fill(info.organisationId);
   await page

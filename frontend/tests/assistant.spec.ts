@@ -75,8 +75,8 @@ const completed = {
   createdAt: date,
   finishedAt: date,
 };
-const path = `/assistant?unused=1`,
-  chatPath = `/workspace/assistant?entityId=${entityId}&month=2026-09&currency=USD&conversationId=${conversationId}`;
+const path = `/workspace/assistant/records?unused=1`,
+  chatPath = `/workspace/assistant/records?entityId=${entityId}&month=2026-09&currency=USD&conversationId=${conversationId}`;
 async function routes(p: Page, configured = true) {
   await p.route("**/auth/session", (r) =>
     r.fulfill({ json: { csrfToken: "a".repeat(64) } }),
@@ -423,7 +423,7 @@ test("creation retry retains its UUID only within the same scope after reopening
     });
   });
   await page.goto(
-    `/workspace/assistant?entityId=${entityId}&month=2026-08&currency=USD`,
+    `/workspace/assistant/records?entityId=${entityId}&month=2026-08&currency=USD`,
   );
   await expect(
     page.getByRole("button", { name: /2026-09 · USD/ }),
@@ -461,7 +461,7 @@ test("creation retry retains its UUID only within the same scope after reopening
   expect(bodies[2].id).not.toBe(bodies[0].id);
 });
 
-test("Ask FinAI and the explicit demo link open the real authenticated Assistant", async ({
+test("Ask FinAI and the explicit demo link open the public model test chat", async ({
   page,
 }) => {
   await routes(page, false);
@@ -469,7 +469,10 @@ test("Ask FinAI and the explicit demo link open the real authenticated Assistant
   await page.getByRole("button", { name: "Ask FinAI", exact: true }).click();
   await expect(page).toHaveURL(/\/workspace\/assistant/);
   await expect(
-    page.getByRole("status").filter({ hasText: "Model unavailable" }),
+    page.getByText(
+      "Choose a free model and start chatting. No sign-in or database required.",
+      { exact: true },
+    ),
   ).toBeVisible();
   await expect(
     page.getByRole("dialog", { name: "FinAI Assistant demo" }),
@@ -480,7 +483,7 @@ test("Ask FinAI and the explicit demo link open the real authenticated Assistant
   ).toBeVisible();
   await page
     .getByRole("link", {
-      name: "Open the authenticated FinAI Assistant",
+      name: "Try free model chat",
       exact: true,
     })
     .click();

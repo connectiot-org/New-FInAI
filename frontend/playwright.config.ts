@@ -3,7 +3,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   testIgnore:
-    /(?:checklist.*|session-production|subscriptions|receivables-api|receivables-production|workspace|workspace-detail|workspace-production|assistant|assistant-production|vercel-backend)\.spec\.ts/,
+    /(?:checklist.*|session-production|subscriptions|receivables-api|receivables-production|workspace|workspace-detail|workspace-production|assistant|assistant-production|vercel-backend|public-chat)\.spec\.ts/,
   fullyParallel: true,
   workers: 2,
   timeout: 45000,

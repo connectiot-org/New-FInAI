@@ -56,7 +56,7 @@ function WorkspaceBody() {
     <>
       <nav aria-label="Workspace navigation">
         <NavLink to="/workspace/overview">Overview</NavLink>
-        <NavLink to="/workspace/assistant">FinAI Assistant</NavLink>
+        <NavLink to="/workspace/assistant/records">FinAI Assistant</NavLink>
         <NavLink to="/workspace/ledger">Imported ledger</NavLink>
         <NavLink to="/workspace/receivables/invoices">Receivables</NavLink>
         <NavLink to="/workspace/checklist">Monthly checklist</NavLink>

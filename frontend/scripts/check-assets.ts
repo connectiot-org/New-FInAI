@@ -25,10 +25,11 @@ for (const root of [
   "artifacts/receivables-dist",
   "artifacts/workspace-dist",
   "artifacts/assistant-dist",
+  "artifacts/public-chat-dist",
 ]) {
   if (!existsSync(root))
     throw new Error(
-      "Build demo, session, receivables, workspace and Assistant assets before scanning.",
+      "Build demo, session, receivables, workspace, Assistant and public chat assets before scanning.",
     );
   const assets = files(root).filter((path) => /\.(js|css|html)$/.test(path));
   for (const path of assets) {
@@ -41,7 +42,8 @@ for (const root of [
       (root.includes("session-dist") ||
         root.includes("receivables-dist") ||
         root.includes("workspace-dist") ||
-        root.includes("assistant-dist")) &&
+        root.includes("assistant-dist") ||
+        root.includes("public-chat-dist")) &&
       text.includes("http://127.0.0.1:3000/api/v1")
     )
       throw new Error(
@@ -50,5 +52,5 @@ for (const root of [
   }
 }
 console.log(
-  "PASS: demo/session/receivables/workspace/assistant assets contain none of the available backend credential values; production session API uses no localhost fallback",
+  "PASS: demo/session/receivables/workspace/assistant/public-chat assets contain none of the available backend credential values; production API uses no localhost fallback",
 );

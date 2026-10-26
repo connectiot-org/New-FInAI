@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { waitUntil } from "@vercel/functions";
+import { createPublicChatHandler } from "../server/public-chat.js";
 import {
   createEmbeddedHandler,
   type ApplicationModule,
@@ -9,6 +10,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 export const config = { maxDuration: 60 };
 const require = createRequire(import.meta.url);
+const publicChat = createPublicChatHandler();
 const embedded = createEmbeddedHandler({
   loadApplication: () =>
     require("../.finai-server/src/app.js") as ApplicationModule,
@@ -16,6 +18,12 @@ const embedded = createEmbeddedHandler({
 });
 type ProxyRequest = IncomingMessage & { body?: unknown };
 export default async function proxy(req: ProxyRequest, res: ServerResponse) {
+  const chatRoute = new URL(
+    req.url || "/",
+    "http://localhost",
+  ).searchParams.get("route");
+  if (chatRoute?.startsWith("api/chat/"))
+    return publicChat(req, res, chatRoute.slice("api/chat/".length));
   const fail = (status: number, message: string) => {
     if (res.headersSent) {
       res.destroy();
