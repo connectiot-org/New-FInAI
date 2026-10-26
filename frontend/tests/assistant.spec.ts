@@ -555,3 +555,24 @@ test("catalog failure and empty catalog block sending without inventing model ch
     page.getByRole("button", { name: "Send question", exact: true }),
   ).toBeDisabled();
 });
+
+test("missing Vercel database configuration stays visible at the session gate", async ({
+  page,
+}) => {
+  await routes(page);
+  await page.route("**/auth/session", (r) =>
+    r.fulfill({
+      status: 503,
+      json: {
+        code: "DEPLOYMENT_NOT_CONFIGURED",
+        message:
+          "The server database is not connected. Configure DATABASE_URL in Vercel.",
+      },
+    }),
+  );
+  await page.goto(chatPath);
+  await expect(page.getByRole("alert")).toContainText(
+    "Configure DATABASE_URL in Vercel",
+  );
+  await expect(page.locator(".assistant-turn")).toHaveCount(0);
+});

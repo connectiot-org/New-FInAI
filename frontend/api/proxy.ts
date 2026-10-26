@@ -1,7 +1,19 @@
+import { createRequire } from "node:module";
+import { waitUntil } from "@vercel/functions";
+import {
+  createEmbeddedHandler,
+  type ApplicationModule,
+} from "../server/embedded.js";
 import { request } from "node:https";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
-export const config = { maxDuration: 20 };
+export const config = { maxDuration: 60 };
+const require = createRequire(import.meta.url);
+const embedded = createEmbeddedHandler({
+  loadApplication: () =>
+    require("../.finai-server/src/app.js") as ApplicationModule,
+  retainWork: waitUntil,
+});
 type ProxyRequest = IncomingMessage & { body?: unknown };
 export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   const fail = (status: number, message: string) => {
@@ -30,9 +42,14 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
       }),
     );
   };
-  const backend = process.env.FINAI_BACKEND_ORIGIN,
+  const backend =
+      process.env.FINAI_API_MODE === "embedded"
+        ? undefined
+        : process.env.FINAI_BACKEND_ORIGIN,
     publicOrigin = process.env.FINAI_PUBLIC_ORIGIN,
     token = process.env.FINAI_PROXY_TOKEN;
+  if (!backend && process.env.FINAI_API_MODE !== "remote")
+    return embedded.handler(req, res);
   if (!backend || !publicOrigin || !token)
     return fail(503, "API proxy is not configured.");
   let target: URL, publicURL: URL;

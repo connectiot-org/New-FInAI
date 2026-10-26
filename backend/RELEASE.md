@@ -1,6 +1,8 @@
 # Production release runbook
 
-Architecture: Vercel project root `frontend`, build `npm run build`, output `dist`, Node 24. The same-origin serverless API/auth proxy forwards to a TLS backend origin; NestJS uses PostgreSQL with a persistent volume. Public checklist must explicitly use `VITE_CHECKLIST_MODE=api`, `VITE_AUTH_MODE=session`, `VITE_API_BASE_URL=/api/v1`. No credentials in VITE_ variables. Default remains session demo.
+Architecture: Vercel project root `frontend`, build `npm run build:vercel`, output `dist`, Node 24. The same-project API function now packages the real NestJS backend and uses a separately provisioned PostgreSQL service. See [the Vercel runbook](../frontend/docs/vercel.md) for this mode, database binding and server-only settings. The build enables the authenticated API frontend; it never migrates or seeds a production database. No credentials belong in VITE_ variables.
+
+The existing remote proxy/Docker option remains supported. The settings and container commands below describe that option; select `FINAI_API_MODE=remote` explicitly when using a separate backend.
 
 Backend deploy environment (secure values supplied through hosting secret settings, never committed):
 
@@ -33,7 +35,7 @@ Backups: use a restricted backup service account and secure PGPASSFILE/secret ma
 
 Rollback: stop rollout and route back to the prior compatible image/frontend. Leave additive tables/data intact; do not reverse migrations or delete tasks. A pre-session application must remain local-only, so rolling back authentication closes public API access. Restore data only via the separate verified recovery process. Keep release SHA, image digest, migration status and backup identifiers in operator records.
 
-Release smoke checks: exact deployment preview direct `/close/checklist` and refresh; static assets 200; unknown `/api/*` and `/auth/*` JSON, never SPA HTML; anonymous API 401; sign in via HTTPS and verify Secure/HttpOnly cookie; permitted entity list/copy and cross-tenant denial; missing CSRF 403; logout/revoke/expiry/membership removal deny access; liveness/readiness; request IDs without titles/passwords/tokens; scan generated frontend assets for secret values without printing matches. Verify rate limiting under deployed replicas, graceful SIGTERM drain, persistent data across backend restart, and backup restore on target infrastructure. Public deployment is not authorized by this task; hosting credentials, TLS/database provisioning, target capacity and deployed verification remain operator release gates.
+Release smoke checks: exact deployment preview direct `/close/checklist` and refresh; static assets 200; unknown `/api/*` and `/auth/*` JSON, never SPA HTML; anonymous API 401; sign in via HTTPS and verify Secure/HttpOnly cookie; permitted entity list/copy and cross-tenant denial; missing CSRF 403; logout/revoke/expiry/membership removal deny access; liveness/readiness; request IDs without titles/passwords/tokens; scan generated frontend assets for secret values without printing matches. Verify rate limiting under deployed replicas, graceful SIGTERM drain, persistent data across backend restart, and backup restore on target infrastructure. Hosting credentials, TLS/database provisioning, target capacity and deployed verification must be checked on the actual target. Local tests do not establish those outcomes.
 
 For this cloud machine only, the verified platform CA can be supplied at build time with `BUILDX_CONFIG=/workspace/.finai-buildx docker build --secret id=cloud_ca,src="$NODE_EXTRA_CA_CERTS" -t finai-backend:<release-sha> backend` from the repository root. The optional BuildKit mount is not retained in the image; no TLS or checksum bypass is used. Normal hosts with standard public trust use the plain build command.
 
@@ -54,3 +56,6 @@ See `RECEIVABLES.md` for the ordered snapshot migration, owner-reviewed source i
 
 
 FinAI Assistant adds two migrations (seven total). Read [ASSISTANT.md](ASSISTANT.md) for explicit provider/price/budget/privacy controls, approved ledger mapping, retention, evaluation and rollback gates. Keep disabled until approved configuration and staging verification.
+
+
+Same-project Vercel mode is now implemented; see [frontend/docs/vercel.md](../frontend/docs/vercel.md). Listener-free startup and waitUntil retention preserve existing API/auth/lease semantics. Database/schema/accounts still need real provisioning; the build never migrates or seeds production. Existing remote proxy/Docker mode stays supported.

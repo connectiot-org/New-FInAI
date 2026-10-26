@@ -176,6 +176,8 @@ export async function createApplication(
     identity?: Identity;
     quiet?: boolean;
     assistantProvider?: AssistantProvider;
+    listen?: boolean;
+    retainAssistantWork?: (work: Promise<unknown>) => void;
   } = {},
 ) {
   const timezones = organisationTimezones(
@@ -200,6 +202,7 @@ export async function createApplication(
   const assistantEnv = options.env || process.env;
   if (options.assistantProvider && assistantEnv.NODE_ENV !== "test")
     throw new Error("Provider injection is test-only");
+  app.get(AssistantService).retainWork = options.retainAssistantWork;
   app.get(AssistantService).provider =
     options.assistantProvider || new OpenRouterProvider(assistantEnv);
   app.get(LedgerService).approved = new Set(
@@ -455,6 +458,12 @@ export async function createApplication(
     sendError(err, req, res),
   );
   app.useGlobalFilters(new ApiFilter());
-  await app.listen(config.port, config.host);
-  return app;
+  try {
+    if (options.listen === false) await app.init();
+    else await app.listen(config.port, config.host);
+    return app;
+  } catch (error) {
+    await app.close();
+    throw error;
+  }
 }

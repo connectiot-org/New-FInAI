@@ -95,7 +95,11 @@ export function Assistant({
         <span>Deterministic local answers · No LLM connection</span>
       </div>
       <p>
-        <Link to="/workspace/assistant" onClick={onNavigate}>
+        <Link
+          className="primary"
+          to="/workspace/assistant"
+          onClick={onNavigate}
+        >
           Open the authenticated FinAI Assistant
         </Link>{" "}
         for model-backed answers from authorized records.

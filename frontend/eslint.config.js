@@ -10,6 +10,7 @@ export default tseslint.config(
       "playwright-report",
       "test-results",
       "artifacts",
+      ".finai-server",
     ],
   },
   js.configs.recommended,

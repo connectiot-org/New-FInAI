@@ -19,10 +19,21 @@ async function fetchSession() {
     signal: AbortSignal.timeout(10000),
   });
   if (!r.ok) {
+    let deploymentMessage: string | undefined;
+    if (r.status === 503) {
+      const detail = z
+        .object({
+          code: z.literal("DEPLOYMENT_NOT_CONFIGURED"),
+          message: z.string().max(500),
+        })
+        .safeParse(await r.json().catch(() => null));
+      if (detail.success) deploymentMessage = detail.data.message;
+    }
     const e = new Error(
-      r.status === 401
-        ? "Session expired. Sign in again."
-        : "Sign-in service is unavailable.",
+      deploymentMessage ||
+        (r.status === 401
+          ? "Session expired. Sign in again."
+          : "Sign-in service is unavailable."),
     );
     Object.assign(e, { status: r.status });
     throw e;
