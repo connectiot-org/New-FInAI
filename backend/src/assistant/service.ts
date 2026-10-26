@@ -52,6 +52,7 @@ type Tx = Prisma.TransactionClient;
 @Injectable()
 export class AssistantService {
   provider: AssistantProvider = new OpenRouterProvider();
+  retainWork?: (work: Promise<unknown>) => void;
   private running = new Map<string, AbortController>();
   constructor(
     @Inject(Database) private db: Database,
@@ -616,9 +617,16 @@ export class AssistantService {
     if (result.run) {
       const controller = new AbortController();
       this.running.set(result.t.id, controller);
-      void this.execute(i, result.c, result.t, controller, result.provider)
+      const work = this.execute(
+        i,
+        result.c,
+        result.t,
+        controller,
+        result.provider,
+      )
         .finally(() => this.running.delete(result.t.id))
         .catch(() => {});
+      this.retainWork?.(work);
     }
     return { conversationVersion: result.c.version, turn: turn(result.t) };
   }
