@@ -14,6 +14,8 @@ Per warm function instance: five completions per IP/minute, twenty total/minute,
 
 ## Private financial backend
 
+Public Assistant reliability, request references, safe logging, input deadlines and production readiness boundaries are documented in [assistant-production.md](assistant-production.md).
+
 This release packages the real NestJS API into the existing Vercel API function. The frontend can use the OPENROUTER_API_KEY or Openrouter Secret from that same Vercel project. All private history/source data still requires PostgreSQL and authenticated accounts. No production database or account is created by a build or HTTP request.
 
 ## Project and build

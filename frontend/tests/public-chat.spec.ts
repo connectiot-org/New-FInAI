@@ -7,7 +7,10 @@ import {
 import type { AddressInfo } from "node:net";
 import { readFile } from "node:fs/promises";
 import { resolve, extname } from "node:path";
-import { createPublicChatHandler } from "../server/public-chat";
+import {
+  createPublicChatHandler,
+  type ChatOutcome,
+} from "../server/public-chat";
 
 test.describe.configure({ mode: "serial" });
 const key = "controlled-public-chat-test-key";
@@ -34,6 +37,8 @@ let catalogs = 0,
   privateRequests = 0;
 let releases: (() => void)[] = [];
 let handler: ReturnType<typeof createPublicChatHandler>;
+let outcomes: ChatOutcome[] = [],
+  inbound = 0;
 const transport: typeof fetch = async (url, init) => {
   const target = new URL(String(url));
   expect(target.origin).toBe("https://openrouter.ai");
@@ -93,7 +98,7 @@ const provider = createServer(async (req, res) => {
         ? "x".repeat(5000)
         : current === "html"
           ? '<img src=x onerror="alert(1)">'
-          : `Hello from ${body.model}: ${messages.at(-1)?.content}`;
+          : `Hello from ${body.model}: ${messages.at(-1)?.content.split("\n\nUser message:\n").at(-1)}`;
   res.end(
     JSON.stringify({
       model: current === "router" ? beta : body.model,
@@ -106,6 +111,10 @@ const app = createServer(async (req, res) => {
   try {
     const path = new URL(req.url!, "http://localhost").pathname;
     if (path.startsWith("/api/chat/")) {
+      inbound++;
+      if (req.headers["x-test-drained"] === "yes") {
+        for await (const chunk of req) void chunk;
+      }
       if (req.headers["x-test-preparsed"] === "yes") {
         const chunks: Buffer[] = [];
         for await (const chunk of req) chunks.push(Buffer.from(chunk));
@@ -154,7 +163,12 @@ const app = createServer(async (req, res) => {
 function reset(
   env: NodeJS.ProcessEnv = { NODE_ENV: "test", OPENROUTER_API_KEY: key },
 ) {
-  handler = createPublicChatHandler({ env, transport, now: () => time });
+  handler = createPublicChatHandler({
+    env,
+    transport,
+    now: () => time,
+    onOutcome: (outcome) => outcomes.push(outcome),
+  });
 }
 async function call(
   body?: unknown,
@@ -186,6 +200,8 @@ test.beforeEach(() => {
   completions = [];
   catalogs = 0;
   privateRequests = 0;
+  outcomes = [];
+  inbound = 0;
   rows = [row(alpha, "Alpha"), row(beta, "Beta")];
   time += 300001;
   reset();
@@ -271,10 +287,19 @@ test("model requests use the server key and chosen model, zero price caps, no id
   expect(completions[0].cookie).toBeUndefined();
   expect(completions[0].body).toEqual({
     ...question,
+    messages: [{ role: "user", content: expect.any(String) }],
     max_tokens: 4096,
     stream: false,
     provider: { max_price: { prompt: 0, completion: 0 } },
   });
+  const forwarded = completions[0].body.messages as {
+    role: string;
+    content: string;
+  }[];
+  expect(forwarded[0].content).toMatch(/^You are FinAI Assistant\./);
+  expect(forwarded[0].content).toContain("no access to the user's books");
+  expect(forwarded[0].content).toContain("Never invent balances");
+  expect(forwarded[0].content.endsWith("User message:\nHello test")).toBe(true);
   expect(privateRequests).toBe(0);
   reset({ NODE_ENV: "test", Openrouter: key });
   expect((await call(question)).status).toBe(200);
@@ -608,4 +633,173 @@ test("the screenshot Assistant page sends real model requests inside its existin
       fullPage: true,
     });
   }
+});
+
+test("stalled input has a deadline and releases the execution slot without a provider call", async () => {
+  const response = await new Promise<{
+    status: number;
+    data: { code: string };
+  }>((resolve, reject) => {
+    const req = nodeRequest(
+      origin + "/api/chat/messages",
+      {
+        method: "POST",
+        headers: { origin, "Content-Type": "application/json" },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+        res.once("end", () => {
+          resolve({
+            status: res.statusCode!,
+            data: JSON.parse(Buffer.concat(chunks).toString()),
+          });
+          req.destroy();
+        });
+      },
+    );
+    req.on("error", reject);
+    req.write("{"); // Intentionally leave the chunked upload incomplete.
+  });
+  expect(response.status).toBe(408);
+  expect(response.data.code).toBe("REQUEST_TIMEOUT");
+  expect(completions).toHaveLength(0);
+  expect((await call(question)).status).toBe(200);
+});
+
+test("aborted and already-drained inputs cannot hang a slot or crash the next request", async () => {
+  const req = nodeRequest(origin + "/api/chat/messages", {
+    method: "POST",
+    headers: { origin, "Content-Type": "application/json" },
+  });
+  req.on("error", () => {});
+  req.write("{");
+  await expect.poll(() => inbound).toBe(1);
+  req.destroy();
+  await expect.poll(() => outcomes.some((x) => x.status === 499)).toBe(true);
+  expect((await call(question, { "x-test-drained": "yes" })).status).toBe(400);
+  expect(completions).toHaveLength(0);
+  expect((await call(question)).status).toBe(200);
+});
+
+test("request references correlate responses and metadata without logging prompts, keys, cookies or IPs", async () => {
+  const response = await call(question, {
+    cookie: "private-cookie",
+    "x-vercel-forwarded-for": "203.0.113.123",
+  });
+  const reference = response.headers.get("x-request-id");
+  expect(reference).toMatch(/^[a-f0-9-]{36}$/);
+  expect(outcomes[0]).toMatchObject({
+    requestId: reference,
+    route: "messages",
+    method: "POST",
+    status: 200,
+  });
+  const rejected = await call({ ...question, model: "not/a/free-model" });
+  const failure = await rejected.json();
+  expect(failure.requestId).toBe(rejected.headers.get("x-request-id"));
+  expect(outcomes.at(-1)).toMatchObject({
+    requestId: failure.requestId,
+    status: 422,
+    code: "MODEL_NOT_FREE",
+  });
+  const serialized = JSON.stringify(outcomes);
+  for (const value of [key, "Hello test", "private-cookie", "203.0.113.123"])
+    expect(serialized).not.toContain(value);
+  expect(Object.keys(outcomes[0]).sort()).toEqual([
+    "durationMs",
+    "method",
+    "requestId",
+    "route",
+    "status",
+  ]);
+  handler = createPublicChatHandler({
+    env: { NODE_ENV: "test", OPENROUTER_API_KEY: key },
+    transport,
+    onOutcome: () => {
+      throw new Error("Logger unavailable");
+    },
+  });
+  expect((await call(question)).status).toBe(200);
+});
+
+test("rapid submit events produce only one completion and restore keyboard focus", async ({
+  page,
+}) => {
+  mode = "slow";
+  await page.goto(origin + "/demo/assistant");
+  await page.getByLabel("Your message").fill("Send exactly once");
+  await expect(
+    page.getByRole("button", { name: "Send message", exact: true }),
+  ).toBeEnabled();
+  await page.locator(".assistant-composer").evaluate((form) => {
+    (form as HTMLFormElement).requestSubmit();
+    (form as HTMLFormElement).requestSubmit();
+  });
+  await expect.poll(() => completions.length).toBe(1);
+  for (const release of releases) release();
+  await expect(page.locator(".public-chat-message.assistant")).toHaveCount(1);
+  expect(completions).toHaveLength(1);
+  await expect(page.getByLabel("Your message")).toBeFocused();
+});
+
+test("known retry timing disables sends without inventing a response or automatically retrying", async ({
+  page,
+}) => {
+  await page.clock.install();
+  let attempts = 0;
+  const reference = "11111111-1111-4111-8111-111111111111";
+  await page.route("**/api/chat/messages", (route) => {
+    attempts++;
+    return attempts === 1
+      ? route.fulfill({
+          status: 429,
+          headers: { "retry-after": "2", "x-request-id": reference },
+          json: {
+            code: "RATE_LIMITED",
+            message: "Please wait before sending again.",
+            requestId: reference,
+          },
+        })
+      : route.continue();
+  });
+  await page.goto(origin + "/demo/assistant");
+  await page.getByLabel("Your message").fill("Keep my draft");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText(reference);
+  await expect(
+    page.getByRole("status").filter({ hasText: "send again" }),
+  ).toContainText("2 seconds");
+  await expect(
+    page.getByRole("button", { name: "Send message", exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByLabel("Your message")).toHaveValue("Keep my draft");
+  await page.clock.fastForward(3000);
+  await expect(
+    page.getByRole("button", { name: "Send message", exact: true }),
+  ).toBeEnabled();
+  expect(attempts).toBe(1);
+  expect(completions).toHaveLength(0);
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.locator(".public-chat-message.assistant")).toHaveCount(1);
+  await expect(page.getByLabel("Your message")).toBeFocused();
+});
+
+test("a network failure preserves the draft and requires a deliberate retry", async ({
+  page,
+}) => {
+  await page.goto(origin + "/demo/assistant");
+  await page.route("**/api/chat/messages", (route) => route.abort("failed"));
+  await page.getByLabel("Your message").fill("Preserve this question");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Check your connection");
+  await expect(page.getByLabel("Your message")).toHaveValue(
+    "Preserve this question",
+  );
+  expect(completions).toHaveLength(0);
+  await expect(page.locator(".public-chat-message.assistant")).toHaveCount(0);
+  await page.unroute("**/api/chat/messages");
+  await page.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(page.locator(".public-chat-message.assistant")).toHaveCount(1);
+  expect(completions).toHaveLength(1);
 });

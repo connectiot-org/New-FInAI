@@ -134,3 +134,7 @@ User explicitly requested anonymous model testing without a database. Added a se
 ## Inline Assistant layout —26 October2026 (Asia/Dhaka)
 
 User requested working model chat inside the existing screenshot conversation area and removal of the demo banner/separate-chat option. /demo/assistant now hosts the shared live chat UI; /assistant and /workspace/assistant redirect there. Models, replies, prompt cards, errors and composer stay inline. Original local approval example remains at /demo/assistant/offline, while private records stay authenticated.15 public,12 private,1 built private and51 original demo checks pass locally; see assistant-inline-ui.md for scope and screenshots. Provider limits remain visible; no new model spend or production-data changes were needed for this UI work.
+
+## Assistant production hardening —26 October2026 (Asia/Dhaka)
+
+Added input deadlines and abort cleanup, correlated response/support/log IDs, metadata-only logging, synchronous send protection, known cooldown handling, retained drafts/manual retry/focus, friendly connection errors and server-owned FinAI context.21 public+13 private Assistant+51 demo tests pass locally; official function smoke, typechecks/lint/audit/assets pass. User confirmed key rotation. Public chat is connected; private financial API still has no database. Free-provider availability and durable shared traffic controls remain explicit readiness limits. See assistant-production-hardening.md and ../frontend/docs/assistant-production.md; no full-product production-readiness claim from a build.

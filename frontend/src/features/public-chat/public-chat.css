@@ -80,6 +80,14 @@
   border-radius: 6px;
   overflow-wrap: anywhere;
 }
+.model-assistant [role="alert"] p {
+  margin: 0;
+}
+.model-assistant [role="alert"] small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
 @media (max-width: 600px) {
   .model-assistant .assistant-intro {
     padding-top: 24px;
