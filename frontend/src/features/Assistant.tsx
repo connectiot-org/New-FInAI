@@ -100,9 +100,9 @@ export function Assistant({
           to="/workspace/assistant"
           onClick={onNavigate}
         >
-          Open the authenticated FinAI Assistant
+          Try free model chat
         </Link>{" "}
-        for model-backed answers from authorized records.
+        without sign-in, or open the financial Assistant from your workspace.
       </p>
       {!answers.length && (
         <div className="assistant-intro">

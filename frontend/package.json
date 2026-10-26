@@ -21,7 +21,8 @@
     "test:assistant": "playwright test --config playwright.assistant.config.ts",
     "test:assistant:production": "VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 VITE_CHECKLIST_MODE=api VITE_RECEIVABLES_MODE=api vite build --outDir artifacts/assistant-dist && playwright test --config playwright.assistant-production.config.ts",
     "build:vercel": "node scripts/vercel-build.mjs",
-    "test:vercel": "npm run build:vercel && playwright test --config playwright.vercel.config.ts"
+    "test:vercel": "npm run build:vercel && playwright test --config playwright.vercel.config.ts",
+    "test:public-chat": "VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 VITE_CHECKLIST_MODE=api VITE_RECEIVABLES_MODE=api vite build --outDir artifacts/public-chat-dist && playwright test --config playwright.public-chat.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

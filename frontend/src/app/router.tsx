@@ -4,7 +4,7 @@ import { LedgerSource } from "../features/assistant/LedgerSource";
 import { Imports } from "../features/workspace/Imports";
 import { Administration as WorkspaceAdministration } from "../features/workspace/Administration";
 import { BrandMark } from "../components/shared/BrandMark";
-import { Component, useEffect, type ReactNode } from "react";
+import { Component, Suspense, lazy, useEffect, type ReactNode } from "react";
 import {
   createBrowserRouter,
   Navigate,
@@ -171,6 +171,11 @@ function NotFound() {
     </div>
   );
 }
+const PublicChat = lazy(() =>
+  import("../features/public-chat/PublicChat").then((module) => ({
+    default: module.PublicChat,
+  })),
+);
 const router = createBrowserRouter([
   {
     path: "/",
@@ -189,10 +194,18 @@ const router = createBrowserRouter([
     element: <Navigate to="/workspace/assistant" replace />,
   },
   {
+    path: "/workspace/assistant",
+    element: (
+      <Suspense fallback={<p role="status">Opening chat…</p>}>
+        <PublicChat />
+      </Suspense>
+    ),
+  },
+  {
     path: "/workspace",
     element: <Workspace />,
     children: [
-      { path: "assistant", element: <ProductionAssistant /> },
+      { path: "assistant/records", element: <ProductionAssistant /> },
       { path: "assistant/source", element: <OperationalSource /> },
       { path: "ledger", element: <LedgerSource /> },
       { path: "imports", element: <Imports /> },

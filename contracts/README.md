@@ -68,3 +68,6 @@ Only `/api/v1/receivables/imports/preview` accepts raw `application/octet-stream
 
 
 Assistant and ledger contracts: [assistant.md](assistant.md), [assistant.openapi.yaml](assistant.openapi.yaml), [assistant.schema.json](assistant.schema.json), [ledger.md](ledger.md), [ledger.schema.json](ledger.schema.json). Validate with `node contracts/validate_assistant.mjs` from the repository root after backend npm ci. The ledger example is synthetic, never a production mapping approval.
+
+
+Public model test chat is a separate stateless boundary: [public-chat.md](public-chat.md) and [public-chat.schema.json](public-chat.schema.json). It requires no financial session/database and cannot access financial sources. Existing private Assistant contracts stay unchanged; its page is now /workspace/assistant/records. Validate with `node contracts/validate_public_chat.mjs`.
