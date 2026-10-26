@@ -23,16 +23,39 @@ const answerSchema = z.strictObject({
   content: z.string().min(1).max(100000),
 });
 type Message = { role: "user" | "assistant"; content: string; model?: string };
+class ChatFailure extends Error {
+  constructor(
+    message: string,
+    public reference?: string,
+    public retrySeconds?: number,
+  ) {
+    super(message);
+  }
+}
 async function read(response: Response) {
   const value: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const error = z
-      .object({ message: z.string().min(1).max(500) })
+      .object({
+        message: z.string().min(1).max(500),
+        requestId: z.uuid().optional(),
+      })
       .safeParse(value);
-    throw new Error(
+    const wait = response.headers.get("retry-after");
+    const seconds =
+      response.status === 429 &&
+      wait &&
+      /^\d+$/.test(wait) &&
+      Number(wait) >= 1 &&
+      Number(wait) <= 300
+        ? Number(wait)
+        : undefined;
+    throw new ChatFailure(
       error.success
         ? error.data.message
         : "Chat service is unavailable. Try again.",
+      error.success ? error.data.requestId : undefined,
+      seconds,
     );
   }
   return value;
@@ -47,8 +70,24 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [pending, setPending] = useState(false);
+  const [reference, setReference] = useState<string>();
+  const [retryUntil, setRetryUntil] = useState(0);
+  const [clock, setClock] = useState(Date.now());
+  const composer = useRef<HTMLTextAreaElement | null>(null);
   const listRequest = useRef<AbortController | null>(null);
   const chatRequest = useRef<AbortController | null>(null);
+  const focusComposer = () =>
+    requestAnimationFrame(() => composer.current?.focus());
+  useEffect(() => {
+    if (!retryUntil) return;
+    const timer = setInterval(() => {
+      const time = Date.now();
+      setClock(time);
+      if (time >= retryUntil) setRetryUntil(0);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [retryUntil]);
+  const retrySeconds = Math.max(0, Math.ceil((retryUntil - clock) / 1000));
   const reload = useCallback(async () => {
     listRequest.current?.abort();
     const controller = new AbortController();
@@ -81,9 +120,11 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
       if (!controller.signal.aborted) {
         setCatalog(undefined);
         setCatalogError(
-          e instanceof Error && !(e instanceof z.ZodError)
-            ? e.message
-            : "OpenRouter returned an invalid model list.",
+          e instanceof TypeError
+            ? "Could not load models. Check your connection and reload models."
+            : e instanceof Error && !(e instanceof z.ZodError)
+              ? e.message
+              : "OpenRouter returned an invalid model list.",
         );
       }
     } finally {
@@ -105,6 +146,8 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
     const text = (prompt ?? question).trim();
     if (
       pending ||
+      chatRequest.current !== null ||
+      retryUntil > Date.now() ||
       loading ||
       !catalog?.configured ||
       !available.some((m) => m.id === model) ||
@@ -126,6 +169,7 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
       history.splice(0, 2);
     setPending(true);
     setError("");
+    setReference(undefined);
     try {
       const result = answerSchema.parse(
         await read(
@@ -153,18 +197,30 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
       ]);
       setQuestion("");
     } catch (e) {
-      if (!controller.signal.aborted)
+      if (!controller.signal.aborted) {
+        if (e instanceof ChatFailure) {
+          setReference(e.reference);
+          if (e.retrySeconds) {
+            const time = Date.now();
+            setClock(time);
+            setRetryUntil(time + e.retrySeconds * 1000);
+          }
+        }
         setError(
-          e instanceof Error && !(e instanceof z.ZodError)
-            ? e.name === "TimeoutError"
-              ? "The model took too long. Try again or choose another free model."
-              : e.message
-            : "The model returned an invalid answer. Try another free model.",
+          e instanceof TypeError
+            ? "Could not reach the Assistant. Check your connection and try again."
+            : e instanceof Error && !(e instanceof z.ZodError)
+              ? e.name === "TimeoutError"
+                ? "The model took too long. Try again or choose another free model."
+                : e.message
+              : "The model returned an invalid answer. Try another free model.",
         );
+      }
     } finally {
       if (chatRequest.current === controller) {
         chatRequest.current = null;
         setPending(false);
+        focusComposer();
       }
     }
   }
@@ -175,9 +231,14 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
     setMessages([]);
     setQuestion("");
     setError("");
+    setReference(undefined);
+    focusComposer();
   }
   const ready =
-    !loading && !!catalog?.configured && available.some((m) => m.id === model);
+    !loading &&
+    !retrySeconds &&
+    !!catalog?.configured &&
+    available.some((m) => m.id === model);
   const suggestions = [
     "Explain cash flow in simple terms",
     "What should I check on an invoice?",
@@ -293,7 +354,19 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
             Vercel and redeploy. This chat does not need DATABASE_URL.
           </p>
         )}
-        {error && <p role="alert">{error}</p>}
+        {error && (
+          <div role="alert">
+            <p>{error}</p>
+            {reference && (
+              <small>
+                Reference: <code>{reference}</code>
+              </small>
+            )}
+          </div>
+        )}
+        {retrySeconds > 0 && (
+          <p role="status">You can send again in {retrySeconds} seconds.</p>
+        )}
         <div className="suggested-prompts">
           {suggestions.map((prompt) => (
             <button
@@ -314,6 +387,7 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
           }}
         >
           <textarea
+            ref={composer}
             aria-label="Your message"
             rows={1}
             value={question}
@@ -348,9 +422,11 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
                 chatRequest.current?.abort();
                 chatRequest.current = null;
                 setPending(false);
+                setReference(undefined);
                 setError(
                   "Response cancelled. Your question was not sent again.",
                 );
+                focusComposer();
               }}
             >
               Stop response

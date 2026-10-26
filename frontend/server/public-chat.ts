@@ -23,6 +23,16 @@ const input = z
       v.messages.reduce((sum, m) => sum + m.content.length, 0) <= 12000,
   );
 type Model = { id: string; name: string };
+export type ChatOutcome = {
+  requestId: string;
+  route: "models" | "messages" | "unknown";
+  method: "GET" | "POST" | "OTHER";
+  status: number;
+  code?: string;
+  durationMs: number;
+};
+const assistantContext =
+  "You are FinAI Assistant. Help with general finance, accounting and everyday questions. This chat has no access to the user's books, bank accounts, invoices, balances, saved records or live systems. For company-specific figures and record status, use only information the user supplies; otherwise say the data is unavailable and ask for it. Never invent balances, record sources or completed actions. Do not claim to have saved changes or performed transactions. Explain assumptions clearly. Do not request passwords, API keys or banking login details.\n\nUser message:\n";
 class ChatError extends Error {
   constructor(
     public status: number,
@@ -32,6 +42,70 @@ class ChatError extends Error {
   ) {
     super(message);
   }
+}
+function readBody(req: IncomingMessage): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    const cleanup = () => {
+      clearTimeout(timer);
+      req.off("data", data);
+      req.off("end", end);
+      req.off("error", error);
+      req.off("aborted", error);
+    };
+    const discard = () => {
+      // A late disconnect while draining must not become an unhandled stream error.
+      req.once("error", () => {});
+      req.resume();
+    };
+    const data = (chunk: Buffer) => {
+      const bytes = Buffer.from(chunk);
+      size += bytes.length;
+      if (size > 65536) {
+        cleanup();
+        discard();
+        reject(
+          new ChatError(422, "VALIDATION_FAILED", "Chat request is too large."),
+        );
+      } else chunks.push(bytes);
+    };
+    const end = () => {
+      cleanup();
+      resolve(Buffer.concat(chunks));
+    };
+    const error = () => {
+      cleanup();
+      req.once("error", () => {});
+      reject(
+        new ChatError(400, "BAD_REQUEST", "Chat request was interrupted."),
+      );
+    };
+    const timer = setTimeout(() => {
+      cleanup();
+      discard();
+      reject(
+        new ChatError(
+          408,
+          "REQUEST_TIMEOUT",
+          "The message upload took too long. Send the message again when your connection is ready.",
+        ),
+      );
+    }, 5000);
+    timer.unref();
+    if (req.destroyed || req.aborted) {
+      error();
+      return;
+    }
+    if (req.readableEnded) {
+      end();
+      return;
+    }
+    req.on("data", data);
+    req.once("end", end);
+    req.once("error", error);
+    req.once("aborted", error);
+  });
 }
 async function boundedJson(response: Response, max: number) {
   const reader = response.body?.getReader();
@@ -59,11 +133,18 @@ export function createPublicChatHandler(
     env?: NodeJS.ProcessEnv;
     transport?: typeof fetch;
     now?: () => number;
+    onOutcome?: (outcome: ChatOutcome) => void;
   } = {},
 ) {
   const env = options.env || process.env;
   const transport = options.transport || fetch;
   const now = options.now || Date.now;
+  const onOutcome =
+    options.onOutcome ||
+    ((outcome: ChatOutcome) =>
+      console.info(
+        JSON.stringify({ event: "finai_chat_request", ...outcome }),
+      ));
   const key = () =>
     env.OPENROUTER_API_KEY?.trim() || env.Openrouter?.trim() || "";
   let cached:
@@ -81,7 +162,7 @@ export function createPublicChatHandler(
       throw new ChatError(
         429,
         "RATE_LIMITED",
-        "Test chat is busy. Wait a minute before trying again.",
+        "The Assistant is busy. Wait a minute before trying again.",
         60,
       );
     buckets.set(id, {
@@ -167,15 +248,50 @@ export function createPublicChatHandler(
     res: ServerResponse,
     route: string,
   ) {
+    const requestId = randomUUID(),
+      startedAt = now();
+    let reported = false;
+    const report = (status: number, code?: string) => {
+      if (reported) return;
+      reported = true;
+      try {
+        onOutcome({
+          requestId,
+          route: route === "models" || route === "messages" ? route : "unknown",
+          method:
+            req.method === "GET" || req.method === "POST"
+              ? req.method
+              : "OTHER",
+          status,
+          ...(code ? { code } : {}),
+          durationMs: Math.max(0, now() - startedAt),
+        });
+      } catch {
+        /* Logging failure must not break the response. */
+      }
+    };
     const send = (status: number, value: unknown, retryAfter?: number) => {
-      if (res.destroyed || res.headersSent) return;
+      if (res.destroyed || res.headersSent) {
+        report(499, "CLIENT_CLOSED");
+        return;
+      }
       res.writeHead(status, {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",
+        "X-Request-Id": requestId,
         ...(retryAfter ? { "Retry-After": String(retryAfter) } : {}),
       });
       res.end(JSON.stringify(value));
+      report(
+        status,
+        value &&
+          typeof value === "object" &&
+          "code" in value &&
+          typeof value.code === "string"
+          ? value.code
+          : undefined,
+      );
     };
     let ownsSlot = false;
     const controller = new AbortController();
@@ -234,7 +350,7 @@ export function createPublicChatHandler(
         throw new ChatError(
           503,
           "PROVIDER_NOT_CONFIGURED",
-          "Configure OPENROUTER_API_KEY as a server Secret in Vercel and redeploy. No database or sign-in is needed for this test chat.",
+          "Configure OPENROUTER_API_KEY as a server Secret in Vercel and redeploy. No database or sign-in is needed for this chat.",
         );
       const ip = String(
         req.headers["x-vercel-forwarded-for"] ||
@@ -249,7 +365,7 @@ export function createPublicChatHandler(
         throw new ChatError(
           429,
           "RATE_LIMITED",
-          "Test chat is busy. Try again shortly.",
+          "The Assistant is busy. Try again shortly.",
         );
       active++;
       ownsSlot = true;
@@ -270,47 +386,7 @@ export function createPublicChatHandler(
                   ? req.body
                   : JSON.stringify(req.body),
               );
-        else {
-          const chunks: Buffer[] = [];
-          let size = 0;
-          await new Promise<void>((resolve, reject) => {
-            const cleanup = () => {
-              req.off("data", data);
-              req.off("end", end);
-              req.off("error", error);
-              req.off("aborted", aborted);
-            };
-            const data = (chunk: Buffer) => {
-              const b = Buffer.from(chunk);
-              size += b.length;
-              if (size > 65536) {
-                cleanup();
-                req.resume();
-                reject(
-                  new ChatError(
-                    422,
-                    "VALIDATION_FAILED",
-                    "Chat request is too large.",
-                  ),
-                );
-              } else chunks.push(b);
-            };
-            const end = () => {
-              cleanup();
-              resolve();
-            };
-            const error = () => {
-              cleanup();
-              reject(new Error("Request interrupted"));
-            };
-            const aborted = error;
-            req.on("data", data);
-            req.once("end", end);
-            req.once("error", error);
-            req.once("aborted", aborted);
-          });
-          bytes = Buffer.concat(chunks);
-        }
+        else bytes = await readBody(req);
         if (bytes.length > 65536)
           throw new ChatError(
             422,
@@ -351,11 +427,15 @@ export function createPublicChatHandler(
           headers: {
             Authorization: "Bearer " + key(),
             "Content-Type": "application/json",
-            "X-Title": "FinAI test chat",
+            "X-Title": "FinAI Assistant",
           },
           body: JSON.stringify({
             model: parsed.data.model,
-            messages: parsed.data.messages,
+            messages: parsed.data.messages.map((message, index) =>
+              index === 0
+                ? { ...message, content: assistantContext + message.content }
+                : message,
+            ),
             max_tokens: 4096,
             stream: false,
             provider: { max_price: { prompt: 0, completion: 0 } },
@@ -457,13 +537,14 @@ export function createPublicChatHandler(
         {
           code: e.code,
           message: e.message,
-          requestId: randomUUID(),
+          requestId,
         },
         e.retryAfter,
       );
     } finally {
       if (ownsSlot) active--;
       res.off("close", onClose);
+      if (!reported) report(499, "CLIENT_CLOSED");
     }
   };
 }
