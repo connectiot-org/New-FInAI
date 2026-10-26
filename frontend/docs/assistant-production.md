@@ -21,6 +21,8 @@ On the deployed site, `/api/chat/models` must return `configured:true`, `freeOnl
 
 For a failure report, find the response reference in Vercel's structured logs and inspect status/code/duration. No alerts or dashboards are claimed to be configured by adding logs. Use the existing key's secure OpenRouter settings for account-level allowances; never put a key in a browser variable, source file, screenshot or chat.
 
+An HTTP401 from OpenRouter means authentication was rejected for that request; try another free model, and inspect the server Secret if all models fail. HTTP403 is reported separately as model/request access denied. A catalog listing does not guarantee account access or current capacity. A refusal from one model does not establish that a key which works with other models is invalid. Neither case triggers an automatic retry or model fallback.
+
 ## Readiness boundaries
 
 The public Assistant is a real stateless service, with finite controls. Free-provider quotas and availability remain external dependencies; they cannot provide a commercial availability guarantee. Application counters are per warm function instance (five requests/IP/minute, twenty/minute total, two active), not durable global limits across replicas. Public commercial operation still requires owner-verified traffic controls, capacity and monitoring on the target platform. No shared store or Vercel Firewall/alert configuration was provisioned in this session.

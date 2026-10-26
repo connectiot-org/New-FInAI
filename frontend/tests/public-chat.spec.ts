@@ -379,6 +379,7 @@ test("cross-origin, missing-origin and wrong-method requests cannot spend the se
 test("provider key/quota/model/rate/timeout/invalid/positive-cost failures are explicit and redact provider details", async () => {
   for (const [scenario, status, code] of [
     ["status-401", 503, "PROVIDER_AUTHENTICATION"],
+    ["status-403", 503, "PROVIDER_ACCESS_DENIED"],
     ["status-402", 429, "PROVIDER_QUOTA"],
     ["status-429", 429, "RATE_LIMITED"],
     ["status-404", 503, "MODEL_UNAVAILABLE"],
@@ -398,6 +399,27 @@ test("provider key/quota/model/rate/timeout/invalid/positive-cost failures are e
     expect(body).not.toContain("hidden-provider-detail");
     expect(body).not.toContain(key);
   }
+});
+test("a model access refusal does not invalidate a working key or silently select another model", async () => {
+  mode = "status-403";
+  const denied = await call(question);
+  expect(denied.status).toBe(503);
+  const error = await denied.json();
+  expect(error.code).toBe("PROVIDER_ACCESS_DENIED");
+  expect(error.message).toContain("Choose another free model");
+  expect(error.message).not.toMatch(/API key|Secret|redeploy/);
+  expect(error.requestId).toBe(denied.headers.get("x-request-id"));
+  expect(completions).toHaveLength(1);
+  expect(completions[0].body.model).toBe(beta);
+
+  // A deliberate new selection reuses the configured server key; no retry/fallback.
+  mode = "normal";
+  const reply = await call({ ...question, model: alpha });
+  expect(reply.status).toBe(200);
+  expect((await reply.json()).selectedModel).toBe(alpha);
+  expect(completions).toHaveLength(2);
+  expect(completions[1].body.model).toBe(alpha);
+  expect(completions[1].authorization).toBe("Bearer " + key);
 });
 test("expired catalog revalidation refuses removed/free-to-paid models without paid fallback", async () => {
   expect((await call(question)).status).toBe(200);

@@ -444,11 +444,17 @@ export function createPublicChatHandler(
       );
       if (!response.ok) {
         await response.body?.cancel();
-        if ([401, 403].includes(response.status))
+        if (response.status === 401)
           throw new ChatError(
             503,
             "PROVIDER_AUTHENTICATION",
-            "OpenRouter rejected the server API key. Check the Secret and redeploy.",
+            "OpenRouter rejected authentication for this request. Try another free model. If every model fails, check the server Secret and redeploy.",
+          );
+        if (response.status === 403)
+          throw new ChatError(
+            503,
+            "PROVIDER_ACCESS_DENIED",
+            "OpenRouter refused access for this model or request. Choose another free model or check account access in OpenRouter.",
           );
         if (response.status === 402)
           throw new ChatError(
