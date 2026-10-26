@@ -234,7 +234,7 @@ export function PublicChat() {
         {loading && <p role="status">Loading OpenRouter free models…</p>}
         {!loading && catalog && (
           <p>
-            {catalog.items.length} free chat models available
+            {catalog.items.length} free chat models listed
             {search ? ` · ${available.length} match your search` : ""}.
           </p>
         )}

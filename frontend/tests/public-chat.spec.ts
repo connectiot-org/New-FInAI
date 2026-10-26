@@ -219,6 +219,13 @@ test("public catalog includes free models without structured output, excludes pa
       pricing: { prompt: "", completion: "0" },
     },
     row("bad?model", "Bad"),
+    {
+      ...row("music/preview", "Music generator"),
+      architecture: {
+        input_modalities: ["text"],
+        output_modalities: ["text", "audio"],
+      },
+    },
   );
   reset({ NODE_ENV: "test" });
   const response = await call(undefined, {}, "models");
@@ -235,6 +242,11 @@ test("public catalog includes free models without structured output, excludes pa
   await (await call(undefined, {}, "models")).body?.cancel();
   expect(catalogs).toBe(1);
   expect(privateRequests).toBe(0);
+  reset();
+  expect((await call({ ...question, model: "music/preview" })).status).toBe(
+    422,
+  );
+  expect(completions).toHaveLength(0);
 });
 test("model requests use the server key and chosen model, zero price caps, no identity/cookies/tools or database", async () => {
   reset({

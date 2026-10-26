@@ -2,7 +2,7 @@
 
 This separate stateless API has no financial data access and no account/database prerequisite. Existing authenticated API contracts stay unchanged. POSTs require an exact same-origin Origin; cookies/identity are never forwarded to the provider. Responses are JSON with Cache-Control: no-store.
 
-GET /api/chat/models returns {items:[{id,name}],retrievedAt,configured,freeOnly:true}. The bounded five-minute catalog includes text input/output models with zero prompt/completion/request price, whether or not they support structured output. Names are plain text. Empty catalog is explicit, not populated with fabricated options. configured indicates a server key is present, not that the provider accepted it.
+GET /api/chat/models returns {items:[{id,name}],retrievedAt,configured,freeOnly:true}. The bounded five-minute catalog includes models with text input and text-only output with zero prompt/completion/request price, whether or not they support structured output. Names are plain text. Empty catalog is explicit, not populated with fabricated options. configured indicates a server key is present, not that the provider accepted it.
 
 POST /api/chat/messages accepts {model,messages:[{role:'user'|'assistant',content}]}. Strict fields, 1–11 alternating messages starting/ending with user, at most4000 UTF-16 code units per message and12000 combined, raw body64KiB maximum. Server rechecks catalog eligibility, pins model and prompt/completion price caps0, performs one bounded provider request (no automatic retries), and returns {selectedModel,model,content}. The returned model is the actual provider-reported model; routers may resolve another free model. Responses with a positive reported cost are rejected. No secret/SQL/provider error body is returned.
 
