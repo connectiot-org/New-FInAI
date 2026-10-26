@@ -133,7 +133,8 @@ export function createPublicChatHandler(
             (row.pricing.request !== undefined &&
               !zeroPrice(row.pricing.request)) ||
             !row.architecture.input_modalities.includes("text") ||
-            !row.architecture.output_modalities.includes("text")
+            row.architecture.output_modalities.length !== 1 ||
+            row.architecture.output_modalities[0] !== "text"
           )
             continue;
           rows.set(row.id, { id: row.id, name: row.name });
