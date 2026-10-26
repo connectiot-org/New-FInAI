@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { z } from "zod";
-import { BrandMark } from "../../components/shared/BrandMark";
+import { ArrowRight, Send, Sparkles } from "lucide-react";
+import { PageHeader } from "../../components/shared/Common";
 import "./public-chat.css";
 
 const catalogSchema = z.strictObject({
@@ -37,7 +37,7 @@ async function read(response: Response) {
   }
   return value;
 }
-export function PublicChat() {
+export function PublicChat({ embedded = false }: { embedded?: boolean }) {
   const [catalog, setCatalog] = useState<z.infer<typeof catalogSchema>>();
   const [model, setModel] = useState("");
   const [search, setSearch] = useState("");
@@ -101,19 +101,20 @@ export function PublicChat() {
     catalog?.items.filter((m) =>
       (m.name + " " + m.id).toLowerCase().includes(search.toLowerCase()),
     ) || [];
-  async function send() {
+  async function send(prompt?: string) {
+    const text = (prompt ?? question).trim();
     if (
       pending ||
       loading ||
       !catalog?.configured ||
       !available.some((m) => m.id === model) ||
-      !question.trim()
+      !text
     )
       return;
     const controller = new AbortController();
     chatRequest.current = controller;
-    const choice = model,
-      text = question.trim();
+    const choice = model;
+    setQuestion(text);
     const history = [
       ...messages.slice(-10).map(({ role, content }) => ({
         role,
@@ -175,41 +176,72 @@ export function PublicChat() {
     setQuestion("");
     setError("");
   }
-  return (
-    <div className="public-chat">
-      <header>
-        <Link className="brand" to="/">
-          <BrandMark />
-          FinAI
-        </Link>
-        <Link to="/workspace/assistant/records">
-          Financial workspace Assistant
-        </Link>
-      </header>
-      <main>
-        <h1>FinAI Assistant</h1>
-        <p>
-          Choose a free model and start chatting. No sign-in or database
-          required.
-        </p>
-        <p className="public-chat-price">
-          OpenRouter free models · $0 input / $0 output token price
-        </p>
-        <p className="public-chat-note">
-          Messages go to OpenRouter and the model provider. This test chat has
-          no access to your financial records. Chats stay on this page; provider
-          rate limits and retention policies apply.
-        </p>
+  const ready =
+    !loading && !!catalog?.configured && available.some((m) => m.id === model);
+  const suggestions = [
+    "Explain cash flow in simple terms",
+    "What should I check on an invoice?",
+    "Help me plan month-end close",
+    "Draft a finance review checklist",
+  ];
+  const content = (
+    <div className={`assistant model-assistant${embedded ? " embedded" : ""}`}>
+      {!embedded && (
+        <PageHeader
+          title="FinAI Assistant"
+          description="Ask a question and chat with your chosen free model."
+        />
+      )}
+      <section className="assistant-chat-region" aria-label="FinAI chat">
+        <div
+          className="conversation public-chat-history"
+          role="log"
+          aria-label="Chat messages"
+          aria-live="polite"
+        >
+          {!messages.length && !pending && (
+            <div className="assistant-intro">
+              <div className="assistant-orb">
+                <Sparkles size={30} />
+              </div>
+              <h2>A little clarity goes a long way.</h2>
+              <p>
+                Choose a free model, ask a question, and keep the conversation
+                going.
+              </p>
+            </div>
+          )}
+          {Array.from({ length: messages.length / 2 }, (_, index) => {
+            const user = messages[index * 2],
+              answer = messages[index * 2 + 1];
+            return (
+              <div className="conversation-turn" key={index}>
+                <article className="question-bubble public-chat-message user">
+                  {user.content}
+                </article>
+                <article className="answer-bubble public-chat-message assistant">
+                  <div className="assistant-label">
+                    <Sparkles size={14} />
+                    FinAI
+                    <span>
+                      <strong>{answer.model}</strong>
+                    </span>
+                  </div>
+                  <p>{answer.content}</p>
+                </article>
+              </div>
+            );
+          })}
+          {pending && (
+            <div className="conversation-turn">
+              <div className="question-bubble">{question.trim()}</div>
+              <div className="answer-bubble">
+                <p role="status">Waiting for {model}…</p>
+              </div>
+            </div>
+          )}
+        </div>
         <section className="public-chat-models" aria-label="Model selection">
-          <label>
-            Find a model
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              disabled={pending}
-            />
-          </label>
           <label>
             Chat model
             <select
@@ -227,13 +259,23 @@ export function PublicChat() {
               ))}
             </select>
           </label>
+          <label>
+            Find a model
+            <input
+              type="search"
+              placeholder="Search free models"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              disabled={pending}
+            />
+          </label>
           <button onClick={() => void reload()} disabled={loading || pending}>
             Reload models
           </button>
         </section>
         {loading && <p role="status">Loading OpenRouter free models…</p>}
         {!loading && catalog && (
-          <p>
+          <p className="public-chat-model-count">
             {catalog.items.length} free chat models listed
             {search ? ` · ${available.length} match your search` : ""}.
           </p>
@@ -251,84 +293,80 @@ export function PublicChat() {
             Vercel and redeploy. This chat does not need DATABASE_URL.
           </p>
         )}
-        <div
-          className="public-chat-history"
-          role="log"
-          aria-label="Chat messages"
-          aria-live="polite"
-        >
-          {!messages.length && (
-            <p>Say hello or ask a question to try your chosen model.</p>
-          )}
-          {messages.map((m, index) => (
-            <article className={`public-chat-message ${m.role}`} key={index}>
-              <strong>{m.role === "user" ? "You" : m.model}</strong>
-              <p>{m.content}</p>
-            </article>
-          ))}
-          {pending && <p role="status">Waiting for {model}…</p>}
-        </div>
         {error && <p role="alert">{error}</p>}
+        <div className="suggested-prompts">
+          {suggestions.map((prompt) => (
+            <button
+              key={prompt}
+              disabled={!ready || pending}
+              onClick={() => void send(prompt)}
+            >
+              {prompt}
+              <ArrowRight size={13} />
+            </button>
+          ))}
+        </div>
         <form
+          className="assistant-composer"
           onSubmit={(e) => {
             e.preventDefault();
             void send();
           }}
         >
-          <label>
-            Your message
-            <textarea
-              value={question}
-              maxLength={4000}
-              disabled={pending}
-              onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={(e) => {
-                if (
-                  e.key === "Enter" &&
-                  !e.shiftKey &&
-                  !e.nativeEvent.isComposing
-                ) {
-                  e.preventDefault();
-                  e.currentTarget.form?.requestSubmit();
-                }
-              }}
-              placeholder="Ask anything to test the selected free model…"
-            />
-          </label>
-          <div className="public-chat-actions">
-            <button
-              className="primary"
-              disabled={
-                pending ||
-                loading ||
-                !catalog?.configured ||
-                !available.some((m) => m.id === model) ||
-                !question.trim()
+          <textarea
+            aria-label="Your message"
+            rows={1}
+            value={question}
+            maxLength={4000}
+            disabled={pending}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (
+                e.key === "Enter" &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
               }
-            >
-              Send message
-            </button>
-            {pending && (
-              <button
-                type="button"
-                onClick={() => {
-                  chatRequest.current?.abort();
-                  chatRequest.current = null;
-                  setPending(false);
-                  setError(
-                    "Response cancelled. Your question was not sent again.",
-                  );
-                }}
-              >
-                Stop response
-              </button>
-            )}
-            <button type="button" onClick={clear}>
-              Clear chat
-            </button>
-          </div>
+            }}
+            placeholder="Ask FinAI…"
+          />
+          <button
+            className="primary icon-btn"
+            aria-label="Send message"
+            disabled={!ready || pending || !question.trim()}
+          >
+            <Send size={17} />
+          </button>
         </form>
-      </main>
+        <div className="public-chat-actions">
+          {pending && (
+            <button
+              type="button"
+              onClick={() => {
+                chatRequest.current?.abort();
+                chatRequest.current = null;
+                setPending(false);
+                setError(
+                  "Response cancelled. Your question was not sent again.",
+                );
+              }}
+            >
+              Stop response
+            </button>
+          )}
+          <button type="button" onClick={clear}>
+            Clear chat
+          </button>
+        </div>
+        <p className="assistant-footnote">
+          Free models · $0 input / output token price. Messages go to OpenRouter
+          and its provider; no workspace records are accessed. Provider limits
+          apply.
+        </p>
+      </section>
     </div>
   );
+  return content;
 }

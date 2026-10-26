@@ -1,102 +1,87 @@
-.public-chat {
-  min-height: 100vh;
-  background: var(--bg, #fff);
+.model-assistant {
+  min-width: 0;
 }
-.public-chat header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding: 20px max(20px, calc((100vw - 1000px) / 2));
-  border-bottom: 1px solid var(--border);
+.model-assistant .public-chat-history {
+  min-height: 130px;
 }
-.public-chat .brand {
-  color: var(--text);
-  margin: 0;
-}
-.public-chat main {
-  max-width: 940px;
-  margin: 0 auto;
-  padding: 36px 20px;
-}
-.public-chat h1 {
-  margin-bottom: 8px;
-}
-.public-chat-price {
-  background: var(--accent-light);
-  color: var(--accent);
-  border-radius: 8px;
-  padding: 14px;
-}
-.public-chat-note {
-  color: var(--muted);
-  font-size: 13px;
-}
-.public-chat-models {
+.model-assistant .public-chat-models {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: end;
   margin-top: 24px;
 }
-.public-chat-models label {
-  flex: 1 1 240px;
+.model-assistant .public-chat-models label {
+  flex: 1 1 180px;
   min-width: 0;
+  font-size: 11px;
 }
-.public-chat :is(input, select, textarea) {
+.model-assistant .public-chat-models label:first-child {
+  flex-grow: 2;
+}
+.model-assistant .public-chat-models :is(input, select) {
   display: block;
   width: 100%;
   min-width: 0;
   margin-top: 6px;
 }
-.public-chat select {
-  text-overflow: ellipsis;
+.model-assistant .public-chat-model-count {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 8px;
 }
-.public-chat-history {
-  margin: 28px 0;
-  min-height: 140px;
-}
-.public-chat-message {
-  padding: 16px;
-  margin: 16px 0;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-.public-chat-message.user {
-  background: var(--accent-light);
-  margin-left: 24px;
-}
-.public-chat-message p {
+.model-assistant .public-chat-message {
   white-space: pre-wrap;
-  margin-bottom: 0;
-}
-.public-chat :is(p, strong, a) {
   overflow-wrap: anywhere;
 }
-.public-chat textarea {
-  min-height: 100px;
+.model-assistant .answer-bubble > p {
+  color: var(--text);
+  line-height: 1.7;
+}
+.model-assistant .assistant-label {
+  flex-wrap: wrap;
+}
+.model-assistant .assistant-label strong {
+  font-weight: 400;
+}
+.model-assistant .assistant-composer {
+  align-items: center;
+}
+.model-assistant .assistant-composer textarea {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+  max-height: 180px;
+  border: 0;
+  box-shadow: none;
+  padding: 8px 10px;
+  margin: 0;
+  background: transparent;
+  font-size: 12px;
   resize: vertical;
 }
-.public-chat-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+.model-assistant .assistant-composer button {
+  align-self: end;
 }
-.public-chat [role="alert"] {
+.model-assistant .public-chat-actions {
+  display: flex;
+  justify-content: end;
+  gap: 10px;
+  margin-top: 10px;
+}
+.model-assistant .public-chat-actions button {
+  font-size: 11px;
+  padding: 6px 10px;
+}
+.model-assistant [role="alert"] {
+  padding: 12px;
   border: 1px solid var(--border);
-  padding: 14px;
-  border-radius: 8px;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
 }
 @media (max-width: 600px) {
-  .public-chat header {
-    flex-wrap: wrap;
-    padding: 16px;
-  }
-  .public-chat main {
-    padding: 24px 16px;
-  }
-  .public-chat-message.user {
-    margin-left: 0;
+  .model-assistant .assistant-intro {
+    padding-top: 24px;
   }
 }

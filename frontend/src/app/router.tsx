@@ -171,9 +171,9 @@ function NotFound() {
     </div>
   );
 }
-const PublicChat = lazy(() =>
-  import("../features/public-chat/PublicChat").then((module) => ({
-    default: module.PublicChat,
+const LegacyAssistant = lazy(() =>
+  import("../features/LegacyAssistant").then((module) => ({
+    default: module.LegacyAssistant,
   })),
 );
 const router = createBrowserRouter([
@@ -191,15 +191,11 @@ const router = createBrowserRouter([
   { path: "/welcome", element: <Welcome /> },
   {
     path: "/assistant",
-    element: <Navigate to="/workspace/assistant" replace />,
+    element: <Navigate to="/demo/assistant" replace />,
   },
   {
     path: "/workspace/assistant",
-    element: (
-      <Suspense fallback={<p role="status">Opening chat…</p>}>
-        <PublicChat />
-      </Suspense>
-    ),
+    element: <Navigate to="/demo/assistant" replace />,
   },
   {
     path: "/workspace",
@@ -267,6 +263,14 @@ const router = createBrowserRouter([
       { path: "entities", element: <Entities /> },
       { path: "entities/consolidation", element: <Consolidation /> },
       { path: "demo/assistant", element: <Assistant /> },
+      {
+        path: "demo/assistant/offline",
+        element: (
+          <Suspense fallback={<p role="status">Opening example…</p>}>
+            <LegacyAssistant />
+          </Suspense>
+        ),
+      },
       { path: "automations", element: <Automations /> },
       { path: "automations/:id", element: <AutomationDetail /> },
       { path: "integrations", element: <Integrations /> },

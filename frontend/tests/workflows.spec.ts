@@ -269,7 +269,7 @@ test("deterministic assistant evidence and explicitly approved proposal", async 
   page,
 }) => {
   await enter(page);
-  await page.goto("/demo/assistant");
+  await page.goto("/demo/assistant/offline");
   await page.getByRole("button", { name: "What is our cash balance?" }).click();
   await expect(page.getByRole("link", { name: "Cash ledger" })).toBeVisible();
   await page
