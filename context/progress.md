@@ -118,3 +118,10 @@ Openrouter server variable alias implemented after user supplied the name. Backe
 ## Assistant model selector — 25 October 2026
 
 Added bounded authenticated free/structured text-model catalog and per-question model choice (contract1.1.0). Chosen instance is pinned across both provider calls and safe retries; cold replicas validate outside reservation transactions. No migration/dependency/lock changes. Backend53, Assistant UI11 and built fixture1 pass locally; actual OpenRouter access remains blocked/unconfigured, so no real model output claimed. Detail: assistant-model-selection.md.
+
+
+## Same-project Vercel backend — 25 October 2026
+
+Implemented the missing Vercel API runtime and private backend packaging, listener-free Nest bootstrap, retained Assistant work, Node24/RHEL client and safe setup errors; public/demo remain separate. Added six real packaged API/DB lifecycle tests and one setup-error UI case. Official Vercel builder artifact boot tested locally. New helper dependency is pinned to audit-clean3.6.1. Detailed evidence and deployment/access blockers: vercel-same-project.md and ../frontend/docs/vercel.md. User authorized database provisioning via Vercel, but no Vercel/database tools or CLI credentials are exposed, so no hosted resource or target change occurred.
+
+Final Vercel regression review (2026-10-26 UTC):53 backend +107 frontend/integration tests pass locally; both typecheck/lint/audit gates, all contract validators/OpenAPI and five asset scans pass. Official emitted Node function boots independently, with explicit embedded mode overriding a stale remote origin. No actual provider/deployment success claimed. Network destinations were saved additively to the cloud draft (review/save/publish pending); Vercel/database tools remain absent. See vercel-same-project.md for exact counts and failure diagnoses.
