@@ -408,7 +408,7 @@ test("built public chat opens without sign-in, selects any free text model, keep
   page,
 }) => {
   await page.goto(origin + "/assistant");
-  await expect(page).toHaveURL(/\/workspace\/assistant$/);
+  await expect(page).toHaveURL(/\/demo\/assistant$/);
   await expect(
     page.getByRole("heading", { name: "FinAI Assistant", exact: true }),
   ).toBeVisible();
@@ -556,11 +556,56 @@ test("financial Assistant remains behind its session gate when public chat is en
   page,
 }) => {
   await page.goto(origin + "/workspace/assistant");
-  await page
-    .getByRole("link", { name: "Financial workspace Assistant", exact: true })
-    .click();
+  await page.goto(origin + "/workspace/assistant/records");
   await expect(page).toHaveURL(/\/workspace\/assistant\/records$/);
   await expect(page.getByLabel("Account name")).toBeVisible();
   await expect(page.getByLabel("Chat model")).toHaveCount(0);
   expect(privateRequests).toBeGreaterThan(0);
+});
+
+test("the screenshot Assistant page sends real model requests inside its existing chat layout without the black banner or separate-chat option", async ({
+  page,
+}) => {
+  await page.goto(origin + "/demo/assistant");
+  const chat = page.getByRole("region", { name: "FinAI chat", exact: true });
+  await expect(
+    page.getByRole("heading", { name: "FinAI Assistant", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".assistant-disclaimer")).toHaveCount(0);
+  await expect(
+    page.getByText("Deterministic local answers", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Try free model chat", exact: true }),
+  ).toHaveCount(0);
+  await chat.getByLabel("Chat model").selectOption(beta);
+  await chat
+    .getByRole("button", {
+      name: "Explain cash flow in simple terms",
+      exact: true,
+    })
+    .click();
+  await expect(chat.locator(".answer-bubble")).toContainText(
+    "Hello from sample/beta:free: Explain cash flow in simple terms",
+  );
+  await expect(page).toHaveURL(/\/demo\/assistant$/);
+  expect(completions[0].body.model).toBe(beta);
+  await chat.getByLabel("Your message").fill("Inline follow-up");
+  await chat.getByRole("button", { name: "Send message", exact: true }).click();
+  await expect(chat.locator(".answer-bubble").last()).toContainText(
+    "Inline follow-up",
+  );
+  expect(privateRequests).toBe(0);
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1,
+      ),
+    ).toBe(true);
+    await page.screenshot({
+      path: `artifacts/assistant-inline-${width}.png`,
+      fullPage: true,
+    });
+  }
 });

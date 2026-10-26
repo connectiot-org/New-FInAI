@@ -151,7 +151,10 @@ test("production selection redirects to one sign-in gate and never fetches priva
   ).toBeVisible();
   expect(privateRequests).toEqual([]);
   await page.goto("/demo/assistant");
-  await expect(page.getByText("Demo responses", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "FinAI chat", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".assistant-disclaimer")).toHaveCount(0);
 });
 test("missing model configuration is explicit; no deterministic fallback or false financial answer", async ({
   page,
@@ -461,34 +464,26 @@ test("creation retry retains its UUID only within the same scope after reopening
   expect(bodies[2].id).not.toBe(bodies[0].id);
 });
 
-test("Ask FinAI and the explicit demo link open the public model test chat", async ({
+test("Ask FinAI opens the working chat in the existing Assistant page without a handoff banner", async ({
   page,
 }) => {
   await routes(page, false);
   await page.goto("/overview");
   await page.getByRole("button", { name: "Ask FinAI", exact: true }).click();
-  await expect(page).toHaveURL(/\/workspace\/assistant/);
+  await expect(page).toHaveURL(/\/demo\/assistant$/);
   await expect(
-    page.getByText(
-      "Choose a free model and start chatting. No sign-in or database required.",
-      { exact: true },
-    ),
+    page.getByRole("heading", { name: "FinAI Assistant", exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "FinAI chat", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".assistant-disclaimer")).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Try free model chat", exact: true }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("dialog", { name: "FinAI Assistant demo" }),
   ).toHaveCount(0);
-  await page.goto("/demo/assistant");
-  await expect(
-    page.getByRole("heading", { name: "FinAI Assistant demo", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("link", {
-      name: "Try free model chat",
-      exact: true,
-    })
-    .click();
-  await expect(page).toHaveURL(/\/workspace\/assistant/);
-  await expect(page.locator(".assistant-disclaimer")).toHaveCount(0);
 });
 
 test("model chooser sends the selected free model and uncertain retries cannot switch it", async ({

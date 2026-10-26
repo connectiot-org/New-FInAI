@@ -74,7 +74,7 @@ export const navigation = [
       },
       { label: "Reports", path: "/reports", icon: ChartNoAxesCombined },
       { label: "Entities", path: "/entities", icon: Building2 },
-      { label: "FinAI Assistant", path: "/assistant", icon: Sparkles },
+      { label: "FinAI Assistant", path: "/demo/assistant", icon: Sparkles },
     ],
   },
   {
@@ -116,7 +116,8 @@ export const routeTitles: Record<string, string> = {
   "/entities": "Entities",
   "/entities/consolidation": "Consolidation",
   "/assistant": "FinAI Assistant",
-  "/demo/assistant": "FinAI Assistant demo",
+  "/demo/assistant": "FinAI Assistant",
+  "/demo/assistant/offline": "Assistant offline example",
   "/automations": "Automations",
   "/integrations": "Integrations",
   "/audit-log": "Audit log",

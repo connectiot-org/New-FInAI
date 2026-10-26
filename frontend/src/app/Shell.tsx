@@ -265,7 +265,7 @@ export function Shell() {
             <PeriodSelector />
             <button
               className="assistant-button"
-              onClick={() => navigate("/workspace/assistant")}
+              onClick={() => navigate("/demo/assistant")}
             >
               <Sparkles size={15} />
               Ask FinAI
