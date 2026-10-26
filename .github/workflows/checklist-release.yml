@@ -41,6 +41,7 @@ jobs:
           /tmp/finai-contracts/bin/python contracts/validate_receivables.py
           /tmp/finai-contracts/bin/python contracts/validate_receivables_detail.py
           node contracts/validate_assistant.mjs
+          node contracts/validate_public_chat.mjs
           npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml contracts/receivables-detail.openapi.yaml contracts/workspace.openapi.yaml contracts/assistant.openapi.yaml --extends minimal
       - name: Install browser and check frontend
         working-directory: frontend
@@ -79,6 +80,9 @@ jobs:
       - name: Built Assistant integration tests
         working-directory: frontend
         run: npm run test:assistant:production
+      - name: Public free-model chat integration tests
+        working-directory: frontend
+        run: npm run test:public-chat
       - name: Same-project Vercel backend integration tests
         working-directory: frontend
         run: npm run test:vercel

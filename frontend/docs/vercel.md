@@ -1,5 +1,19 @@
 # Same-project Vercel deployment
 
+## Test chat without sign-in or database
+
+Open `/workspace/assistant` (also `/assistant`). This separate public chat needs only the existing server Secret `OPENROUTER_API_KEY` (`Openrouter` is accepted too), followed by a redeploy so the function receives it. No `DATABASE_URL`, account, `ASSISTANT_ENABLED`, default model, provider allowlist or financial mapping is needed for this public test. The existing private financial Assistant is at `/workspace/assistant/records`; financial APIs and sources still require sessions and PostgreSQL.
+
+The server reads OpenRouter's live free text-model catalog, including models without structured output, and the user chooses a model for each message. All routing is capped at zero prompt/completion price; paid/request-priced models are excluded and positive reported response costs are rejected. Free availability/rate limits come from OpenRouter, not an invented token balance. Some free models may be temporarily unavailable; errors remain visible and another model can be selected. Nothing automatically retries a completion.
+
+Only bounded text conversation is sent to OpenRouter/its model provider. No financial tools, cookies, identity, browser demo data or database queries are included. Current-page history is not persisted by FinAI; OpenRouter/provider retention policies apply. Anonymous endpoints `/api/chat/models` and `/api/chat/messages` run before private backend initialization, so missing database configuration cannot block this chat. UI supports search, model switching, cancellation, clear and bounded follow-ups.
+
+Per warm function instance: five completions per IP/minute, twenty total/minute, two in flight, 64KiB input, eleven alternating messages/12000 total UTF-16 units, 4096 output tokens, 40-second provider deadline and bounded response parsing. These counters are not a durable global allowance across serverless instances. Set any account-wide request allowance in OpenRouter's key settings and use Vercel traffic controls as appropriate for a public test. The interface exposes no API key or fabricated remaining quota.
+
+`npm run test:public-chat` builds the actual browser app and runs controlled-provider HTTP/API/UI tests without any database. Live catalog and real provider completion are separate verification outcomes. The public component is loaded on its route so this feature does not enlarge the initial product bundle past the existing build warning threshold.
+
+## Private financial backend
+
 This release packages the real NestJS API into the existing Vercel API function. The frontend can use the OPENROUTER_API_KEY or Openrouter Secret from that same Vercel project. All private history/source data still requires PostgreSQL and authenticated accounts. No production database or account is created by a build or HTTP request.
 
 ## Project and build
