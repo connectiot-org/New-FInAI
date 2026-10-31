@@ -1,0 +1,66 @@
+{
+  "entityId": "22222222-2222-4222-8222-222222222222",
+  "currency": "USD",
+  "basis": "all_issue_dates_cumulative_paid",
+  "fromSource": {
+    "snapshotId": "33333333-3333-4333-8333-333333333333",
+    "version": 1,
+    "sourceName": "Synthetic register 1",
+    "sourceCapturedAt": "2026-10-21T00:00:00Z",
+    "importedAt": "2026-10-24T00:00:00Z"
+  },
+  "toSource": {
+    "snapshotId": "44444444-4444-4444-8444-444444444444",
+    "version": 2,
+    "sourceName": "Synthetic register 2",
+    "sourceCapturedAt": "2026-10-22T00:00:00Z",
+    "importedAt": "2026-10-24T00:00:00Z"
+  },
+  "earlierOutstandingCents": "255000",
+  "laterOutstandingCents": "215000",
+  "deltaCents": "-40000",
+  "changedInvoiceCount": 1,
+  "unionInvoiceCount": 5,
+  "bridge": {
+    "newInLaterCents": "0",
+    "absentFromLaterCents": "0",
+    "increasedCents": "0",
+    "decreasedCents": "-40000"
+  },
+  "sourceCutoffReversed": false,
+  "offset": 0,
+  "limit": 20,
+  "nextOffset": null,
+  "sort": "invoiceId:asc",
+  "items": [
+    {
+      "invoiceId": "INV-001",
+      "earlier": {
+        "customerId": "C-1",
+        "customerName": "Synthetic customer",
+        "issuedOn": "2026-09-01",
+        "status": "Issued",
+        "amountCents": "100000",
+        "paidCents": "0"
+      },
+      "later": {
+        "customerId": "C-1",
+        "customerName": "Synthetic customer",
+        "issuedOn": "2026-09-01",
+        "status": "Partial",
+        "amountCents": "100000",
+        "paidCents": "40000"
+      },
+      "changedFields": [
+        "status",
+        "paidCents"
+      ],
+      "flags": [
+        "outstanding_decreased"
+      ],
+      "earlierOutstandingCents": "100000",
+      "laterOutstandingCents": "60000",
+      "deltaCents": "-40000"
+    }
+  ]
+}

@@ -202,6 +202,13 @@ export function ReceivablesRegister({ view }: { view: DetailPage["view"] }) {
       >
         Browse source history
       </button>
+      <Link
+        to={
+          "/workspace/receivables/changes?" + new URLSearchParams({ entityId })
+        }
+      >
+        Compare imports
+      </Link>
       {showHistory && (
         <section className="panel">
           <h2>Source history</h2>

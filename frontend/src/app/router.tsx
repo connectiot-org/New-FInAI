@@ -171,6 +171,11 @@ function NotFound() {
     </div>
   );
 }
+const ImportChanges = lazy(() =>
+  import("../features/workspace/ImportChanges").then((module) => ({
+    default: module.ImportChanges,
+  })),
+);
 const LegacyAssistant = lazy(() =>
   import("../features/LegacyAssistant").then((module) => ({
     default: module.LegacyAssistant,
@@ -211,6 +216,14 @@ const router = createBrowserRouter([
       {
         path: "receivables/invoices",
         element: <ReceivablesRegister view="invoice" />,
+      },
+      {
+        path: "receivables/changes",
+        element: (
+          <Suspense fallback={<p role="status">Opening import comparison…</p>}>
+            <ImportChanges />
+          </Suspense>
+        ),
       },
       {
         path: "receivables/customers",

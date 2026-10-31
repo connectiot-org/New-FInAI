@@ -53,6 +53,7 @@ import { ReceivablesRepository } from "./receivables/repository";
 import { ReceivablesDetailController } from "./receivables/detail.controller";
 import { ReceivablesDetailService } from "./receivables/detail.service";
 import { ReceivablesDetailRepository } from "./receivables/detail.repository";
+import { ReceivablesChangesRepository } from "./receivables/changes.repository";
 import { WorkspaceController } from "./workspace/controller";
 import { WorkspaceService } from "./workspace/service";
 import { ReceivablesImportController } from "./receivables/import.controller";
@@ -167,6 +168,7 @@ class ChecklistController {
     ReceivablesRepository,
     ReceivablesDetailService,
     ReceivablesDetailRepository,
+    ReceivablesChangesRepository,
   ],
 })
 class AppModule {}

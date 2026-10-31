@@ -129,3 +129,46 @@
   color: var(--muted);
   margin-block: 0 1rem;
 }
+.production-workspace .change-selectors {
+  margin-top: 20px;
+}
+.production-workspace .change-selectors label {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+.production-workspace .change-selectors select {
+  width: 100%;
+}
+.production-workspace .change-summary,
+.production-workspace .change-sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+  margin-block: 20px;
+}
+.production-workspace .change-summary dd {
+  font-size: 20px;
+  font-weight: 600;
+}
+.production-workspace .change-record {
+  font-size: 12px;
+}
+.production-workspace .register-scroll table.change-table {
+  min-width: 760px;
+}
+.production-workspace .change-table th[scope="row"] {
+  width: 25%;
+  font-weight: 500;
+}
+.production-workspace .change-table td:last-child {
+  white-space: nowrap;
+}
+.production-workspace .change-table caption {
+  text-align: left;
+}
+.production-workspace .change-table :is(td, th) {
+  vertical-align: top;
+}
+.production-workspace .import-comparison {
+  margin-top: 20px;
+}

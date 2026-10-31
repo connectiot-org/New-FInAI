@@ -1,16 +1,11 @@
 import { z } from "zod";
 import { apiRequest } from "../../lib/api";
 import { compareSourceIds } from "./format";
+import { sourceSchema } from "./source-schema";
+export { sourceSchema } from "./source-schema";
 const number = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
   count = number.max(10000),
   text = z.string().min(1).max(400);
-export const sourceSchema = z.strictObject({
-  snapshotId: z.uuid(),
-  version: number.min(1).max(2147483647),
-  sourceName: text,
-  sourceCapturedAt: z.iso.datetime(),
-  importedAt: z.iso.datetime(),
-});
 const invoice = z
   .strictObject({
     invoiceId: text,

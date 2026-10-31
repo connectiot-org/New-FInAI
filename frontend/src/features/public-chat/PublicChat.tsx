@@ -73,11 +73,16 @@ export function PublicChat({ embedded = false }: { embedded?: boolean }) {
   const [reference, setReference] = useState<string>();
   const [retryUntil, setRetryUntil] = useState(0);
   const [clock, setClock] = useState(Date.now());
+  const [focusRevision, setFocusRevision] = useState(0);
   const composer = useRef<HTMLTextAreaElement | null>(null);
   const listRequest = useRef<AbortController | null>(null);
   const chatRequest = useRef<AbortController | null>(null);
-  const focusComposer = () =>
-    requestAnimationFrame(() => composer.current?.focus());
+  const focusComposer = () => setFocusRevision((n) => n + 1);
+  useEffect(() => {
+    // A frame can run before React commits disabled=false. Focus only after
+    // the requested render commits, so reply completion cannot lose focus.
+    if (focusRevision > 0 && !pending) composer.current?.focus();
+  }, [focusRevision, pending]);
   useEffect(() => {
     if (!retryUntil) return;
     const timer = setInterval(() => {
