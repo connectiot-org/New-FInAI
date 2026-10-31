@@ -60,9 +60,11 @@ See `subscriptions.openapi.yaml` and `python contracts/validate_subscriptions.py
 
 `receivables-detail.openapi.yaml` adds authorized snapshot discovery, explicitly pinned invoice/customer/issue-period pages and bounded JSON export. The existing 1.0.0 summary/import schema is unchanged. Page metadata echoes entity/source/period/filters/order/pagination. Offset pages within an immutable snapshot remain stable when newer imports commit. Defaults: outstanding status, offset0, limit20/max50; export is max10,000 rows, no truncation, allowed to authorized read members. CSV generation uses exact cents and formula escaping as a deliberate download; no browser cache persistence. Missing/foreign snapshots return identical404. No due dates or overdue/as-of semantics are inferred.
 
-## Workspace operations 1.0.0
+## Import Change Review — receivables detail 1.2.0
 
 Receivables-detail1.2.0 additionally defines read-only `/receivables/changes`: two authorized pinned snapshots, all issue dates/statuses, exact invoice-ID matching, nullable absent sides, full-source totals/bridge and changed-only C-collated pagination. All new monetary fields are canonical decimal integer strings, including aggregate values above JavaScript's safe integer range. Old detail responses remain unchanged. See `../context/receivables-changes.md` and the basic example under `receivables-examples/`.
+
+## Workspace operations 1.0.0
 
 `workspace.openapi.yaml` adds identity/permission context, scoped administrator tooling, safe audit reads and a reviewed import workflow. Current auth/session/login responses remain csrf-only for compatibility. Read grants, workflow-write grants and import grants are independent; organisation administrator manages existing organisation members/entities and grants but does not implicitly gain financial entity access. A trusted operator bootstraps the first administrator; last-active-admin removal is refused. Permission changes revoke the affected user's organisation sessions.
 
