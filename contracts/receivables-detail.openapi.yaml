@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: FinAI immutable receivables detail
-  version: 1.1.0
+  version: 1.2.0
   description: Additive companion to unchanged receivables 1.0.0. Every read authorizes
     entity access; explicit snapshotId pins pagination to one committed register.
     No latest mixing. Unknown/repeated query values rejected; default status outstanding,
@@ -487,6 +487,143 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
       summary: receivableInvoicesExport
+  /api/v1/receivables/changes:
+    get:
+      operationId: receivableChanges
+      summary: Compare two saved invoice imports
+      description: Read permission only. No financial write or model call. Exact invoice
+        IDs, all statuses and issue dates; earlier/later use imported versions. Identical
+        sources are valid; reversed versions rejected only after both sources are authorized.
+        Money is canonical integer strings. C collation invoice ordering. Unknown and
+        repeated query values are rejected.
+      security:
+      - Session: []
+      parameters:
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: fromSnapshotId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: toSnapshotId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          minimum: 0
+          maximum: 20000
+          default: 0
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 20
+      responses:
+        '200':
+          description: All-issue-date exact comparison of two authorized pinned sources.
+            Totals and bridge cover the full union before changed-only pagination.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Changes'
+              example:
+                entityId: 22222222-2222-4222-8222-222222222222
+                currency: USD
+                basis: all_issue_dates_cumulative_paid
+                fromSource:
+                  snapshotId: 33333333-3333-4333-8333-333333333333
+                  version: 1
+                  sourceName: Synthetic register 1
+                  sourceCapturedAt: '2026-10-21T00:00:00Z'
+                  importedAt: '2026-10-24T00:00:00Z'
+                toSource:
+                  snapshotId: 44444444-4444-4444-8444-444444444444
+                  version: 2
+                  sourceName: Synthetic register 2
+                  sourceCapturedAt: '2026-10-22T00:00:00Z'
+                  importedAt: '2026-10-24T00:00:00Z'
+                earlierOutstandingCents: '255000'
+                laterOutstandingCents: '215000'
+                deltaCents: '-40000'
+                changedInvoiceCount: 1
+                unionInvoiceCount: 5
+                bridge:
+                  newInLaterCents: '0'
+                  absentFromLaterCents: '0'
+                  increasedCents: '0'
+                  decreasedCents: '-40000'
+                sourceCutoffReversed: false
+                offset: 0
+                limit: 20
+                nextOffset: null
+                sort: invoiceId:asc
+                items:
+                - invoiceId: INV-001
+                  earlier:
+                    customerId: C-1
+                    customerName: Synthetic customer
+                    issuedOn: '2026-09-01'
+                    status: Issued
+                    amountCents: '100000'
+                    paidCents: '0'
+                  later:
+                    customerId: C-1
+                    customerName: Synthetic customer
+                    issuedOn: '2026-09-01'
+                    status: Partial
+                    amountCents: '100000'
+                    paidCents: '40000'
+                  changedFields:
+                  - status
+                  - paidCents
+                  flags:
+                  - outstanding_decreased
+                  earlierOutstandingCents: '100000'
+                  laterOutstandingCents: '60000'
+                  deltaCents: '-40000'
+        '401':
+          description: Safe error without source disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Safe error without source disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Safe error without source disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Safe error without source disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Safe error without source disclosure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   securitySchemes:
     Session:
@@ -847,3 +984,187 @@ components:
         digest:
           type: string
           pattern: ^[a-f0-9]{64}$
+    ChangeUnsignedCents:
+      type: string
+      pattern: ^(0|[1-9][0-9]{0,19})$
+      maxLength: 20
+    ChangeSignedCents:
+      type: string
+      pattern: ^(0|-?[1-9][0-9]{0,19})$
+      maxLength: 21
+    ChangeRecord:
+      type: object
+      additionalProperties: false
+      required:
+      - customerId
+      - customerName
+      - issuedOn
+      - status
+      - amountCents
+      - paidCents
+      properties:
+        customerId:
+          type: string
+          minLength: 1
+          maxLength: 200
+        customerName:
+          anyOf:
+          - type: string
+            minLength: 1
+            maxLength: 200
+          - type: 'null'
+        issuedOn:
+          type: string
+          format: date
+        status:
+          enum:
+          - Draft
+          - Issued
+          - Partial
+          - Paid
+        amountCents:
+          $ref: '#/components/schemas/ChangeUnsignedCents'
+        paidCents:
+          $ref: '#/components/schemas/ChangeUnsignedCents'
+    ChangeItem:
+      type: object
+      additionalProperties: false
+      required:
+      - invoiceId
+      - earlier
+      - later
+      - changedFields
+      - flags
+      - earlierOutstandingCents
+      - laterOutstandingCents
+      - deltaCents
+      properties:
+        invoiceId:
+          type: string
+          minLength: 1
+          maxLength: 200
+        earlier:
+          anyOf:
+          - $ref: '#/components/schemas/ChangeRecord'
+          - type: 'null'
+        later:
+          anyOf:
+          - $ref: '#/components/schemas/ChangeRecord'
+          - type: 'null'
+        changedFields:
+          type: array
+          uniqueItems: true
+          maxItems: 6
+          items:
+            enum:
+            - customerId
+            - customerName
+            - issuedOn
+            - status
+            - amountCents
+            - paidCents
+        flags:
+          type: array
+          uniqueItems: true
+          maxItems: 3
+          items:
+            enum:
+            - new_in_later
+            - absent_from_later
+            - outstanding_increased
+            - outstanding_decreased
+        earlierOutstandingCents:
+          $ref: '#/components/schemas/ChangeUnsignedCents'
+        laterOutstandingCents:
+          $ref: '#/components/schemas/ChangeUnsignedCents'
+        deltaCents:
+          $ref: '#/components/schemas/ChangeSignedCents'
+    ChangeBridge:
+      type: object
+      additionalProperties: false
+      required:
+      - newInLaterCents
+      - absentFromLaterCents
+      - increasedCents
+      - decreasedCents
+      properties:
+        newInLaterCents:
+          $ref: '#/components/schemas/ChangeSignedCents'
+        absentFromLaterCents:
+          $ref: '#/components/schemas/ChangeSignedCents'
+        increasedCents:
+          $ref: '#/components/schemas/ChangeSignedCents'
+        decreasedCents:
+          $ref: '#/components/schemas/ChangeSignedCents'
+    Changes:
+      type: object
+      additionalProperties: false
+      required:
+      - entityId
+      - currency
+      - basis
+      - fromSource
+      - toSource
+      - earlierOutstandingCents
+      - laterOutstandingCents
+      - deltaCents
+      - changedInvoiceCount
+      - unionInvoiceCount
+      - bridge
+      - sourceCutoffReversed
+      - offset
+      - limit
+      - nextOffset
+      - sort
+      - items
+      properties:
+        entityId:
+          type: string
+          format: uuid
+        currency:
+          const: USD
+        basis:
+          const: all_issue_dates_cumulative_paid
+        fromSource:
+          $ref: '#/components/schemas/Source'
+        toSource:
+          $ref: '#/components/schemas/Source'
+        earlierOutstandingCents:
+          $ref: '#/components/schemas/ChangeUnsignedCents'
+        laterOutstandingCents:
+          $ref: '#/components/schemas/ChangeUnsignedCents'
+        deltaCents:
+          $ref: '#/components/schemas/ChangeSignedCents'
+        changedInvoiceCount:
+          type: integer
+          minimum: 0
+          maximum: 20000
+        unionInvoiceCount:
+          type: integer
+          minimum: 0
+          maximum: 20000
+        bridge:
+          $ref: '#/components/schemas/ChangeBridge'
+        sourceCutoffReversed:
+          type: boolean
+        offset:
+          type: integer
+          minimum: 0
+          maximum: 20000
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 50
+        nextOffset:
+          anyOf:
+          - type: integer
+            minimum: 0
+            maximum: 20000
+          - type: 'null'
+        sort:
+          const: invoiceId:asc
+        items:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ChangeItem'
