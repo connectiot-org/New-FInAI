@@ -26,3 +26,11 @@ export const pageInput = z.strictObject({
 });
 export const exportInput = z.strictObject(fields);
 export type DetailInput = z.infer<typeof pageInput>;
+export const changesInput = z.strictObject({
+  entityId: uuid,
+  fromSnapshotId: uuid,
+  toSnapshotId: uuid,
+  offset: count.pipe(z.number().int().max(20000)).default(0),
+  limit: count.pipe(z.number().int().min(1).max(50)).default(20),
+});
+export type ChangesInput = z.infer<typeof changesInput>;

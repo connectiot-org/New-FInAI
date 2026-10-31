@@ -3,13 +3,21 @@ import type { Request } from "express";
 import type { Identity } from "../config";
 import { parse } from "../validation";
 import { ReceivablesDetailService } from "./detail.service";
-import { historyInput, pageInput, exportInput } from "./detail.validation";
+import {
+  historyInput,
+  pageInput,
+  exportInput,
+  changesInput,
+} from "./detail.validation";
 type AuthRequest = Request & { identity: Identity };
 @Controller("api/v1/receivables")
 export class ReceivablesDetailController {
   constructor(
     @Inject(ReceivablesDetailService) private repo: ReceivablesDetailService,
   ) {}
+  @Get("changes") changes(@Req() r: AuthRequest, @Query() q: unknown) {
+    return this.repo.compare(r.identity, parse(changesInput, q));
+  }
   @Get("snapshots") history(@Req() r: AuthRequest, @Query() q: unknown) {
     return this.repo.history(r.identity, parse(historyInput, q));
   }
