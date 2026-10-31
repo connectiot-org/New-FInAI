@@ -229,6 +229,9 @@ const importedSource = (paidCents: number, sourceName: string) => ({
   ],
 });
 const importSource = async (expected: number, paid: number, name: string) => {
+  return importRegister(expected, importedSource(paid, name));
+};
+const importRegister = async (expected: number, source: unknown) => {
   const { ReceivablesRepository } =
     await import("../../backend/dist/src/receivables/repository.js");
   const { ChecklistRepository } =
@@ -241,11 +244,31 @@ const importSource = async (expected: number, paid: number, name: string) => {
     { organisationId, userId },
     entityId,
     expected,
-    importedSource(paid, name),
+    source,
     true,
   );
 };
-if (receivables) await importSource(0, 25000, "Synthetic source A");
+const changeRegister = (paidCents: number, version: number) => ({
+  schemaVersion: 1,
+  currency: "USD",
+  completeRegister: true,
+  sourceName: "Synthetic change source " + version,
+  sourceCapturedAt:
+    version === 2 ? "2026-10-22T00:00:00Z" : "2026-10-23T00:00:00Z",
+  invoices: [100000, 30000, 50000, 10000, 75000].map((amountCents, i) => ({
+    invoiceId: "INV-00" + (i + 1),
+    customerId: "C-1",
+    customerName: "Synthetic comparison customer",
+    issuedOn: "2026-09-01",
+    status: i === 3 ? "Paid" : i === 0 && paidCents ? "Partial" : "Issued",
+    amountCents,
+    paidCents: i === 3 ? 10000 : i === 0 ? paidCents : 0,
+  })),
+});
+if (process.env.FINAI_TEST_CHANGES === "1") {
+  await importRegister(0, changeRegister(0, 1));
+  await importRegister(1, changeRegister(40000, 2));
+} else if (receivables) await importSource(0, 25000, "Synthetic source A");
 if (process.env.FINAI_TEST_ASSISTANT) {
   const { LedgerService, mappingDigest, validateLedger } =
     await import("../../backend/dist/src/ledger/source.js");
@@ -287,7 +310,12 @@ process.on("message", async (command) => {
             `${source.mappingId}@${mappingDigest(validateLedger(source))}`,
           );
       }
-    } else if (command === "importB")
+    } else if (
+      command === "changesThird" &&
+      process.env.FINAI_TEST_CHANGES === "1"
+    )
+      await importRegister(2, changeRegister(80000, 3));
+    else if (command === "importB")
       await importSource(1, 50000, "Synthetic source B");
     else if (command === "deny")
       await db.entityAccess.delete({
