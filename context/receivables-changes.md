@@ -1,5 +1,11 @@
 # Import Change Review — 31 October 2026 (Asia/Dhaka)
 
+## Release-check remediation — 31 October 2026
+
+After the user reported the failing push check, updated the development lint stack in both applications to ESLint10 and compatible TypeScript/React plugins, with minimatch11.0.3 overrides. The old minimatch versions were affected by GHSA-g3hv-75wg-m249; forcing11 into ESLint9's older callable API would be incompatible. Frontend explicitly retains the two React Hooks rules enabled by its previous5.2 plugin; the new plugin's additional compiler rules require separate adoption. Runtime application dependencies and audit gates are unchanged.
+
+Both complete npm audits now report zero vulnerabilities. Backend and frontend lint, typecheck and builds passed; all58 backend tests,18 workspace tests and2 built authenticated workspace tests passed. Both frozen lockfiles passed `npm ci --dry-run --ignore-scripts`. Exact logs for the original failed GitHub step remain inaccessible, so this confirms a locally reproduced audit blocker was fixed, not that it was the only possible CI failure. A fresh hosted workflow must be checked independently.
+
 Base main66d0c5445968ca4f8f97af0b98b6da57dd3d8b79, clean checkout; no equivalent comparison found. User requested implementation of the attached one-feature guide. Sequential coordinator (`contracts/`, `context/`), backend (`backend/`), frontend (`frontend/`), reviewer roles; no parallel agents/worktrees. Preserve public chat, demo storage, unrelated product and old endpoint shapes. No deployment/paid provisioning is authorized by this feature.
 
 Additive receivables-detail1.2.0 freezes GET `/api/v1/receivables/changes`: entity/fromSnapshot/toSnapshot UUIDs, offset0..20000, limit1..50. Authorization precedes version direction checks. Compare all issue dates and all statuses using exact source invoice IDs, full outer union in database C collation. Absent sides stay null. Earlier/later follow import versions; backward capture cutoffs get a caution. Same-source selection is valid zero-change.
