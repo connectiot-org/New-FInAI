@@ -28,16 +28,16 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@eslint/js": "9.39.1",
+    "@eslint/js": "10.0.1",
     "@types/express": "5.0.5",
     "@types/node": "24.10.1",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
-    "eslint": "9.39.1",
+    "eslint": "10.14.0",
     "prisma": "6.19.3",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.71.2",
+    "typescript-eslint": "8.72.1",
     "yaml": "2.9.1"
   },
   "overrides": {
@@ -52,6 +52,7 @@
     },
     "ajv": {
       "fast-uri": "3.1.9"
-    }
+    },
+    "minimatch": "11.0.3"
   }
 }

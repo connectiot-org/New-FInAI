@@ -20,7 +20,9 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
     plugins: { "react-hooks": hooks },
     rules: {
-      ...hooks.configs.recommended.rules,
+      // Preserve the rules enforced by react-hooks 5.2; compiler-rule adoption is separate.
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
       "@typescript-eslint/no-explicit-any": "error",
     },
   },
