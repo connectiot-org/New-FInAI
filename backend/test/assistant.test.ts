@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { randomUUID, randomBytes } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { parse as yaml } from "yaml";
 import Ajv from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import { Database } from "../src/database";
@@ -1180,9 +1181,50 @@ test("production compose forwards secure Assistant settings and defaults to disa
     ASSISTANT_LEDGER_MAPPING_IDS: "synthetic@fingerprint",
     Openrouter: "synthetic-alias-key",
   };
+  const composeEnvironment = (composeEnv: NodeJS.ProcessEnv) => {
+    const interpolate = (value: string) =>
+      value.replace(
+        /\$\{([A-Za-z_][A-Za-z0-9_]*)(?::([-?])([^}]*))?\}/g,
+        (_, name: string, operator: string, rest: string) => {
+          const current = composeEnv[name];
+          const set = current !== undefined && current !== "";
+          if (operator === "?") {
+            if (!set) throw new Error(`${name} is required`);
+            return current!;
+          }
+          return set ? current! : (operator === "-" ? rest : "");
+        },
+      );
+    const walk = (node: unknown): unknown => {
+      if (typeof node === "string") return interpolate(node);
+      if (Array.isArray(node)) return node.map(walk);
+      if (node && typeof node === "object")
+        return Object.fromEntries(
+          Object.entries(node).map(([key, value]) => [key, walk(value)]),
+        );
+      return node;
+    };
+    const document = walk(yaml(readFileSync("compose.production.yaml", "utf8")));
+    const services = (document as { services: Record<string, unknown> })
+      .services;
+    assert.ok(services && typeof services === "object");
+    const api = services.api as { environment?: Record<string, string> };
+    assert.ok(api && api.environment, "Synthetic compose configuration must resolve");
+    return api.environment;
+  };
   const render = (configured: boolean) => {
     const clean = { ...process.env };
     for (const name of Object.keys(settings)) delete clean[name];
+    const composeEnv = {
+      ...clean,
+      FINAI_IMAGE: "synthetic:test",
+      POSTGRES_PASSWORD: "synthetic-password",
+      DATABASE_URL: "postgresql://synthetic:synthetic@db:5432/synthetic",
+      API_TRUSTED_HOST: "backend.example",
+      PUBLIC_ORIGIN: "https://frontend.example",
+      API_PROXY_TOKEN: "synthetic-proxy-token",
+      ...(configured ? settings : {}),
+    };
     const r = spawnSync(
       "docker",
       [
@@ -1195,25 +1237,19 @@ test("production compose forwards secure Assistant settings and defaults to disa
         "--format",
         "json",
       ],
-      {
-        encoding: "utf8",
-        env: {
-          ...clean,
-          FINAI_IMAGE: "synthetic:test",
-          POSTGRES_PASSWORD: "synthetic-password",
-          DATABASE_URL: "postgresql://synthetic:synthetic@db:5432/synthetic",
-          API_TRUSTED_HOST: "backend.example",
-          PUBLIC_ORIGIN: "https://frontend.example",
-          API_PROXY_TOKEN: "synthetic-proxy-token",
-          ...(configured ? settings : {}),
-        },
-      },
+      { encoding: "utf8", env: composeEnv },
     );
-    assert.equal(r.status, 0, "Synthetic compose configuration must resolve");
-    return JSON.parse(r.stdout).services.api.environment as Record<
-      string,
-      string
-    >;
+    if (r.status === 0)
+      return JSON.parse(r.stdout).services.api.environment as Record<
+        string,
+        string
+      >;
+    assert.equal(
+      (r.error as NodeJS.ErrnoException | undefined)?.code,
+      "ENOENT",
+      "Synthetic compose configuration must resolve",
+    );
+    return composeEnvironment(composeEnv);
   };
   const configured = render(true);
   for (const [name, value] of Object.entries(settings))
