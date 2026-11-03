@@ -1,5 +1,11 @@
 # Current progress — 2026-10-19
 
+## Supplier invoice entry points — 3 November 2026 (Asia/Dhaka)
+
+User reported that supplier invoices could not be found from the public Vercel homepage. Frontend scope adds a direct Supplier invoices link in the desktop header, first mobile-menu entry and app sidebar, plus Open supplier invoices on the welcome screen; all point to the existing authenticated `/workspace/payables/invoices`. Existing demo controls remain available. Documentation explains actual sign-in/AP access, build configuration and all eight migrations; no production account/database/scanner or deployment was created.
+
+Fresh standalone52 regressions passed after the sidebar/welcome additions. Following the homepage change, all15 homepage tests and all6 real entry-to-export scenarios through remote/embedded/packaged runtimes passed sequentially, with typecheck/lint/build and required-asset scans. The three real journeys now enter through the welcome-screen link before signing in. One overlapping local browser run initially collided in the shared trace output directory; clean sequential reruns passed with tracing/assertions intact. The original live deployment and hosted Actions status remain inaccessible through the environment proxy; these navigation changes require merging/deploying the reviewed branch before they appear publicly.
+
 ## Release workflow repair — 3 November 2026 (Asia/Dhaka)
 
 Release-verification scope: `.github/workflows/checklist-release.yml`, frontend asset-scan diagnostics and scoped evidence. The release job scanned required `artifacts/payables-dist` without building it; the separate payables workflow cannot share job-local outputs. Reproduced the failure with the actual scanner and real existing build outputs in an isolated temporary directory; adding the invoice output made the same scan pass. Added payables UI/transport/real integration steps before the scan, plus payables contract/OpenAPI validation, preserving all existing gates. Fresh local8 UI+2 transport+6 real runtime journeys, frontend lint, full required-asset scan and zero-vulnerability audit passed; YAML parsing/prerequisite order passed. The user-linked Actions run41652684937 log API returns403 here, so its exact hosted failure trace and rerun conclusion remain unverified. No merge or deployment.

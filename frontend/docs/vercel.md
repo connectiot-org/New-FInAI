@@ -18,6 +18,12 @@ Public Assistant reliability, request references, safe logging, input deadlines 
 
 This release packages the real NestJS API into the existing Vercel API function. The frontend can use the OPENROUTER_API_KEY or Openrouter Secret from that same Vercel project. All private history/source data still requires PostgreSQL and authenticated accounts. No production database or account is created by a build or HTTP request.
 
+## Opening supplier invoices
+
+On the homepage, choose **Supplier invoices** in the header; on mobile it is the first link in the public navigation menu. The welcome screen and app sidebar also link directly to `/workspace/payables/invoices`. The feature requires an existing workspace account, company access and explicit AP grants. An organisation administrator can provision other members’ AP grants under `/workspace/payables/settings/access`.
+
+If the page says **Workspace configuration required**, the deployed browser build lacks the existing session/API configuration: use the checked-in `npm run build:vercel` build command and deploy the reviewed commit. A missing-database/sign-in error requires the server/database/account setup below; demo personas do not provide access. These navigation changes do not deploy the application or provision a production database/account. Document scanning and the other operational requirements remain in `../../backend/PAYABLES.md`.
+
 ## Project and build
 
 Use repository root directory frontend, Node 24, the Vite preset and the checked-in vercel.json. Its build command is npm run build:vercel. Enable Include source files outside of Root Directory so the build can read ../backend. The build performs frozen backend installs/generation/compilation, creates an ignored .finai-server private runtime with production dependencies and generated Prisma client, and builds the browser with session/API modes enabled. A separate NodeNext typecheck catches Node function import mistakes. No database migrations, seeds or model calls run during the build.
@@ -39,7 +45,7 @@ OpenRouter settings remain server-only: OPENROUTER_API_KEY (Openrouter alias acc
 
 ## Database initialization and identity
 
-After a database is actually provisioned and the target/backup is reviewed, apply the existing seven migrations from a trusted operator runtime with DATABASE_URL supplied securely: `node node_modules/prisma/build/index.js migrate deploy` from `backend`. This reads the injected target connection directly; the local convenience `db:migrate` script loads `.env` and is for local development. For pooled providers use their migration-supported direct endpoint where required; do not paste credentials into source or chat. Builds never run reset, seed or production migrations automatically. Existing data is preserved by additive migrations.
+After a database is actually provisioned and the target/backup is reviewed, apply the existing eight migrations from a trusted operator runtime with DATABASE_URL supplied securely: `node node_modules/prisma/build/index.js migrate deploy` from `backend`. This reads the injected target connection directly; the local convenience `db:migrate` script loads `.env` and is for local development. For pooled providers use their migration-supported direct endpoint where required; do not paste credentials into source or chat. Builds never run reset, seed or production migrations automatically. Existing data is preserved by additive migrations.
 
 Provision the real organisation/entity through the approved bootstrap process described in backend/RELEASE.md, then use scripts/accounts.mts and scripts/workspace-admin.mts for administrative accounts/grants with hidden terminal password input. Demo persona selection is not authentication. Do not seed Northstar or invent customer financial data in a new production database. Empty authorized sources stay empty and missing snapshots stay explicit.
 

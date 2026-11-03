@@ -148,6 +148,9 @@ function Welcome() {
         <p>
           <Link to="/workspace">Sign in to your finance workspace</Link>
         </p>
+        <p>
+          <Link to="/workspace/payables/invoices">Open supplier invoices</Link>
+        </p>
         <div className="welcome-note">
           <ShieldCheck size={20} />
           <p>

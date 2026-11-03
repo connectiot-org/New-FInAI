@@ -19,7 +19,14 @@ import {
 export const navigation = [
   {
     group: "Workspace",
-    items: [{ label: "Overview", path: "/overview", icon: LayoutDashboard }],
+    items: [
+      { label: "Overview", path: "/overview", icon: LayoutDashboard },
+      {
+        label: "Supplier invoices",
+        path: "/workspace/payables/invoices",
+        icon: FileText,
+      },
+    ],
   },
   {
     group: "Accounting",
