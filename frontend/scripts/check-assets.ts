@@ -30,7 +30,7 @@ for (const root of [
 ]) {
   if (!existsSync(root))
     throw new Error(
-      "Build demo, session, receivables, workspace, Assistant and public chat assets before scanning.",
+      "Build demo, session, receivables, workspace, Assistant, public chat and payables assets before scanning.",
     );
   const assets = files(root).filter((path) => /\.(m?js|css|html)$/.test(path));
   for (const path of assets) {
@@ -54,5 +54,5 @@ for (const root of [
   }
 }
 console.log(
-  "PASS: demo/session/receivables/workspace/assistant/public-chat assets contain none of the available backend credential values; production API uses no localhost fallback",
+  "PASS: demo/session/receivables/workspace/assistant/public-chat/payables assets contain none of the available backend credential values; production API uses no localhost fallback",
 );
