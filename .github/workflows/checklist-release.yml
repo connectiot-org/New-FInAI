@@ -54,6 +54,9 @@ jobs:
       - name: Demo browser tests
         working-directory: frontend
         run: npm run test
+      - name: Standalone invoice demo without database or sign-in
+        working-directory: frontend
+        run: npm run test:invoice-demo
       - name: Checklist integration tests
         working-directory: frontend
         run: npm run test:checklist

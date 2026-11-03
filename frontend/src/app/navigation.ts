@@ -23,7 +23,7 @@ export const navigation = [
       { label: "Overview", path: "/overview", icon: LayoutDashboard },
       {
         label: "Supplier invoices",
-        path: "/workspace/payables/invoices",
+        path: "/development/payables/invoices",
         icon: FileText,
       },
     ],

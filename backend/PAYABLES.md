@@ -1,5 +1,7 @@
 # Supplier invoice approvals
 
+A separate public development preview is available at `/development/payables/invoices` with browser-only sample records and no login/database requirement. It never calls this private API, grants a company identity, or claims document scanning/real approval. See `../frontend/README.md` for that preview.
+
 Private application entry: `/workspace/payables/invoices`. Suppliers, accounting export, approval policies and invoice-access settings live under `/workspace/payables/`. The existing demo Bills screen remains independent.
 
 The manual-entry pilot supports supplier records, original PDFs, validation and coding, factual verification, one/two sequential approvals, correction requests, challenge/rejection, immutable history and balanced versioned CSV exports. It does not execute payments or post to an external ledger.
