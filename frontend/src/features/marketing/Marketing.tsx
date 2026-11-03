@@ -298,8 +298,8 @@ export function MarketingLayout() {
           />
         </nav>
         <div className="marketing-header-actions">
-          <Link className="marketing-login" to="/welcome">
-            Open workspace
+          <Link className="marketing-login" to="/workspace/payables/invoices">
+            Supplier invoices
           </Link>
           <Link className="marketing-button dark small" to="/welcome">
             Explore the demo
@@ -382,6 +382,10 @@ export function MarketingLayout() {
           className="marketing-mobile-nav"
           aria-label="Mobile public navigation"
         >
+          <Link to="/workspace/payables/invoices">
+            Supplier invoices
+            <ArrowRight size={15} />
+          </Link>
           {groups.map((group) => (
             <details key={group.title} open={group.title === "Core features"}>
               <summary>

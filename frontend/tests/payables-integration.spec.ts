@@ -73,8 +73,15 @@ for (const mode of ["remote", "embedded", "packaged"])
         child.on("message", listener);
         child.send({ command, userId });
       });
-    const login = async (page: Page, actor: number) => {
-      await page.goto(info.origin + "/workspace/payables/invoices");
+    const login = async (page: Page, actor: number, throughEntry = false) => {
+      if (throughEntry) {
+        await page.goto(info.origin + "/welcome");
+        await page
+          .getByRole("link", { name: "Open supplier invoices", exact: true })
+          .click();
+      } else {
+        await page.goto(info.origin + "/workspace/payables/invoices");
+      }
       await page.getByLabel("Account name").fill(info.actors[actor].username);
       await page.getByLabel("Organisation ID").fill(info.organisationId);
       await page
@@ -94,7 +101,7 @@ for (const mode of ["remote", "embedded", "packaged"])
     test("supplier PDF, mismatch correction, factual verification, two approvals, immutable export and restart", async ({
       page,
     }) => {
-      await login(page, 0);
+      await login(page, 0, true);
       await page.getByRole("link", { name: "Suppliers", exact: true }).click();
       await page
         .getByLabel("Legal / display name")
@@ -206,6 +213,12 @@ for (const mode of ["remote", "embedded", "packaged"])
               () => document.documentElement.scrollWidth <= innerWidth + 1,
             ),
           ).toBeTruthy();
+          expect(
+            (await page
+              .locator(".ap-document-row > div")
+              .first()
+              .boundingBox())!.width,
+          ).toBeGreaterThanOrEqual(120);
           await page.screenshot({
             path: `artifacts/payables/live-${width}.png`,
             fullPage: true,

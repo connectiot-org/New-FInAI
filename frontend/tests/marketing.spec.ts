@@ -334,7 +334,7 @@ test("FinAI identity, fictional companies and owned artwork replace endorsement 
   await expect(page).toHaveTitle("Accounts payable · FinAI");
   await page
     .getByRole("banner")
-    .getByRole("link", { name: "Open workspace", exact: true })
+    .getByRole("link", { name: "Explore the demo", exact: true })
     .click();
   await expect(page).toHaveTitle("Welcome · FinAI");
   await page.getByRole("button", { name: "Enter demo workspace" }).click();
@@ -397,4 +397,55 @@ test("small-screen navigation exposes solution links and the workspace fits at 3
   await expect(
     page.getByRole("button", { name: "Ask FinAI" }),
   ).toBeInViewport();
+});
+
+test("supplier invoices are discoverable from homepage, welcome screen and app navigation", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/");
+  await page
+    .getByRole("banner")
+    .getByRole("link", { name: "Supplier invoices", exact: true })
+    .click();
+  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(
+    page.getByRole("heading", { name: "Workspace configuration required" }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Open public navigation" }).click();
+  await page
+    .getByRole("navigation", { name: "Mobile public navigation" })
+    .getByRole("link", { name: "Supplier invoices", exact: true })
+    .click();
+  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(
+    page.getByRole("heading", { name: "Workspace configuration required" }),
+  ).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/welcome");
+  const entry = page.getByRole("link", {
+    name: "Open supplier invoices",
+    exact: true,
+  });
+  await expect(entry).toHaveAttribute("href", "/workspace/payables/invoices");
+  await entry.click();
+  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(
+    page.getByRole("heading", { name: "Workspace configuration required" }),
+  ).toBeVisible();
+  await page.goto("/overview");
+  const sidebarEntry = page
+    .getByRole("navigation", { name: "Main navigation" })
+    .getByRole("link", { name: "Supplier invoices", exact: true });
+  await expect(sidebarEntry).toHaveAttribute(
+    "href",
+    "/workspace/payables/invoices",
+  );
+  await sidebarEntry.click();
+  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(
+    page.getByRole("heading", { name: "Workspace configuration required" }),
+  ).toBeVisible();
 });
