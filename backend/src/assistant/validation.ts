@@ -1,3 +1,4 @@
+import { invoiceProposal } from "../payables/assistant";
 import { z } from "zod";
 import { uuid, month } from "../validation";
 export const text = (max: number) =>
@@ -44,6 +45,7 @@ export const page = z.strictObject({
 export const list = page.extend({ entityId: uuid });
 export const operation = z.strictObject({
   kind: z.enum([
+    "supplier_invoices",
     "receivables",
     "invoices",
     "checklist",
@@ -53,6 +55,20 @@ export const operation = z.strictObject({
     "unsupported",
   ]),
   period: z.enum(["current", "previous"]),
+  invoiceId: z.uuid().nullable().default(null),
+  invoiceSearch: text(200).nullable().default(null),
+  invoiceAction: z
+    .enum([
+      "explain",
+      "review",
+      "verify",
+      "approve",
+      "correction",
+      "challenge",
+      "reject",
+      "export",
+    ])
+    .default("explain"),
   customerId: text(200).nullable(),
   accountId: text(200).nullable(),
   metric: z.enum([
@@ -89,7 +105,7 @@ export const fact = z.strictObject({
   precision: z.number().int().min(0).max(6),
   sourceId: z.string(),
   recordId: z.string().max(200).optional(),
-  recordKind: z.enum(["customer", "account"]).optional(),
+  recordKind: z.enum(["customer", "account", "supplier_invoice"]).optional(),
 });
 export const source = z.strictObject({
   id: z.string(),
@@ -103,13 +119,14 @@ export const source = z.strictObject({
   snapshotId: z.uuid().nullable(),
 });
 export const answer = z.strictObject({
+  proposals: z.array(invoiceProposal).max(3).default([]),
   facts: z.array(fact).max(12),
   sources: z.array(source).max(6),
   notes: z.array(z.string()).max(8),
   basis: z.string(),
   detail: z.enum(["concise", "detailed"]),
 });
-export type Plan = z.infer<typeof plan>;
+export type Plan = z.input<typeof plan>;
 export type Fact = z.infer<typeof fact>;
 export type Source = z.infer<typeof source>;
 export const POLICY = "grounded-facts-v1";

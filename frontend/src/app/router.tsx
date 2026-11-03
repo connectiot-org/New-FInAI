@@ -1,5 +1,4 @@
 import { OperationalSource } from "../features/assistant/OperationalSource";
-import { ProductionAssistant } from "../features/assistant/Assistant";
 import { LedgerSource } from "../features/assistant/LedgerSource";
 import { Imports } from "../features/workspace/Imports";
 import { Administration as WorkspaceAdministration } from "../features/workspace/Administration";
@@ -10,6 +9,7 @@ import {
   Navigate,
   RouterProvider,
   useNavigate,
+  useLocation,
   Link,
 } from "react-router-dom";
 import { ArrowRight, BookOpen, Check, ShieldCheck } from "lucide-react";
@@ -149,9 +149,7 @@ function Welcome() {
           <Link to="/workspace">Sign in to your finance workspace</Link>
         </p>
         <p>
-          <Link to="/development/payables/invoices">
-            Open supplier invoices
-          </Link>
+          <Link to="/workspace/payables/invoices">Open supplier invoices</Link>
         </p>
         <div className="welcome-note">
           <ShieldCheck size={20} />
@@ -191,11 +189,32 @@ const ImportChanges = lazy(() =>
     default: module.ImportChanges,
   })),
 );
+const ProductionAssistant = lazy(() =>
+  import("../features/assistant/Assistant").then((m) => ({
+    default: m.ProductionAssistant,
+  })),
+);
 const LegacyAssistant = lazy(() =>
   import("../features/LegacyAssistant").then((module) => ({
     default: module.LegacyAssistant,
   })),
 );
+function LegacyPayablesRedirect() {
+  const location = useLocation();
+  return (
+    <Navigate
+      replace
+      to={
+        location.pathname.replace(
+          /^\/development\/payables/,
+          "/workspace/payables",
+        ) +
+        location.search +
+        location.hash
+      }
+    />
+  );
+}
 const router = createBrowserRouter([
   {
     path: "/",
@@ -209,10 +228,15 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/welcome", element: <Welcome /> },
-  ...["/demo/invoices", "/invoices", "/invoice-approvals"].map((path) => ({
+  ...["/invoices", "/invoice-approvals"].map((path) => ({
     path,
-    element: <Navigate to="/development/payables/invoices" replace />,
+    element: <Navigate to="/workspace/payables/invoices" replace />,
   })),
+  { path: "/development/payables/*", element: <LegacyPayablesRedirect /> },
+  {
+    path: "/demo/invoices",
+    element: <Navigate to="/demo/payables/invoices" replace />,
+  },
   ...[
     "invoices",
     "invoices/:id",
@@ -220,7 +244,7 @@ const router = createBrowserRouter([
     "export",
     "settings/approvals",
   ].map((path) => ({
-    path: "/development/payables/" + path,
+    path: "/demo/payables/" + path,
     element: (
       <Suspense fallback={<p role="status">Opening invoices…</p>}>
         <DevelopmentPayables />
@@ -233,13 +257,20 @@ const router = createBrowserRouter([
   },
   {
     path: "/workspace/assistant",
-    element: <Navigate to="/demo/assistant" replace />,
+    element: <Navigate to="/workspace/assistant/records" replace />,
   },
   {
     path: "/workspace",
     element: <Workspace />,
     children: [
-      { path: "assistant/records", element: <ProductionAssistant /> },
+      {
+        path: "assistant/records",
+        element: (
+          <Suspense fallback={<p role="status">Opening FinAI Assistant…</p>}>
+            <ProductionAssistant />
+          </Suspense>
+        ),
+      },
       { path: "assistant/source", element: <OperationalSource /> },
       { path: "ledger", element: <LedgerSource /> },
       { path: "imports", element: <Imports /> },

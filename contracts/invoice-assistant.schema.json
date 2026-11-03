@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "InvoiceProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationId",
+        "invoiceId",
+        "entityId",
+        "reference",
+        "expectedVersion",
+        "revision",
+        "action",
+        "title",
+        "description",
+        "reasonRequired",
+        "sourceId"
+      ],
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "invoiceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "action": {
+          "enum": [
+            "review",
+            "verify",
+            "approve",
+            "correction",
+            "challenge",
+            "reject",
+            "export"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "reasonRequired": {
+          "type": "boolean"
+        },
+        "sourceId": {
+          "type": "string",
+          "maxLength": 80
+        }
+      }
+    },
+    "InvoiceCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationId",
+        "entityId",
+        "expectedVersion",
+        "action"
+      ],
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "action": {
+          "enum": [
+            "review",
+            "verify",
+            "approve",
+            "correction",
+            "challenge",
+            "reject",
+            "export"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    }
+  }
+}

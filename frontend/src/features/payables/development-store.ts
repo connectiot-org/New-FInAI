@@ -7,7 +7,7 @@ import {
   type InvoiceData,
 } from "./schemas";
 import type { PayablesClient } from "./api";
-export const developmentBase = "/development/payables";
+export const developmentBase = "/demo/payables";
 export const developmentCompany = "10000000-0000-4000-8000-000000000001";
 export const developmentActors = [
   "Reviewer",
@@ -649,6 +649,7 @@ export function developmentClient(actor: number): PayablesClient {
           const search = (url.searchParams.get("search") || "").toLowerCase(),
             status = url.searchParams.get("status"),
             due = url.searchParams.get("dueBefore"),
+            month = url.searchParams.get("month"),
             assignee = url.searchParams.get("assignee");
           return (
             (!search ||
@@ -657,6 +658,7 @@ export function developmentClient(actor: number): PayablesClient {
                 .includes(search)) &&
             (!status || n.state === status) &&
             (!due || n.data.dueDate <= due) &&
+            (!month || n.data.invoiceDate.slice(0, 7) === month) &&
             (!assignee ||
               n.route?.verifierId === assignee ||
               n.route?.approverIds[n.route.step] === assignee)

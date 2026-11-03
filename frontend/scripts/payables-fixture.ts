@@ -13,6 +13,7 @@ import { createApplication as createDirectApplication } from "../../backend/dist
 import { passwordOptions } from "../../backend/dist/src/auth.js";
 import proxy from "../api/proxy";
 import { createEmbeddedHandler } from "../server/embedded";
+import { controlledAssistantProvider } from "./assistant-provider-fixture";
 import { invoicePdf } from "./payables-pdf";
 const mode = process.env.FINAI_TEST_PAYABLES_MODE || "remote";
 const require = createRequire(import.meta.url);
@@ -21,6 +22,11 @@ const createApplication =
     ? (require("../.finai-server/src/app.js")
         .createApplication as typeof createDirectApplication)
     : createDirectApplication;
+const createTestApplication: typeof createDirectApplication = (options = {}) =>
+  createApplication({
+    ...options,
+    assistantProvider: controlledAssistantProvider,
+  });
 if (mode === "packaged" && process.env.PRISMA_QUERY_ENGINE_LIBRARY)
   process.env.PRISMA_QUERY_ENGINE_LIBRARY = resolve(
     ".finai-server/node_modules/.prisma/client",
@@ -148,12 +154,12 @@ const env = {
 };
 let app =
     mode === "remote"
-      ? await createApplication({ env, quiet: true })
+      ? await createTestApplication({ env, quiet: true })
       : undefined,
   backend = app ? await app.getUrl() : "";
 let embedded = createEmbeddedHandler({
   env: { ...env, FINAI_PUBLIC_ORIGIN: origin },
-  loadApplication: () => ({ createApplication }),
+  loadApplication: () => ({ createApplication: createTestApplication }),
   retainWork: () => {},
 });
 const tls = {
@@ -233,13 +239,13 @@ process.on("message", async (message: { command: string; userId?: string }) => {
     if (message.command === "restart") {
       if (app) {
         await app.close();
-        app = await createApplication({ env, quiet: true });
+        app = await createTestApplication({ env, quiet: true });
         backend = await app.getUrl();
       } else {
         await embedded.close();
         embedded = createEmbeddedHandler({
           env: { ...env, FINAI_PUBLIC_ORIGIN: origin },
-          loadApplication: () => ({ createApplication }),
+          loadApplication: () => ({ createApplication: createTestApplication }),
           retainWork: () => {},
         });
       }

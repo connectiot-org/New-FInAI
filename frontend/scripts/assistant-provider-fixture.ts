@@ -10,6 +10,7 @@ export const controlledAssistantProvider = {
   async plan(input: unknown) {
     const x = input as {
       question: string;
+      scope?: { currency: string };
       recent: { plan: { operations: unknown[] } }[];
     };
     const q = x.question.toLowerCase();
@@ -25,10 +26,38 @@ export const controlledAssistantProvider = {
       kind = "unsupported";
       reason = "unsupported";
     }
+    const supplier = x.scope?.currency === "GBP" && /invoice/.test(q);
+    const invoiceId = supplier
+      ? q.match(
+          /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/,
+        )?.[0] || null
+      : null;
+    const invoiceAction = supplier
+      ? /correction/.test(q)
+        ? "correction"
+        : /challenge/.test(q)
+          ? "challenge"
+          : /reject/.test(q)
+            ? "reject"
+            : /export/.test(q)
+              ? "export"
+              : /approve/.test(q)
+                ? "approve"
+                : /verify/.test(q)
+                  ? "verify"
+                  : /submit|review/.test(q)
+                    ? "review"
+                    : "explain"
+      : "explain";
     return plan.parse({
       operations: [
         {
-          kind,
+          kind: supplier ? "supplier_invoices" : kind,
+          invoiceId,
+          invoiceSearch: supplier
+            ? q.match(/matching "([^"]+)"/)?.[1] || null
+            : null,
+          invoiceAction,
           period,
           customerId: null,
           accountId: null,

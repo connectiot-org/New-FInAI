@@ -74,7 +74,7 @@ for (const mode of ["remote", "embedded", "packaged"])
         child.send({ command, userId });
       });
     const login = async (page: Page, actor: number) => {
-      await page.goto(info.origin + "/workspace/payables/invoices");
+      await page.goto(info.origin + "/development/payables/invoices");
       await page.getByLabel("Account name").fill(info.actors[actor].username);
       await page.getByLabel("Organisation ID").fill(info.organisationId);
       await page
@@ -139,7 +139,7 @@ for (const mode of ["remote", "embedded", "packaged"])
         .getByRole("button", { name: "Save draft", exact: true })
         .click();
       await expect(dialog).toHaveCount(0);
-      const id = page.url().split("/").pop()!;
+      const id = new URL(page.url()).pathname.split("/").pop()!;
       await expect(page.getByRole("alert")).toContainText(
         "differs from calculated",
       );
@@ -319,6 +319,250 @@ for (const mode of ["remote", "embedded", "packaged"])
         id,
       );
       expect(noCsrf).toBe(403);
+    });
+    test("FinAI invoice context, explicit confirmation, ambiguous retry and stale proposal through real sessions", async ({
+      page,
+    }) => {
+      await login(page, 0);
+      const api = (method: string, path: string, body?: unknown) =>
+        page.evaluate(
+          async ({ method, path, body }) => {
+            const csrfToken = (await (await fetch("/auth/session")).json())
+              .csrfToken;
+            const response = await fetch("/api/v1/payables" + path, {
+              method,
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-Token": csrfToken,
+              },
+              ...(body ? { body: JSON.stringify(body) } : {}),
+            });
+            return { status: response.status, body: await response.json() };
+          },
+          { method, path, body },
+        );
+      const supplierId = crypto.randomUUID(),
+        invoiceId = crypto.randomUUID();
+      expect(
+        (
+          await api("POST", "/suppliers", {
+            id: supplierId,
+            entityId: info.secondEntityId,
+            name: "Assistant company B supplier",
+            taxId: "TEST",
+          })
+        ).status,
+      ).toBe(201);
+      const data = {
+        supplierId,
+        reference: "ASSISTANT-B-001",
+        invoiceDate: "2026-11-01",
+        dueDate: "2026-12-01",
+        currency: "GBP",
+        declaredGross: "10000",
+        lines: [
+          {
+            description: "Synthetic Assistant service",
+            quantity: "1",
+            unitMinor: "10000",
+            taxCode: "NONE",
+            taxBps: 0,
+            recoverable: false,
+            account: "6000",
+            taxAccount: "2200",
+            payableAccount: "2100",
+            costCentre: "Operations",
+          },
+        ],
+      };
+      expect(
+        (
+          await api("POST", "/invoices", {
+            id: invoiceId,
+            entityId: info.secondEntityId,
+            ...data,
+          })
+        ).status,
+      ).toBe(201);
+      await page.goto(
+        `${info.origin}/development/payables/invoices/${invoiceId}?entityId=${info.secondEntityId}`,
+      );
+      await expect(
+        page.getByRole("combobox", { name: "Company", exact: true }),
+      ).toHaveValue(info.secondEntityId);
+      await page
+        .getByRole("link", { name: "Ask FinAI about this invoice" })
+        .click();
+      await expect(
+        page.getByLabel("Assistant entity", { exact: true }),
+      ).toHaveValue(info.secondEntityId);
+      await expect(
+        page.getByLabel("Assistant currency", { exact: true }),
+      ).toHaveValue("GBP");
+      await expect(
+        page.getByLabel("Assistant month", { exact: true }),
+      ).toHaveValue("2026-11");
+      await page
+        .getByRole("button", { name: "New conversation", exact: true })
+        .click();
+      await expect(page.getByLabel("Ask FinAI", { exact: true })).toHaveValue(
+        `Explain supplier invoice ${invoiceId} and its approval readiness.`,
+      );
+      const question = page.getByLabel("Ask FinAI", { exact: true });
+      await question.fill(
+        'Find supplier invoices matching "Assistant company B supplier"',
+      );
+      await page
+        .getByRole("button", { name: "Send question", exact: true })
+        .click();
+      await page
+        .getByText("Answer basis and sources", { exact: true })
+        .last()
+        .click();
+      const source = page.getByRole("link", {
+        name: "2026-11 supplier invoice register",
+        exact: true,
+      });
+      await expect(source).toHaveAttribute(
+        "href",
+        /search=assistant\+company\+b\+supplier/,
+      );
+      await source.click();
+      await expect(
+        page.getByRole("combobox", { name: "Company", exact: true }),
+      ).toHaveValue(info.secondEntityId);
+      await expect(
+        page.getByPlaceholder("Supplier or invoice reference"),
+      ).toHaveValue("assistant company b supplier");
+      await expect(
+        page.getByRole("link", { name: /ASSISTANT-B-001/ }),
+      ).toBeVisible();
+      await page.goBack();
+      await expect(page.getByLabel("Ask FinAI", { exact: true })).toBeVisible();
+
+      await question.fill(
+        `Propose correction for supplier invoice ${invoiceId}`,
+      );
+      await page
+        .getByRole("button", { name: "Send question", exact: true })
+        .click();
+      const proposal = page
+        .getByRole("region", { name: "Proposed action: Request correction" })
+        .last();
+      await expect(proposal).toBeVisible();
+      expect((await api("GET", "/invoices/" + invoiceId)).body.version).toBe(1);
+      await proposal
+        .getByRole("button", { name: "Review proposed action" })
+        .click();
+      let dialog = page.getByRole("dialog", { name: "Confirm invoice action" });
+      await expect(
+        dialog.getByRole("button", {
+          name: "Confirm invoice action",
+          exact: true,
+        }),
+      ).toBeDisabled();
+      for (const width of [320, 1440]) {
+        await page.setViewportSize({ width, height: 1000 });
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth + 1,
+          ),
+        ).toBeTruthy();
+        const bounds = await dialog.boundingBox();
+        expect(bounds!.x).toBeGreaterThanOrEqual(15);
+        expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+        await page.screenshot({
+          path: `artifacts/payables/assistant-confirmation-${mode}-${width}.png`,
+          fullPage: true,
+        });
+      }
+      await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+      expect((await api("GET", "/invoices/" + invoiceId)).body.version).toBe(1);
+      await proposal
+        .getByRole("button", { name: "Review proposed action" })
+        .click();
+      dialog = page.getByRole("dialog", { name: "Confirm invoice action" });
+      await dialog
+        .getByLabel("Reason", { exact: true })
+        .fill("Supplier coding needs correction");
+      const payloads: unknown[] = [];
+      await page.route(
+        "**/api/v1/payables/invoices/*/assistant-actions",
+        async (route) => {
+          payloads.push(route.request().postDataJSON());
+          if (payloads.length === 1) {
+            await route.fetch();
+            await route.abort("failed");
+          } else await route.continue();
+        },
+      );
+      await dialog
+        .getByRole("button", { name: "Confirm invoice action", exact: true })
+        .click();
+      await expect(dialog.getByRole("alert")).toContainText(
+        "outcome is uncertain",
+      );
+      expect((await api("GET", "/invoices/" + invoiceId)).body.version).toBe(2);
+      await dialog
+        .getByRole("button", { name: "Retry same confirmation", exact: true })
+        .click();
+      await expect(proposal.getByRole("status")).toContainText(
+        "Recorded: review, version 2",
+      );
+      expect(payloads).toHaveLength(2);
+      expect(payloads[1]).toEqual(payloads[0]);
+      expect(
+        (await api("GET", "/invoices/" + invoiceId)).body.events.filter(
+          (e: { action: string }) => e.action === "correction",
+        ),
+      ).toHaveLength(1);
+      await page.unroute("**/api/v1/payables/invoices/*/assistant-actions");
+      await question.fill(
+        `Propose correction for supplier invoice ${invoiceId}`,
+      );
+      await page
+        .getByRole("button", { name: "Send question", exact: true })
+        .click();
+      const next = page
+        .getByRole("region", { name: "Proposed action: Request correction" })
+        .last();
+      await expect(
+        next.getByRole("button", { name: "Review proposed action" }),
+      ).toBeVisible();
+      expect(
+        (
+          await api("PATCH", "/invoices/" + invoiceId, {
+            ...data,
+            expectedVersion: 2,
+          })
+        ).status,
+      ).toBe(200);
+      await next
+        .getByRole("button", { name: "Review proposed action" })
+        .click();
+      dialog = page.getByRole("dialog", { name: "Confirm invoice action" });
+      await dialog
+        .getByLabel("Reason", { exact: true })
+        .fill("Recheck current source");
+      await dialog
+        .getByRole("button", { name: "Confirm invoice action", exact: true })
+        .click();
+      await expect(dialog.getByRole("alert")).toContainText("record changed");
+      await expect(
+        dialog.getByRole("button", {
+          name: "Retry same confirmation",
+          exact: true,
+        }),
+      ).toBeDisabled();
+      await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+      expect((await api("GET", "/invoices/" + invoiceId)).body.version).toBe(3);
+      await next.getByRole("link", { name: "Open current invoice" }).click();
+      await expect(
+        page.getByRole("combobox", { name: "Company", exact: true }),
+      ).toHaveValue(info.secondEntityId);
+      await expect(
+        page.getByRole("heading", { name: "ASSISTANT-B-001", exact: true }),
+      ).toBeVisible();
     });
     test("real HTTP retries, totals, assignment, CSRF, grants and scope controls", async ({
       page,

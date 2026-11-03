@@ -1,3 +1,5 @@
+import { confirmedInvoiceCommand } from "./assistant";
+import { ApiError } from "../errors";
 import {
   Controller,
   Get,
@@ -36,7 +38,11 @@ export const uploadQuery = z.strictObject({
     (v) => v.toLowerCase().endsWith(".pdf") && !/[\\/]/.test(v),
   ),
 });
-type R = Request & { identity: Identity; apSynthetic?: boolean };
+type R = Request & {
+  identity: Identity;
+  apSynthetic?: boolean;
+  sessionHash?: string;
+};
 const scope = z.strictObject({ entityId: id }),
   empty = z.strictObject({});
 @Controller("api/v1/payables")
@@ -129,6 +135,10 @@ export class PayablesController {
             .enum(["review", "verify", "approve", "approved", "rejected"])
             .optional(),
           dueBefore: z.iso.date().optional(),
+          month: z
+            .string()
+            .regex(/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/)
+            .optional(),
           assignee: id.optional(),
         }),
         q,
@@ -172,6 +182,47 @@ export class PayablesController {
       parse(id, n),
       parse(actionSchema, b),
     );
+  }
+  @Post("invoices/:id/assistant-actions") async assistantAction(
+    @Req() r: R,
+    @Param("id") rawId: string,
+    @Query() q: unknown,
+    @Body() body: unknown,
+  ) {
+    if (!r.sessionHash)
+      throw new ApiError(
+        403,
+        "FORBIDDEN",
+        "An authenticated session is required for Assistant commands.",
+      );
+    parse(empty, q);
+    const command = parse(confirmedInvoiceCommand, body),
+      invoiceId = parse(id, rawId),
+      context = { entityId: command.entityId, channel: "assistant" as const };
+    if (command.action === "export") {
+      const result = await this.service.export(
+        r.identity,
+        invoiceId,
+        {
+          operationId: command.operationId,
+          expectedVersion: command.expectedVersion,
+        },
+        context,
+      );
+      return { kind: "export" as const, id: result.id };
+    }
+    const result = await this.service.action(
+      r.identity,
+      invoiceId,
+      {
+        operationId: command.operationId,
+        expectedVersion: command.expectedVersion,
+        action: command.action,
+        ...(command.reason ? { reason: command.reason } : {}),
+      },
+      context,
+    );
+    return { kind: "transition" as const, ...result };
   }
   @Post("invoices/:id/documents") upload(
     @Req() r: R,

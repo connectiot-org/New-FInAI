@@ -12,6 +12,7 @@ import {
 import type { z } from "zod";
 import { ApiError } from "../../lib/api";
 import "./assistant.css";
+import { InvoiceAction } from "./InvoiceAction";
 export function ProductionAssistant() {
   const workspace = useWorkspace(),
     [params, setParams] = useSearchParams(),
@@ -25,12 +26,14 @@ export function ProductionAssistant() {
   const entityId = params.get("entityId") || workspace.entities[0]?.id || "",
     month = params.get("month") || new Date().toISOString().slice(0, 7),
     currency = params.get("currency") || "USD",
-    id = params.get("conversationId") || "";
+    id = params.get("conversationId") || "",
+    invoiceId = params.get("invoiceId") || "";
   const valid =
     workspace.entities.some((e) => e.id === entityId) &&
     /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(month) &&
     /^[A-Z]{3}$/.test(currency) &&
-    (!id || /^[a-f0-9-]{36}$/i.test(id));
+    (!id || /^[a-f0-9-]{36}$/i.test(id)) &&
+    (!invoiceId || (currency === "GBP" && /^[a-f0-9-]{36}$/i.test(invoiceId)));
   const request = useRef<AbortController | null>(null),
     pendingCreate = useRef<
       | { id: string; entityId: string; month: string; currency: string }
@@ -103,6 +106,7 @@ export function ProductionAssistant() {
           month: v.month,
           currency: v.currency,
           conversationId: v.id,
+          ...(invoiceId ? { invoiceId } : {}),
         });
         setRefresh((n) => n + 1);
       }
@@ -261,8 +265,9 @@ export function ProductionAssistant() {
             <p role="status">Creating conversation…</p>
           ) : (
             <Chat
-              key={`${entityId}:${month}:${currency}:${id}`}
+              key={`${entityId}:${month}:${currency}:${id}:${invoiceId}`}
               entityId={entityId}
+              invoiceId={invoiceId}
               month={month}
               currency={currency}
               id={id}
@@ -279,6 +284,7 @@ export function ProductionAssistant() {
 }
 function Chat({
   entityId,
+  invoiceId,
   month,
   currency,
   id,
@@ -286,6 +292,7 @@ function Chat({
   onDeleted,
 }: {
   entityId: string;
+  invoiceId: string;
   month: string;
   currency: string;
   id: string;
@@ -293,7 +300,11 @@ function Chat({
   onDeleted: () => void;
 }) {
   const [chat, setChat] = useState<ReadConversation>(),
-    [question, setQuestion] = useState(""),
+    [question, setQuestion] = useState(
+      invoiceId
+        ? `Explain supplier invoice ${invoiceId} and its approval readiness.`
+        : "",
+    ),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [refresh, setRefresh] = useState(0),
@@ -507,6 +518,9 @@ function Chat({
                         </dl>
                         {t.answer.notes.map((n, i) => (
                           <p key={i}>{n}</p>
+                        ))}
+                        {t.answer.proposals.map((p) => (
+                          <InvoiceAction key={p.operationId} proposal={p} />
                         ))}
                         <details>
                           <summary>Answer basis and sources</summary>

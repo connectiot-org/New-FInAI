@@ -12,7 +12,7 @@ export const fact = z
     precision: z.number().int().min(0).max(6),
     sourceId: z.string(),
     recordId: z.string().max(200).optional(),
-    recordKind: z.enum(["customer", "account"]).optional(),
+    recordKind: z.enum(["customer", "account", "supplier_invoice"]).optional(),
   })
   .superRefine((v, c) => {
     if (v.unit !== "text" && !/^-?\d+$/.test(v.value))
@@ -25,7 +25,7 @@ const source = z.strictObject({
     .string()
     .refine(
       (v) =>
-        /^\/workspace\/(receivables\/invoices\?|ledger\?|assistant\/source\?|checklist$|subscriptions$)/.test(
+        /^\/workspace\/(payables\/invoices(?:\/[a-f0-9-]{36})?\?|receivables\/invoices\?|ledger\?|assistant\/source\?|checklist$|subscriptions$)/.test(
           v,
         ) && Array.from(v).every((c) => c.charCodeAt(0) > 31 && c !== "\\"),
     ),
@@ -36,9 +36,38 @@ const source = z.strictObject({
   version: version.nullable(),
   snapshotId: z.uuid().nullable(),
 });
+export const invoiceProposal = z
+  .strictObject({
+    operationId: z.uuid(),
+    invoiceId: z.uuid(),
+    entityId: z.uuid(),
+    reference: z.string().max(200),
+    expectedVersion: version,
+    revision: version,
+    action: z.enum([
+      "review",
+      "verify",
+      "approve",
+      "correction",
+      "challenge",
+      "reject",
+      "export",
+    ]),
+    title: z.string().max(160),
+    description: z.string().max(500),
+    reasonRequired: z.boolean(),
+    sourceId: z.string().max(80),
+  })
+  .refine(
+    (p) =>
+      p.reasonRequired ===
+      ["correction", "challenge", "reject"].includes(p.action),
+  );
+export type InvoiceProposal = z.infer<typeof invoiceProposal>;
 export const answer = z
   .strictObject({
     facts: z.array(fact).max(12),
+    proposals: z.array(invoiceProposal).max(3).default([]),
     sources: z.array(source).max(6),
     notes: z.array(z.string()).max(8),
     basis: z.string(),
@@ -48,7 +77,22 @@ export const answer = z
     if (
       new Set(v.facts.map((f) => f.id)).size !== v.facts.length ||
       new Set(v.sources.map((s) => s.id)).size !== v.sources.length ||
-      v.facts.some((f) => !v.sources.some((s) => s.id === f.sourceId))
+      v.facts.some((f) => !v.sources.some((s) => s.id === f.sourceId)) ||
+      new Set(v.proposals.map((p) => p.operationId)).size !==
+        v.proposals.length ||
+      v.proposals.some(
+        (p) =>
+          !v.sources.some(
+            (s) =>
+              s.id === p.sourceId &&
+              s.version === p.expectedVersion &&
+              s.href.startsWith(
+                `/workspace/payables/invoices/${p.invoiceId}?`,
+              ) &&
+              new URLSearchParams(s.href.split("?")[1]).get("entityId") ===
+                p.entityId,
+          ),
+      )
     )
       c.addIssue({ code: "custom", message: "Invalid source references." });
   });
@@ -77,12 +121,23 @@ const turn = z
     if ((v.status === "completed") !== !!v.answer)
       c.addIssue({ code: "custom", message: "Invalid completed answer." });
   });
-export const readSchema = conversation.extend({
-  offset: z.number().int().min(0),
-  limit: z.number().int().min(1).max(50),
-  total: z.number().int().min(0).max(200),
-  turns: z.array(turn).max(50),
-});
+export const readSchema = conversation
+  .extend({
+    offset: z.number().int().min(0),
+    limit: z.number().int().min(1).max(50),
+    total: z.number().int().min(0).max(200),
+    turns: z.array(turn).max(50),
+  })
+  .refine(
+    (v) =>
+      v.turns.every(
+        (t) =>
+          t.answer?.proposals.every(
+            (p) => p.entityId === v.entityId && v.currency === "GBP",
+          ) ?? true,
+      ),
+    "Invoice proposal scope mismatch.",
+  );
 const preference = z.strictObject({
   id: z.uuid(),
   entityId: z.uuid(),
