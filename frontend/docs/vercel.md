@@ -20,9 +20,9 @@ This release packages the real NestJS API into the existing Vercel API function.
 
 ## Opening supplier invoices
 
-On the homepage, choose **Supplier invoices** in the header; on mobile it is the first link in the public navigation menu. The welcome screen and app sidebar also link directly to `/workspace/payables/invoices`. The feature requires an existing workspace account, company access and explicit AP grants. An organisation administrator can provision other members’ AP grants under `/workspace/payables/settings/access`.
+**Supplier invoices** in the homepage header/mobile menu, app sidebar and welcome screen opens `/development/payables/invoices` directly. The explicit development preview needs neither DATABASE_URL nor sign-in. Its sample records, selected workflow roles, PDF bytes, policies and CSV exports stay in this browser’s separate IndexedDB database. Reset preview restores the sample. Development files are labelled unscanned; use sample PDFs only. The preview makes no private API/auth requests and does not create server accounts or financial records.
 
-If the page says **Workspace configuration required**, the deployed browser build lacks the existing session/API configuration: use the checked-in `npm run build:vercel` build command and deploy the reviewed commit. A missing-database/sign-in error requires the server/database/account setup below; demo personas do not provide access. These navigation changes do not deploy the application or provision a production database/account. Document scanning and the other operational requirements remain in `../../backend/PAYABLES.md`.
+Use **Company workspace** to open the existing authenticated `/workspace/payables/invoices` feature. That separate route still requires database configuration, provisioned accounts, company access and AP grants; missing configuration remains visible and never falls back to browser data. Its scanner/operational requirements remain in `../../backend/PAYABLES.md`. These code changes must be deployed to appear on the live site; no production configuration or deployment was performed by this development change.
 
 ## Project and build
 

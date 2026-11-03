@@ -85,7 +85,9 @@ The latest review replaces the previously borrowed hero image with an original S
 
 ## Authenticated supplier invoices
 
-Open **Supplier invoices** in the homepage header (mobile: open the public navigation menu), or use **Open supplier invoices** on `/welcome`. The app sidebar also has **Supplier invoices**. Each entry opens `/workspace/payables/invoices` and retains the existing authentication/configuration gates. Sign in with an administratively provisioned workspace account and explicit invoice permissions.
+Open **Supplier invoices** in the homepage header (mobile: public navigation menu), welcome screen or app sidebar. These development entries now open `/development/payables/invoices` directly, without sign-in or a server/database connection. The clearly labelled preview uses the same invoice interface with separate browser-only IndexedDB data, sample roles, original sample PDFs, approvals and balanced CSV. Changes persist in this browser; Reset preview restores the sample. Development PDFs are explicitly unscanned: use sample documents only.
+
+The preview’s **Company workspace** link opens the separate authenticated `/workspace/payables/invoices` feature. Real workspace data still requires provisioned accounts, company/AP grants and the existing backend/scanner configuration. Preview storage never supplies a live API fallback or company identity.
 
 `/workspace/payables/invoices` provides persistent supplier invoice review, private PDF preview, optional factual verification, sequential approvals, correction/challenge/rejection, policy/access settings and balanced CSV export. It uses the existing session/configuration gates and makes no fixture fallback. Existing demo Bills/Invoices remain separate.
 

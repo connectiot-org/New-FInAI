@@ -25,7 +25,8 @@ export const contextSchema = z.strictObject({
     .max(1000),
 });
 type Context = z.infer<typeof contextSchema>;
-const Current = createContext<Context | null>(null);
+export const WorkspaceViewContext = createContext<Context | null>(null);
+const Current = WorkspaceViewContext;
 export function useWorkspace() {
   const c = useContext(Current);
   if (!c) throw new Error("Workspace identity unavailable.");

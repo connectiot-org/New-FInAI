@@ -408,9 +408,9 @@ test("supplier invoices are discoverable from homepage, welcome screen and app n
     .getByRole("banner")
     .getByRole("link", { name: "Supplier invoices", exact: true })
     .click();
-  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(page).toHaveURL("/development/payables/invoices");
   await expect(
-    page.getByRole("heading", { name: "Workspace configuration required" }),
+    page.getByRole("heading", { name: "Invoices", exact: true }),
   ).toBeVisible();
   await page.setViewportSize({ width: 320, height: 900 });
   await page.goto("/");
@@ -419,9 +419,9 @@ test("supplier invoices are discoverable from homepage, welcome screen and app n
     .getByRole("navigation", { name: "Mobile public navigation" })
     .getByRole("link", { name: "Supplier invoices", exact: true })
     .click();
-  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(page).toHaveURL("/development/payables/invoices");
   await expect(
-    page.getByRole("heading", { name: "Workspace configuration required" }),
+    page.getByRole("heading", { name: "Invoices", exact: true }),
   ).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/welcome");
@@ -429,11 +429,11 @@ test("supplier invoices are discoverable from homepage, welcome screen and app n
     name: "Open supplier invoices",
     exact: true,
   });
-  await expect(entry).toHaveAttribute("href", "/workspace/payables/invoices");
+  await expect(entry).toHaveAttribute("href", "/development/payables/invoices");
   await entry.click();
-  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(page).toHaveURL("/development/payables/invoices");
   await expect(
-    page.getByRole("heading", { name: "Workspace configuration required" }),
+    page.getByRole("heading", { name: "Invoices", exact: true }),
   ).toBeVisible();
   await page.goto("/overview");
   const sidebarEntry = page
@@ -441,11 +441,11 @@ test("supplier invoices are discoverable from homepage, welcome screen and app n
     .getByRole("link", { name: "Supplier invoices", exact: true });
   await expect(sidebarEntry).toHaveAttribute(
     "href",
-    "/workspace/payables/invoices",
+    "/development/payables/invoices",
   );
   await sidebarEntry.click();
-  await expect(page).toHaveURL("/workspace/payables/invoices");
+  await expect(page).toHaveURL("/development/payables/invoices");
   await expect(
-    page.getByRole("heading", { name: "Workspace configuration required" }),
+    page.getByRole("heading", { name: "Invoices", exact: true }),
   ).toBeVisible();
 });

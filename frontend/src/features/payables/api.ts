@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { z } from "zod";
 import type { apiRequest } from "../../lib/api";
 import { readSession, expireSession, sessionEpoch } from "../../lib/session";
@@ -125,3 +126,19 @@ export const amount = (s: string) => {
   const n = BigInt(s);
   return `£${(n / 100n).toLocaleString("en-GB")}.${(n % 100n).toString().padStart(2, "0")}`;
 };
+
+export type PayablesClient = {
+  request: typeof request;
+  binary: typeof binary;
+  basePath: string;
+  development: boolean;
+};
+export const PayablesClientContext = createContext<PayablesClient>({
+  request,
+  binary,
+  basePath: "/workspace/payables",
+  development: false,
+});
+export function usePayablesClient() {
+  return useContext(PayablesClientContext);
+}

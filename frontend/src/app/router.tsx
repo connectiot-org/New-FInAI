@@ -149,7 +149,9 @@ function Welcome() {
           <Link to="/workspace">Sign in to your finance workspace</Link>
         </p>
         <p>
-          <Link to="/workspace/payables/invoices">Open supplier invoices</Link>
+          <Link to="/development/payables/invoices">
+            Open supplier invoices
+          </Link>
         </p>
         <div className="welcome-note">
           <ShieldCheck size={20} />
@@ -174,6 +176,11 @@ function NotFound() {
     </div>
   );
 }
+const DevelopmentPayables = lazy(() =>
+  import("../features/payables/DevelopmentPayables").then((m) => ({
+    default: m.DevelopmentPayables,
+  })),
+);
 const Payables = lazy(() =>
   import("../features/payables/Payables").then((m) => ({
     default: m.Payables,
@@ -202,6 +209,20 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/welcome", element: <Welcome /> },
+  ...[
+    "invoices",
+    "invoices/:id",
+    "suppliers",
+    "export",
+    "settings/approvals",
+  ].map((path) => ({
+    path: "/development/payables/" + path,
+    element: (
+      <Suspense fallback={<p role="status">Opening invoices…</p>}>
+        <DevelopmentPayables />
+      </Suspense>
+    ),
+  })),
   {
     path: "/assistant",
     element: <Navigate to="/demo/assistant" replace />,

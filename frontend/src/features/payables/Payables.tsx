@@ -25,8 +25,7 @@ import {
 } from "lucide-react";
 import { useWorkspace } from "../workspace/context";
 import {
-  request,
-  binary,
+  usePayablesClient,
   capabilitiesSchema,
   listSchema,
   detailSchema,
@@ -129,6 +128,7 @@ function Notice({ error }: { error: string }) {
   ) : null;
 }
 export function Payables() {
+  const { basePath } = usePayablesClient();
   const c = useWorkspace(),
     location = useLocation();
   const [entityId, setEntityId] = useState(c.entities[0]?.id || "");
@@ -155,14 +155,12 @@ export function Payables() {
         </label>
       </div>
       <nav className="ap-nav" aria-label="Payables">
-        <Link to="/workspace/payables/invoices">Invoices</Link>
-        <Link to="/workspace/payables/suppliers">Suppliers</Link>
-        <Link to="/workspace/payables/export">Accounting export</Link>
-        <Link to="/workspace/payables/settings/approvals">
-          Approval settings
-        </Link>
+        <Link to={basePath + "/invoices"}>Invoices</Link>
+        <Link to={basePath + "/suppliers"}>Suppliers</Link>
+        <Link to={basePath + "/export"}>Accounting export</Link>
+        <Link to={basePath + "/settings/approvals"}>Approval settings</Link>
         {c.administrator && (
-          <Link to="/workspace/payables/settings/access">Invoice access</Link>
+          <Link to={basePath + "/settings/access"}>Invoice access</Link>
         )}
       </nav>
       {!entityId ? (
@@ -174,6 +172,7 @@ export function Payables() {
   );
 }
 function Scoped({ entityId }: { entityId: string }) {
+  const { request } = usePayablesClient();
   const workspace = useWorkspace();
   const location = useLocation(),
     { id } = useParams();
@@ -182,7 +181,7 @@ function Scoped({ entityId }: { entityId: string }) {
       request("/capabilities?entityId=" + entityId, capabilitiesSchema, {
         signal,
       }),
-    [entityId],
+    [entityId, request],
   );
   const cap = useLoad(load);
   if (location.pathname.endsWith("/access"))
@@ -222,6 +221,7 @@ function Register({
   caps: Caps;
   exportView: boolean;
 }) {
+  const { request, basePath } = usePayablesClient();
   const [queue, setQueue] = useState(exportView ? "export" : "all"),
     [search, setSearch] = useState(""),
     [status, setStatus] = useState(""),
@@ -246,7 +246,7 @@ function Register({
         listSchema,
         { signal },
       ),
-    [entityId, queue, search, status, due, assignee, offset],
+    [entityId, queue, search, status, due, assignee, offset, request],
   );
   const rows = useLoad(load),
     navigate = useNavigate();
@@ -376,7 +376,7 @@ function Register({
                   {rows.value.items.map((n) => (
                     <tr key={n.id}>
                       <td>
-                        <Link to={"/workspace/payables/invoices/" + n.id}>
+                        <Link to={basePath + "/invoices/" + n.id}>
                           <strong>{n.supplier}</strong>
                           <small>{n.reference}</small>
                         </Link>
@@ -445,7 +445,7 @@ function Register({
         <InvoiceForm
           entityId={entityId}
           close={() => setAdding(false)}
-          done={(id) => navigate("/workspace/payables/invoices/" + id)}
+          done={(id) => navigate(basePath + "/invoices/" + id)}
         />
       )}
     </>
@@ -466,6 +466,7 @@ function InvoiceForm({
   close: () => void;
   done: (id: string) => void;
 }) {
+  const { request } = usePayablesClient();
   const [data, setData] = useState(initial || fresh()),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -478,7 +479,7 @@ function InvoiceForm({
   const load = useCallback(
     (signal: AbortSignal) =>
       request("/suppliers?entityId=" + entityId, suppliersSchema, { signal }),
-    [entityId],
+    [entityId, request],
   );
   const suppliers = useLoad(load);
   const dirty = JSON.stringify(data) !== JSON.stringify(initial || fresh());
@@ -769,6 +770,7 @@ function Detail({
   entityId: string;
   caps: Caps;
 }) {
+  const { request, binary, basePath, development } = usePayablesClient();
   const [previewBlob, setPreviewBlob] = useState<Blob>();
   const current = useWorkspace(),
     [error, setError] = useState(""),
@@ -785,7 +787,7 @@ function Detail({
   const load = useCallback(
     (signal: AbortSignal) =>
       request("/invoices/" + id, detailSchema, { signal }),
-    [id],
+    [id, request],
   );
   const state = useLoad(load),
     n = state.value;
@@ -868,7 +870,7 @@ function Detail({
       caps.capabilities.approve;
   return (
     <>
-      <Link className="ap-back" to="/workspace/payables/invoices">
+      <Link className="ap-back" to={basePath + "/invoices"}>
         <ArrowLeft size={16} />
         All invoices
       </Link>
@@ -912,42 +914,51 @@ function Detail({
                 <div>
                   <strong>{d.filename}</strong>
                   <small>
-                    {d.scanState === "synthetic"
-                      ? "Synthetic test fixture"
-                      : d.scanState === "clean"
-                        ? "Scanned · ready for review"
-                        : d.scanState === "infected"
-                          ? "Blocked · scanner detected a threat"
-                          : "Quarantined · awaiting document scan"}
+                    {development
+                      ? "Development file · unscanned"
+                      : d.scanState === "synthetic"
+                        ? "Synthetic test fixture"
+                        : d.scanState === "clean"
+                          ? "Scanned · ready for review"
+                          : d.scanState === "infected"
+                            ? "Blocked · scanner detected a threat"
+                            : "Quarantined · awaiting document scan"}
                   </small>
                 </div>
-                {caps.capabilities.review && d.scanState !== "synthetic" && (
-                  <button
-                    disabled={busy}
-                    onClick={() => {
-                      setBusy(true);
-                      request(
-                        `/invoices/${id}/documents/${d.id}/scan`,
-                        z.strictObject({ id: z.uuid(), scanState: z.string() }),
-                        {
-                          method: "POST",
-                          body: {
-                            operationId: crypto.randomUUID(),
-                            expectedVersion: n.version,
+                {!development &&
+                  caps.capabilities.review &&
+                  d.scanState !== "synthetic" && (
+                    <button
+                      disabled={busy}
+                      onClick={() => {
+                        setBusy(true);
+                        request(
+                          `/invoices/${id}/documents/${d.id}/scan`,
+                          z.strictObject({
+                            id: z.uuid(),
+                            scanState: z.string(),
+                          }),
+                          {
+                            method: "POST",
+                            body: {
+                              operationId: crypto.randomUUID(),
+                              expectedVersion: n.version,
+                            },
                           },
-                        },
-                      )
-                        .then(state.reload)
-                        .catch((e) => setError(e.message))
-                        .finally(() => setBusy(false));
-                    }}
-                  >
-                    Rescan
-                  </button>
-                )}
+                        )
+                          .then(state.reload)
+                          .catch((e) => setError(e.message))
+                          .finally(() => setBusy(false));
+                      }}
+                    >
+                      Rescan
+                    </button>
+                  )}
                 <button
                   disabled={
-                    busy || !["synthetic", "clean"].includes(d.scanState)
+                    busy ||
+                    (!development &&
+                      !["synthetic", "clean"].includes(d.scanState))
                   }
                   onClick={() => {
                     setBusy(true);
@@ -960,7 +971,9 @@ function Detail({
                 </button>
                 <button
                   disabled={
-                    busy || !["synthetic", "clean"].includes(d.scanState)
+                    busy ||
+                    (!development &&
+                      !["synthetic", "clean"].includes(d.scanState))
                   }
                   onClick={() => {
                     setBusy(true);
@@ -1022,8 +1035,9 @@ function Detail({
           )}
           {previewBlob && <PdfPreview blob={previewBlob} />}
           <p className="ap-muted">
-            Original files are immutable. Unscanned documents remain quarantined
-            and cannot be used for review.
+            {development
+              ? "Development files stay in this browser and are not malware-scanned. Use sample PDFs."
+              : "Original files are immutable. Unscanned documents remain quarantined and cannot be used for review."}
           </p>
         </section>
         <section className="ap-information">
@@ -1266,10 +1280,11 @@ function Suppliers({
   entityId: string;
   canReview: boolean;
 }) {
+  const { request } = usePayablesClient();
   const load = useCallback(
     (signal: AbortSignal) =>
       request("/suppliers?entityId=" + entityId, suppliersSchema, { signal }),
-    [entityId],
+    [entityId, request],
   );
   const rows = useLoad(load),
     [error, setError] = useState(""),
@@ -1446,12 +1461,13 @@ const policyResponse = z.strictObject({
     .nullable(),
 });
 function Policies({ entityId, caps }: { entityId: string; caps: Caps }) {
+  const { request } = usePayablesClient();
   const load = useCallback(
     (signal: AbortSignal) =>
       request("/approval-policies?entityId=" + entityId, policyResponse, {
         signal,
       }),
-    [entityId],
+    [entityId, request],
   );
   const state = useLoad(load);
   if (!caps.capabilities.manage)
@@ -1474,11 +1490,12 @@ const accessSchema = z.strictObject({
   ),
 });
 function InvoiceAccess({ entityId }: { entityId: string }) {
+  const { request } = usePayablesClient();
   const current = useWorkspace();
   const load = useCallback(
     (signal: AbortSignal) =>
       request("/grants?entityId=" + entityId, accessSchema, { signal }),
-    [entityId],
+    [entityId, request],
   );
   const state = useLoad(load);
   return (
@@ -1513,6 +1530,7 @@ function AccessRow({
   entityId: string;
   self: boolean;
 }) {
+  const { request } = usePayablesClient();
   const [capabilities, setCapabilities] = useState(member.capabilities),
     [busy, setBusy] = useState(false),
     [message, setMessage] = useState("");
@@ -1664,6 +1682,7 @@ function PolicyEditor({
   item: z.infer<typeof policyResponse>["item"];
   reload: () => void;
 }) {
+  const { request } = usePayablesClient();
   const [definition, setDefinition] = useState<
       z.infer<typeof definitionSchema>
     >(
