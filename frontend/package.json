@@ -22,7 +22,10 @@
     "test:assistant:production": "VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 VITE_CHECKLIST_MODE=api VITE_RECEIVABLES_MODE=api vite build --outDir artifacts/assistant-dist && playwright test --config playwright.assistant-production.config.ts",
     "build:vercel": "node scripts/vercel-build.mjs",
     "test:vercel": "npm run build:vercel && playwright test --config playwright.vercel.config.ts",
-    "test:public-chat": "VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 VITE_CHECKLIST_MODE=api VITE_RECEIVABLES_MODE=api vite build --outDir artifacts/public-chat-dist && playwright test --config playwright.public-chat.config.ts"
+    "test:public-chat": "VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 VITE_CHECKLIST_MODE=api VITE_RECEIVABLES_MODE=api vite build --outDir artifacts/public-chat-dist && playwright test --config playwright.public-chat.config.ts",
+    "test:payables": "playwright test --config playwright.payables.config.ts",
+    "test:payables-transport": "node --import ../backend/node_modules/tsx/dist/loader.mjs --test scripts/payables-transport.test.ts",
+    "test:payables:integration": "npm run build:vercel && VITE_AUTH_MODE=session VITE_API_BASE_URL=/api/v1 VITE_CHECKLIST_MODE=api VITE_RECEIVABLES_MODE=api vite build --outDir artifacts/payables-dist && playwright test --config playwright.payables-integration.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",
@@ -34,6 +37,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@vercel/functions": "3.6.1",
     "lucide-react": "^0.468.0",
+    "pdfjs-dist": "6.5.438",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.63.0",

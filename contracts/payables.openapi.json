@@ -1,0 +1,2999 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "FinAI supplier invoice approvals",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/payables/capabilities": {
+      "get": {
+        "summary": "GET /capabilities",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capabilities"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/suppliers": {
+      "get": {
+        "summary": "GET /suppliers",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplierList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /suppliers",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSupplier"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saved"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/suppliers/{id}": {
+      "patch": {
+        "summary": "PATCH /suppliers/{id}",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchSupplier"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saved"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices": {
+      "get": {
+        "summary": "GET /invoices",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /invoices",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvoice"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saved"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices/{id}": {
+      "get": {
+        "summary": "GET /invoices/{id}",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      },
+      "patch": {
+        "summary": "PATCH /invoices/{id}",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchInvoice"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saved"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices/{id}/actions": {
+      "post": {
+        "summary": "POST /invoices/{id}/actions",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Action"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices/{id}/documents": {
+      "post": {
+        "summary": "POST /invoices/{id}/documents",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "operationId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expectedVersion",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filename",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/pdf": {
+              "schema": {
+                "type": "string",
+                "format": "binary",
+                "maxLength": 1048576
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices/{id}/documents/{documentId}": {
+      "get": {
+        "summary": "GET /invoices/{id}/documents/{documentId}",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "documentId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices/{id}/exports": {
+      "post": {
+        "summary": "POST /invoices/{id}/exports",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saved"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/exports/{id}/file": {
+      "get": {
+        "summary": "GET /exports/{id}/file",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/approval-policies": {
+      "get": {
+        "summary": "GET /approval-policies",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /approval-policies",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavePolicy"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/grants": {
+      "get": {
+        "summary": "GET /grants",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "entityId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      },
+      "post": {
+        "summary": "POST /grants",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    },
+    "/api/v1/payables/invoices/{id}/documents/{documentId}/scan": {
+      "post": {
+        "summary": "POST /invoices/{id}/documents/{documentId}/scan",
+        "description": "See payables.md for scoped grants, payloads, replay, bounds and transitions. Session, origin and CSRF protections apply.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "in": "path",
+            "name": "documentId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Authorized result, including identical safe replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Expired/missing session"
+          },
+          "403": {
+            "description": "Forbidden capability or current assignment"
+          },
+          "404": {
+            "description": "Absent or inaccessible"
+          },
+          "409": {
+            "description": "Version, duplicate, or transition conflict"
+          },
+          "422": {
+            "description": "Invalid fields or blocked review"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "Session": []
+    }
+  ],
+  "components": {
+    "schemas": {
+      "InvoiceFields": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "supplierId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "invoiceDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "currency": {
+            "type": "string",
+            "const": "GBP"
+          },
+          "declaredGross": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,9})$"
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,5})(\\.\\d{1,4})?$"
+                },
+                "unitMinor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,9})$"
+                },
+                "taxCode": {
+                  "type": "string",
+                  "enum": [
+                    "NONE",
+                    "STANDARD"
+                  ]
+                },
+                "taxBps": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "const": 0
+                    },
+                    {
+                      "type": "number",
+                      "const": 2000
+                    }
+                  ]
+                },
+                "recoverable": {
+                  "type": "boolean"
+                },
+                "account": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "taxAccount": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "payableAccount": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "costCentre": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "description",
+                "quantity",
+                "unitMinor",
+                "taxCode",
+                "taxBps",
+                "recoverable",
+                "account",
+                "taxAccount",
+                "payableAccount",
+                "costCentre"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "supplierId",
+          "reference",
+          "invoiceDate",
+          "dueDate",
+          "currency",
+          "declaredGross",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "InvoiceLine": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,5})(\\.\\d{1,4})?$"
+          },
+          "unitMinor": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,9})$"
+          },
+          "taxCode": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "STANDARD"
+            ]
+          },
+          "taxBps": {
+            "anyOf": [
+              {
+                "type": "number",
+                "const": 0
+              },
+              {
+                "type": "number",
+                "const": 2000
+              }
+            ]
+          },
+          "recoverable": {
+            "type": "boolean"
+          },
+          "account": {
+            "type": "string",
+            "pattern": "^[A-Z0-9-]{1,20}$"
+          },
+          "taxAccount": {
+            "type": "string",
+            "pattern": "^[A-Z0-9-]{1,20}$"
+          },
+          "payableAccount": {
+            "type": "string",
+            "pattern": "^[A-Z0-9-]{1,20}$"
+          },
+          "costCentre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "description",
+          "quantity",
+          "unitMinor",
+          "taxCode",
+          "taxBps",
+          "recoverable",
+          "account",
+          "taxAccount",
+          "payableAccount",
+          "costCentre"
+        ],
+        "additionalProperties": false
+      },
+      "CreateInvoice": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "invoiceDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "currency": {
+            "type": "string",
+            "const": "GBP"
+          },
+          "declaredGross": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,9})$"
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,5})(\\.\\d{1,4})?$"
+                },
+                "unitMinor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,9})$"
+                },
+                "taxCode": {
+                  "type": "string",
+                  "enum": [
+                    "NONE",
+                    "STANDARD"
+                  ]
+                },
+                "taxBps": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "const": 0
+                    },
+                    {
+                      "type": "number",
+                      "const": 2000
+                    }
+                  ]
+                },
+                "recoverable": {
+                  "type": "boolean"
+                },
+                "account": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "taxAccount": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "payableAccount": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "costCentre": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "description",
+                "quantity",
+                "unitMinor",
+                "taxCode",
+                "taxBps",
+                "recoverable",
+                "account",
+                "taxAccount",
+                "payableAccount",
+                "costCentre"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "entityId",
+          "supplierId",
+          "reference",
+          "invoiceDate",
+          "dueDate",
+          "currency",
+          "declaredGross",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "PatchInvoice": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "supplierId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "invoiceDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "currency": {
+            "type": "string",
+            "const": "GBP"
+          },
+          "declaredGross": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,9})$"
+          },
+          "lines": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,5})(\\.\\d{1,4})?$"
+                },
+                "unitMinor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,9})$"
+                },
+                "taxCode": {
+                  "type": "string",
+                  "enum": [
+                    "NONE",
+                    "STANDARD"
+                  ]
+                },
+                "taxBps": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "const": 0
+                    },
+                    {
+                      "type": "number",
+                      "const": 2000
+                    }
+                  ]
+                },
+                "recoverable": {
+                  "type": "boolean"
+                },
+                "account": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "taxAccount": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "payableAccount": {
+                  "type": "string",
+                  "pattern": "^[A-Z0-9-]{1,20}$"
+                },
+                "costCentre": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                }
+              },
+              "required": [
+                "description",
+                "quantity",
+                "unitMinor",
+                "taxCode",
+                "taxBps",
+                "recoverable",
+                "account",
+                "taxAccount",
+                "payableAccount",
+                "costCentre"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "supplierId",
+          "reference",
+          "invoiceDate",
+          "dueDate",
+          "currency",
+          "declaredGross",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "Policy": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "const": "GBP"
+          },
+          "rules": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "priority": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "minimumGross": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,9})$"
+                },
+                "verifierId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "approverIds": {
+                  "minItems": 1,
+                  "maxItems": 2,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                }
+              },
+              "required": [
+                "priority",
+                "minimumGross",
+                "verifierId",
+                "approverIds"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "fallback": {
+            "type": "object",
+            "properties": {
+              "verifierId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "approverIds": {
+                "minItems": 1,
+                "maxItems": 2,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                }
+              }
+            },
+            "required": [
+              "verifierId",
+              "approverIds"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "currency",
+          "rules",
+          "fallback"
+        ],
+        "additionalProperties": false
+      },
+      "Action": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "review",
+              "verify",
+              "approve",
+              "challenge",
+              "reject",
+              "correction"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "operationId",
+          "expectedVersion",
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "Grant": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "view": {
+            "type": "boolean"
+          },
+          "review": {
+            "type": "boolean"
+          },
+          "verify": {
+            "type": "boolean"
+          },
+          "approve": {
+            "type": "boolean"
+          },
+          "manage": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "view",
+          "review",
+          "verify",
+          "approve",
+          "manage"
+        ],
+        "additionalProperties": false
+      },
+      "Capabilities": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "capabilities": {
+            "type": "object",
+            "properties": {
+              "view": {
+                "type": "boolean"
+              },
+              "review": {
+                "type": "boolean"
+              },
+              "verify": {
+                "type": "boolean"
+              },
+              "approve": {
+                "type": "boolean"
+              },
+              "manage": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "view",
+              "review",
+              "verify",
+              "approve",
+              "manage"
+            ],
+            "additionalProperties": false
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "verify": {
+                  "type": "boolean"
+                },
+                "approve": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "verify",
+                "approve"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "currency": {
+            "type": "string",
+            "const": "GBP"
+          }
+        },
+        "required": [
+          "capabilities",
+          "members",
+          "currency"
+        ],
+        "additionalProperties": false
+      },
+      "InvoiceDetail": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "supplierId": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "reference": {
+                "type": "string"
+              },
+              "invoiceDate": {
+                "type": "string"
+              },
+              "dueDate": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string",
+                "const": "GBP"
+              },
+              "declaredGross": {
+                "type": "string"
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "quantity": {
+                      "type": "string"
+                    },
+                    "unitMinor": {
+                      "type": "string"
+                    },
+                    "taxCode": {
+                      "type": "string",
+                      "enum": [
+                        "NONE",
+                        "STANDARD"
+                      ]
+                    },
+                    "taxBps": {
+                      "anyOf": [
+                        {
+                          "type": "number",
+                          "const": 0
+                        },
+                        {
+                          "type": "number",
+                          "const": 2000
+                        }
+                      ]
+                    },
+                    "recoverable": {
+                      "type": "boolean"
+                    },
+                    "account": {
+                      "type": "string"
+                    },
+                    "taxAccount": {
+                      "type": "string"
+                    },
+                    "payableAccount": {
+                      "type": "string"
+                    },
+                    "costCentre": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "quantity",
+                    "unitMinor",
+                    "taxCode",
+                    "taxBps",
+                    "recoverable",
+                    "account",
+                    "taxAccount",
+                    "payableAccount",
+                    "costCentre"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "supplierId",
+              "reference",
+              "invoiceDate",
+              "dueDate",
+              "currency",
+              "declaredGross",
+              "lines"
+            ],
+            "additionalProperties": false
+          },
+          "supplier": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "taxId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "taxId"
+            ],
+            "additionalProperties": false
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "review",
+              "verify",
+              "approve",
+              "approved",
+              "rejected"
+            ]
+          },
+          "correctionReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "policyVersion": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "verifierId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "approverIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  },
+                  "step": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "verified": {
+                    "type": "boolean"
+                  },
+                  "submittedBy": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "policyVersion",
+                  "reason",
+                  "verifierId",
+                  "approverIds",
+                  "step",
+                  "verified",
+                  "submittedBy"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "net": {
+                "type": "string"
+              },
+              "tax": {
+                "type": "string"
+              },
+              "gross": {
+                "type": "string"
+              },
+              "recoverable": {
+                "type": "string"
+              },
+              "matches": {
+                "type": "boolean"
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "net": {
+                      "type": "string"
+                    },
+                    "tax": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "net",
+                    "tax"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "net",
+              "tax",
+              "gross",
+              "recoverable",
+              "matches",
+              "lines"
+            ],
+            "additionalProperties": false
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "filename": {
+                  "type": "string"
+                },
+                "digest": {
+                  "type": "string"
+                },
+                "scanState": {
+                  "type": "string"
+                },
+                "scanResult": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string"
+                        },
+                        "engine": {
+                          "type": "string"
+                        },
+                        "scannedAt": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "engine",
+                        "scannedAt"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "id",
+                "filename",
+                "digest",
+                "scanState",
+                "revision"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "actorId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "action": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "actorId",
+                "revision",
+                "action",
+                "reason",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "exports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "id",
+                "revision"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "payment": {
+            "type": "string",
+            "const": "unpaid"
+          },
+          "capabilities": {
+            "type": "object",
+            "properties": {
+              "view": {
+                "type": "boolean"
+              },
+              "review": {
+                "type": "boolean"
+              },
+              "verify": {
+                "type": "boolean"
+              },
+              "approve": {
+                "type": "boolean"
+              },
+              "manage": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "view",
+              "review",
+              "verify",
+              "approve",
+              "manage"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "entityId",
+          "data",
+          "supplier",
+          "version",
+          "revision",
+          "state",
+          "route",
+          "totals",
+          "documents",
+          "events",
+          "exports",
+          "payment",
+          "capabilities"
+        ],
+        "additionalProperties": false
+      },
+      "InvoiceList": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "properties": {
+              "all": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "review": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "verify": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "approve": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "export": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "all",
+              "review",
+              "verify",
+              "approve",
+              "export"
+            ],
+            "additionalProperties": false
+          },
+          "total": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "supplier": {
+                  "type": "string"
+                },
+                "reference": {
+                  "type": "string"
+                },
+                "dueDate": {
+                  "type": "string"
+                },
+                "invoiceDate": {
+                  "type": "string"
+                },
+                "gross": {
+                  "type": "string"
+                },
+                "currency": {
+                  "type": "string",
+                  "const": "GBP"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "owner": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "attention": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "supplier",
+                "reference",
+                "dueDate",
+                "invoiceDate",
+                "gross",
+                "currency",
+                "state",
+                "version",
+                "attention"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "counts",
+          "total",
+          "offset",
+          "limit",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "SupplierList": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "taxId": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "version": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "taxId",
+                "active",
+                "version"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "Saved": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "CreateSupplier": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "taxId": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "id",
+          "entityId",
+          "name",
+          "taxId"
+        ],
+        "additionalProperties": false
+      },
+      "PatchSupplier": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "taxId": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expectedVersion",
+          "name",
+          "taxId",
+          "active"
+        ],
+        "additionalProperties": false
+      },
+      "SavePolicy": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "publish": {
+            "type": "boolean"
+          },
+          "definition": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "const": "GBP"
+              },
+              "rules": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "priority": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "minimumGross": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,9})$"
+                    },
+                    "verifierId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "approverIds": {
+                      "minItems": 1,
+                      "maxItems": 2,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      }
+                    }
+                  },
+                  "required": [
+                    "priority",
+                    "minimumGross",
+                    "verifierId",
+                    "approverIds"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "fallback": {
+                "type": "object",
+                "properties": {
+                  "verifierId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "approverIds": {
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  }
+                },
+                "required": [
+                  "verifierId",
+                  "approverIds"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "currency",
+              "rules",
+              "fallback"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "operationId",
+          "entityId",
+          "expectedVersion",
+          "publish",
+          "definition"
+        ],
+        "additionalProperties": false
+      },
+      "GrantRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "view": {
+            "type": "boolean"
+          },
+          "review": {
+            "type": "boolean"
+          },
+          "verify": {
+            "type": "boolean"
+          },
+          "approve": {
+            "type": "boolean"
+          },
+          "manage": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "entityId",
+          "userId",
+          "view",
+          "review",
+          "verify",
+          "approve",
+          "manage"
+        ],
+        "additionalProperties": false
+      },
+      "ExportRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "operationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "operationId",
+          "expectedVersion"
+        ],
+        "additionalProperties": false
+      },
+      "ActionResult": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "state": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "UploadResult": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "scanState": {
+            "type": "string",
+            "enum": [
+              "synthetic",
+              "quarantined",
+              "clean",
+              "infected"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "scanState"
+        ],
+        "additionalProperties": false
+      },
+      "PolicyResult": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2147483647
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "PolicyList": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "item": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  },
+                  "draft": {
+                    "type": "object",
+                    "properties": {
+                      "currency": {
+                        "type": "string",
+                        "const": "GBP"
+                      },
+                      "rules": {
+                        "maxItems": 10,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "priority": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 100
+                            },
+                            "minimumGross": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9]\\d{0,9})$"
+                            },
+                            "verifierId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "approverIds": {
+                              "minItems": 1,
+                              "maxItems": 2,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              }
+                            }
+                          },
+                          "required": [
+                            "priority",
+                            "minimumGross",
+                            "verifierId",
+                            "approverIds"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "fallback": {
+                        "type": "object",
+                        "properties": {
+                          "verifierId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "approverIds": {
+                            "minItems": 1,
+                            "maxItems": 2,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            }
+                          }
+                        },
+                        "required": [
+                          "verifierId",
+                          "approverIds"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "currency",
+                      "rules",
+                      "fallback"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "published": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "currency": {
+                            "type": "string",
+                            "const": "GBP"
+                          },
+                          "rules": {
+                            "maxItems": 10,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "priority": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 100
+                                },
+                                "minimumGross": {
+                                  "type": "string",
+                                  "pattern": "^(0|[1-9]\\d{0,9})$"
+                                },
+                                "verifierId": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "format": "uuid",
+                                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "approverIds": {
+                                  "minItems": 1,
+                                  "maxItems": 2,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "priority",
+                                "minimumGross",
+                                "verifierId",
+                                "approverIds"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "fallback": {
+                            "type": "object",
+                            "properties": {
+                              "verifierId": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "format": "uuid",
+                                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "approverIds": {
+                                "minItems": 1,
+                                "maxItems": 2,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                }
+                              }
+                            },
+                            "required": [
+                              "verifierId",
+                              "approverIds"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "currency",
+                          "rules",
+                          "fallback"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "publishedVersion": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "version",
+                  "draft",
+                  "published",
+                  "publishedVersion"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "item"
+        ],
+        "additionalProperties": false
+      },
+      "GrantList": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "capabilities": {
+                  "type": "object",
+                  "properties": {
+                    "view": {
+                      "type": "boolean"
+                    },
+                    "review": {
+                      "type": "boolean"
+                    },
+                    "verify": {
+                      "type": "boolean"
+                    },
+                    "approve": {
+                      "type": "boolean"
+                    },
+                    "manage": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "view",
+                    "review",
+                    "verify",
+                    "approve",
+                    "manage"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "userId",
+                "name",
+                "capabilities"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "GrantResult": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "saved"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "Error": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "requestId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-finai_session"
+      }
+    }
+  }
+}

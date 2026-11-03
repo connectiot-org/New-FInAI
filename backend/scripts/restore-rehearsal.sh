@@ -46,6 +46,26 @@ try {
  await db.ledgerSnapshot.create({data:{id:randomUUID(),organisationId:org,entityId:entity,actorId:actor,version:1,digest:createHash('sha256').update(JSON.stringify(ledgerSource)).digest('hex'),sourceName:ledgerSource.sourceName,capturedAt:new Date(ledgerSource.capturedAt),content:ledgerSource}});
  await db.receivableSnapshot.create({data:{id:snapshot,organisationId:org,entityId:entity,version:1,sourceName:'Synthetic restore export',sourceCapturedAt:new Date('2026-10-23T00:00:00Z'),importingActorId:actor,digest:createHash('sha256').update('synthetic restore content').digest('hex'),rowCount:1}});
  await db.receivableSnapshotInvoice.create({data:{organisationId:org,entityId:entity,snapshotId:snapshot,invoiceId:'restore-invoice',customerId:'restore-customer',customerName:'Synthetic customer',issuedOn:new Date('2026-09-01T00:00:00Z'),status:'Partial',amountCents:100000n,paidCents:25000n}});
+ // Exercise the real AP service before backing up, rather than inserting an approved flag.
+ const {Database}=await import('./dist/src/database.js');
+ const {PayablesService}=await import('./dist/src/payables/service.js');
+ const apDb=new Database(),ap=new PayablesService(apDb),approver=randomUUID(),supplier=randomUUID(),invoice=randomUUID();
+ try {
+  await db.account.create({data:{userId:actor,username:'restore-ap-reviewer',passwordHash:'synthetic-service-fixture'}});
+  await db.user.create({data:{id:approver}});await db.account.create({data:{userId:approver,username:'restore-ap-approver',passwordHash:'synthetic-service-fixture'}});
+  await db.membership.create({data:{organisationId:org,userId:approver}});await db.entityAccess.create({data:{organisationId:org,userId:approver,entityId:entity}});
+  await db.apGrant.createMany({data:[{organisationId:org,entityId:entity,userId:actor,view:true,review:true,manage:true},{organisationId:org,entityId:entity,userId:approver,view:true,approve:true}]});
+  const identity={organisationId:org,userId:actor};
+  await ap.supplier(identity,{id:supplier,entityId:entity,name:'Restore AP supplier',taxId:'SYNTHETIC'});
+  await ap.policy(identity,{operationId:randomUUID(),entityId:entity,expectedVersion:0,publish:true,definition:{currency:'GBP',rules:[],fallback:{verifierId:null,approverIds:[approver]}}});
+  const input={...JSON.parse(readFileSync('../contracts/payables-examples/bill.json','utf8')),id:invoice,entityId:entity,supplierId:supplier,reference:'RESTORE-AP-001'};
+  await ap.create(identity,input);
+  await ap.upload(identity,invoice,{entityId:entity,operationId:randomUUID(),expectedVersion:1,filename:'restore.pdf'},Buffer.from('%PDF-1.4\n'+('0'.repeat(20000))+'\n%%EOF'),true);
+  await ap.action(identity,invoice,{operationId:randomUUID(),expectedVersion:2,action:'review'});
+  await ap.action({organisationId:org,userId:approver},invoice,{operationId:randomUUID(),expectedVersion:3,action:'approve'});
+  await ap.export(identity,invoice,{operationId:randomUUID(),expectedVersion:4});
+ } finally {await apDb.$disconnect();}
+
 } finally {await db.$disconnect();}
 JS
 docker compose exec -T db pg_dump -U finai -Fc "$source_db" > "$archive"
@@ -55,13 +75,23 @@ test "$result" = 1
 schema_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('Account','Session','RateLimit')")
 test "$schema_result" = 3
 migration_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c 'SELECT count(*) FROM _prisma_migrations WHERE finished_at IS NOT NULL')
-test "$migration_result" = 7
+test "$migration_result" = 8
 renewal_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"SubscriptionRenewal\" WHERE \"supplierName\"='Synthetic supplier' AND archived=false AND version=1")
 test "$renewal_result" = 1
 snapshot_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"ReceivableSnapshot\" s JOIN \"ReceivableSnapshotInvoice\" i ON i.snapshot_id=s.id AND i.organisation_id=s.organisation_id AND i.entity_id=s.entity_id WHERE s.version=1 AND s.row_count=1 AND i.amount_cents=100000 AND i.paid_cents=25000")
 test "$snapshot_result" = 1
-audit_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"ServerAudit\" a JOIN \"Membership\" m ON m.organisation_id=a.organisation_id AND m.user_id=a.actor_id JOIN \"EntityAccess\" e ON e.organisation_id=m.organisation_id AND e.user_id=m.user_id AND e.entity_id=a.entity_id WHERE m.is_administrator=true AND e.can_import=true AND e.can_write=false AND a.outcome='success'")
+audit_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"ServerAudit\" a JOIN \"Membership\" m ON m.organisation_id=a.organisation_id AND m.user_id=a.actor_id JOIN \"EntityAccess\" e ON e.organisation_id=m.organisation_id AND e.user_id=m.user_id AND e.entity_id=a.entity_id WHERE m.is_administrator=true AND e.can_import=true AND e.can_write=false AND a.outcome='success' AND a.action='restore.synthetic'")
 test "$audit_result" = 1
 assistant_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" -c "SELECT count(*) FROM \"AssistantConversation\" c JOIN \"AssistantTurn\" t ON t.conversation_id=c.id JOIN \"AssistantPreference\" p ON p.organisation_id=c.organisation_id AND p.user_id=c.user_id AND p.entity_id=c.entity_id JOIN \"LedgerSnapshot\" l ON l.organisation_id=c.organisation_id AND l.entity_id=c.entity_id WHERE t.status='completed' AND t.answer->>'detail'='concise' AND p.detail='concise' AND l.version=1")
 test "$assistant_result" = 1
-printf 'PASS: migrated synthetic application database restored; task/subscription/snapshot/Assistant state, auth schema and migration history verified\n'
+ap_result=$(docker compose exec -T db psql -At -U finai -d "$restore_db" <<'SQL'
+SELECT (SELECT count(*) FROM "ApInvoice" WHERE state='approved' AND data->>'reference'='RESTORE-AP-001' AND route->>'policyVersion'='1' AND route->>'step'='1')=1
+ AND (SELECT count(*) FROM "ApDocument" WHERE octet_length(bytes)>16384 AND digest=encode(sha256(bytes),'hex'))=1
+ AND (SELECT count(*) FROM "ApExport" WHERE revision=2 AND digest=encode(sha256(bytes),'hex'))=1
+ AND (SELECT count(*) FROM "ApEvent" WHERE action='approve' AND snapshot->>'state'='approved')=1
+ AND (SELECT count(*) FROM "ApPolicy" WHERE published_version=1)=1
+ AND (SELECT count(*) FROM "ApGrant")=2;
+SQL
+)
+test "$ap_result" = t
+printf 'PASS: migrated synthetic application database restored; task/subscription/snapshot/Assistant and approved AP/PDF/export state, auth schema and eight migrations verified\n'

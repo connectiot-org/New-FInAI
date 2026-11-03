@@ -82,3 +82,9 @@ The latest review replaces the previously borrowed hero image with an original S
 ## Persistent monthly checklist
 
 `/close/checklist` is a separate, optional local PostgreSQL-backed feature. It does not change `/close` approval/evidence/locking or financial demo storage. See [checklist setup and verification](docs/checklist.md) for API mode, migrations and dedicated browser tests. Default builds use a clearly labeled session-only checklist demo and make no checklist API requests. No production identity or public API deployment is provided.
+
+## Authenticated supplier invoices
+
+`/workspace/payables/invoices` provides persistent supplier invoice review, private PDF preview, optional factual verification, sequential approvals, correction/challenge/rejection, policy/access settings and balanced CSV export. It uses the existing session/configuration gates and makes no fixture fallback. Existing demo Bills/Invoices remain separate.
+
+After backend setup, run `npm run test:payables` for controlled UI cases, `npm run test:payables-transport` for adapter bounds, and `npm run test:payables:integration` for the real multi-account PostgreSQL/HTTPS journey through remote, embedded and packaged backends. See [the operator runbook](../backend/PAYABLES.md) for scanner configuration, permissions, exact money and release boundaries. Production account, scanner and database provisioning remain operator prerequisites; no deployment is performed by the feature build.

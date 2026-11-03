@@ -171,6 +171,11 @@ function NotFound() {
     </div>
   );
 }
+const Payables = lazy(() =>
+  import("../features/payables/Payables").then((m) => ({
+    default: m.Payables,
+  })),
+);
 const ImportChanges = lazy(() =>
   import("../features/workspace/ImportChanges").then((module) => ({
     default: module.ImportChanges,
@@ -210,6 +215,21 @@ const router = createBrowserRouter([
       { path: "assistant/source", element: <OperationalSource /> },
       { path: "ledger", element: <LedgerSource /> },
       { path: "imports", element: <Imports /> },
+      ...[
+        "payables/invoices",
+        "payables/invoices/:id",
+        "payables/suppliers",
+        "payables/export",
+        "payables/settings/approvals",
+        "payables/settings/access",
+      ].map((path) => ({
+        path,
+        element: (
+          <Suspense fallback={<p role="status">Opening invoices…</p>}>
+            <Payables />
+          </Suspense>
+        ),
+      })),
       { path: "administration", element: <WorkspaceAdministration /> },
       { index: true, element: <Navigate to="/workspace/overview" replace /> },
       { path: "overview", element: <WorkspaceOverview /> },

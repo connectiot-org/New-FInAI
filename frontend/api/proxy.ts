@@ -86,12 +86,17 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   incoming.searchParams.delete("route");
   target.pathname = "/" + route;
   target.search = incoming.searchParams.toString();
+  const invoiceUpload =
+    /^api\/v1\/payables\/invoices\/[a-f0-9-]{36}\/documents$/.test(route) &&
+    req.method === "POST";
   const upload =
-    route === "api/v1/receivables/imports/preview" && req.method === "POST";
+    invoiceUpload ||
+    (route === "api/v1/receivables/imports/preview" && req.method === "POST");
   const maxBytes = upload ? 1024 * 1024 : 16384;
   if (
     upload &&
-    (req.headers["content-type"] !== "application/octet-stream" ||
+    (req.headers["content-type"] !==
+      (invoiceUpload ? "application/pdf" : "application/octet-stream") ||
       req.headers["content-encoding"])
   )
     return fail(403, "Uncompressed raw upload required.");
@@ -152,6 +157,18 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     (response) => {
       if (
         response.statusCode !== 204 &&
+        !(
+          req.method === "GET" &&
+          response.statusCode === 200 &&
+          ((/^api\/v1\/payables\/invoices\/[a-f0-9-]{36}\/documents\/[a-f0-9-]{36}$/.test(
+            route,
+          ) &&
+            response.headers["content-type"] === "application/pdf") ||
+            (/^api\/v1\/payables\/exports\/[a-f0-9-]{36}\/file$/.test(route) &&
+              /^text\/csv(?:; charset=utf-8)?$/i.test(
+                String(response.headers["content-type"]),
+              )))
+        ) &&
         !/^application\/json(?:\s*;|$)/i.test(
           String(response.headers["content-type"] || ""),
         )
@@ -171,6 +188,16 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
         const value = response.headers[name];
         if (value) res.setHeader(name, value);
       }
+      const disposition = response.headers["content-disposition"];
+      if (
+        typeof disposition === "string" &&
+        /^attachment; filename="(?:invoice|export)-[a-f0-9-]{36}\.(?:pdf|csv)"$/.test(
+          disposition,
+        )
+      )
+        res.setHeader("Content-Disposition", disposition);
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.setHeader("Content-Security-Policy", "sandbox; default-src 'none'");
       res.setHeader("Cache-Control", "no-store");
       response.pipe(res);
       response.on("error", () => res.destroy());

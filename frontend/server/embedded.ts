@@ -82,12 +82,18 @@ export function createEmbeddedHandler(options: {
     )
       return fail(404, "NOT_FOUND", "API route not found.");
     incoming.searchParams.delete("route");
+    const invoiceUpload =
+      /^api\/v1\/payables\/invoices\/[a-f0-9-]{36}\/documents$/.test(route) &&
+      req.method === "POST";
     const upload =
-      route === "api/v1/receivables/imports/preview" && req.method === "POST";
+      invoiceUpload ||
+      (route === "api/v1/receivables/imports/preview" && req.method === "POST");
     const maxBytes = upload ? 1024 * 1024 : 16384;
     if (
       req.headers["content-encoding"] ||
-      (upload && req.headers["content-type"] !== "application/octet-stream")
+      (upload &&
+        req.headers["content-type"] !==
+          (invoiceUpload ? "application/pdf" : "application/octet-stream"))
     )
       return fail(400, "BAD_REQUEST", "Uncompressed request bytes required.");
     let body: Buffer;
