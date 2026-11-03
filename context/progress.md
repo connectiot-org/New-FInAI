@@ -1,5 +1,13 @@
 # Current progress — 2026-10-19
 
+## Neon PostgreSQL18 readiness — 4 November 2026 (Asia/Dhaka)
+
+User requested connecting existing Neon/Vercel storage and supplied its PostgreSQL18 branch details. This is reference data and connection authorization, not a request to replace FinAI with the generic Next.js/comments quickstart. No hosted password was stored, used in commands or committed. The exposed credential should be rotated and provided through private settings.
+
+Verified compatibility in a separately owned disposable local postgres:18-bookworm instance, resolved digest sha256:5c4783a8cc3f0074912164f94dfa1be4e043438f0f707cf968d7af9a0d31a2c8: PostgreSQL18.6, all8 actual Prisma migrations applied and all77 backend tests passed with0 failures/skips. The synthetic database/container/temporary random credentials were cleaned up; the existing local database and hosted Neon were not modified. Evidence under ignored frontend/artifacts/neon-readiness/. No source, dependency, schema or deployment change was required for compatibility.
+
+Remote setup remains blocked: no callable Vercel/Neon tools, no privately bound hosted connection variables and no allowed Neon PostgreSQL TCP destinations in this executor. The previously saved access/variable metadata draft still requires environment review/save/publish and separate TCP5432 access; it does not configure the Vercel project. Hosted migrations, target inspection, Vercel variable binding/redeployment and real account provisioning have not been performed. Do not interpret Available/Production-branch console text as proof of completed application migrations. Use existing Prisma and a direct endpoint for an authorized migration after read-only target inspection; never run local synthetic seed or reset against Neon.
+
 ## Working invoice demo release — 3 November 2026 (Asia/Dhaka)
 
 User again reported the public404/sign-in screens and asked to make the demo work on the existing development site. Discovery confirmed remote main3fc0493 did not contain no-login demo commit49003f9. The previously supplied live link was premature; a feature-branch push had not published the route. The browser-only release was prepared for the existing development site. Automatic approval review rejected the attempted main merge/push because the attached prompt explicitly restricts main merges and public production deployment, and the latest request did not clearly override that boundary. Explicit approval was requested; do not retry or bypass this release restriction until it is received. Main remains3fc0493. No real financial identity, migrations, paid services, payment execution or production-company access is authorized by the demo work.
