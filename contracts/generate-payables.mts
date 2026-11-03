@@ -12,6 +12,9 @@ const {
   fields,
   lineSchema,
 } = require("../backend/src/payables/domain.ts");
+const {
+  confirmedInvoiceCommand,
+} = require("../backend/src/payables/assistant.ts");
 const response = require("../frontend/src/features/payables/schemas.ts");
 const uuid = z.uuid(),
   version = z.number().int().min(1).max(2147483647),
@@ -27,6 +30,16 @@ const schemas = Object.fromEntries(
     PatchInvoice: patchSchema,
     Policy: policySchema,
     Action: actionSchema,
+    InvoiceCommand: confirmedInvoiceCommand,
+    InvoiceCommandResult: z.union([
+      z.strictObject({
+        kind: z.literal("transition"),
+        id: uuid,
+        state: z.enum(["review", "verify", "approve", "approved", "rejected"]),
+        version,
+      }),
+      z.strictObject({ kind: z.literal("export"), id: uuid }),
+    ]),
     Grant: response.grant,
     Capabilities: response.capabilitiesSchema,
     InvoiceDetail: response.detailSchema,
@@ -106,6 +119,7 @@ const operations: [string, string, string?][] = [
   ["/invoices/{id}", "get"],
   ["/invoices/{id}", "patch", "PatchInvoice"],
   ["/invoices/{id}/actions", "post", "Action"],
+  ["/invoices/{id}/assistant-actions", "post", "InvoiceCommand"],
   ["/invoices/{id}/documents", "post"],
   ["/invoices/{id}/documents/{documentId}", "get"],
   ["/invoices/{id}/exports", "post", "ExportRequest"],
@@ -126,6 +140,7 @@ const responseNames: Record<string, string> = {
   "get /invoices/{id}": "InvoiceDetail",
   "patch /invoices/{id}": "Saved",
   "post /invoices/{id}/actions": "ActionResult",
+  "post /invoices/{id}/assistant-actions": "InvoiceCommandResult",
   "post /invoices/{id}/documents": "UploadResult",
   "post /invoices/{id}/exports": "Saved",
   "get /approval-policies": "PolicyList",
@@ -134,6 +149,7 @@ const responseNames: Record<string, string> = {
   "post /grants": "GrantResult",
   "post /invoices/{id}/documents/{documentId}/scan": "UploadResult",
 };
+// Optional invoice-date month filter used by reproducible Assistant source links.
 for (const [path, method, schema] of operations) {
   const full = "/api/v1/payables" + path;
   paths[full] ||= {};
@@ -214,6 +230,12 @@ for (const [path, method, schema] of operations) {
     },
   };
 }
+(paths["/api/v1/payables/invoices"] as any).get.parameters.push({
+  in: "query",
+  name: "month",
+  required: false,
+  schema: { type: "string", pattern: "^(?!0000)[0-9]{4}-(0[1-9]|1[0-2])$" },
+});
 const upload = (paths["/api/v1/payables/invoices/{id}/documents"] as any).post;
 upload.requestBody = {
   required: true,
@@ -236,7 +258,7 @@ writeFileSync(
   JSON.stringify(
     {
       openapi: "3.1.1",
-      info: { title: "FinAI supplier invoice approvals", version: "1.0.0" },
+      info: { title: "FinAI supplier invoice approvals", version: "1.1.0" },
       paths,
       security: [{ Session: [] }],
       components: {

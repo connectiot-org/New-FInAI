@@ -140,7 +140,8 @@
         "recordKind": {
           "enum": [
             "customer",
-            "account"
+            "account",
+            "supplier_invoice"
           ]
         }
       }
@@ -237,7 +238,8 @@
                   "subscriptions",
                   "ledger",
                   "clarify",
-                  "unsupported"
+                  "unsupported",
+                  "supplier_invoices"
                 ]
               },
               "period": {
@@ -280,6 +282,35 @@
                   "null"
                 ],
                 "maxLength": 200
+              },
+              "invoiceId": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid",
+                "default": null
+              },
+              "invoiceAction": {
+                "enum": [
+                  "explain",
+                  "review",
+                  "verify",
+                  "approve",
+                  "correction",
+                  "challenge",
+                  "reject",
+                  "export"
+                ],
+                "default": "explain"
+              },
+              "invoiceSearch": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "maxLength": 200,
+                "default": null
               }
             }
           }
@@ -350,6 +381,13 @@
             "concise",
             "detailed"
           ]
+        },
+        "proposals": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "$ref": "#/$defs/InvoiceProposal"
+          }
         }
       }
     },
@@ -1016,6 +1054,77 @@
         },
         "freeOnly": {
           "const": true
+        }
+      }
+    },
+    "InvoiceProposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operationId",
+        "invoiceId",
+        "entityId",
+        "reference",
+        "expectedVersion",
+        "revision",
+        "action",
+        "title",
+        "description",
+        "reasonRequired",
+        "sourceId"
+      ],
+      "properties": {
+        "operationId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "invoiceId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entityId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reference": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "expectedVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "action": {
+          "enum": [
+            "review",
+            "verify",
+            "approve",
+            "correction",
+            "challenge",
+            "reject",
+            "export"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "reasonRequired": {
+          "type": "boolean"
+        },
+        "sourceId": {
+          "type": "string",
+          "maxLength": 80
         }
       }
     }

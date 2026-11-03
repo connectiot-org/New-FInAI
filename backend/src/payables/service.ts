@@ -101,6 +101,9 @@ export class PayablesService {
     await tx.$executeRaw`INSERT INTO "ApEvent"(id,organisation_id,entity_id,invoice_id,actor_id,revision,action,reason,snapshot) VALUES(${randomUUID()}::uuid,${i.organisationId}::uuid,${n.entity_id}::uuid,${n.id}::uuid,${i.userId}::uuid,${n.revision},${action},${reason || null},${JSON.stringify({ data: n.data, route: n.route, state: n.state, metadata })}::jsonb)`;
     await recordAudit(tx, i, `payables.${action}`, n.id, n.entity_id, {
       version: n.version,
+      ...(metadata?.origin === "assistant"
+        ? { reasonCode: "assistant_command" }
+        : {}),
     });
   }
   private async once<T>(
@@ -122,6 +125,86 @@ export class PayablesService {
     const result = await run();
     await tx.$executeRaw`INSERT INTO "ApOperation" VALUES(${i.organisationId}::uuid,${i.userId}::uuid,${id}::uuid,${digest},${JSON.stringify(result)}::jsonb)`;
     return result;
+  }
+  async assistantSnapshot(
+    i: Identity,
+    entityId: string,
+    month: string,
+    invoiceId?: string | null,
+    search?: string | null,
+  ) {
+    return this.db.$transaction(
+      async (tx) => {
+        const capabilities = await this.permission(tx, i, entityId);
+        const rows = await tx.$queryRaw<
+          (Invoice & { supplier_name: string })[]
+        >`SELECT n.*,s.name AS supplier_name FROM "ApInvoice" n JOIN "ApSupplier" s ON s.id=n.supplier_id WHERE n.organisation_id=${i.organisationId}::uuid AND n.entity_id=${entityId}::uuid AND left(n.data->>'invoiceDate',7)=${month} AND (${invoiceId || null}::uuid IS NULL OR n.id=${invoiceId || null}::uuid) AND (${search || ""}='' OR ${invoiceId || null}::uuid IS NOT NULL OR position(lower(${search || ""}) in lower(s.name))>0 OR position(lower(${search || ""}) in lower(n.data->>'reference'))>0) ORDER BY n.created_at DESC,n.id DESC LIMIT 1001`;
+        if (rows.length > 1000)
+          throw new ApiError(
+            422,
+            "SOURCE_LIMIT",
+            "Select an exact supplier invoice; the Assistant reads at most1000 invoices per month.",
+          );
+        if (invoiceId && !rows.length) throw missing();
+        const counts = {
+            review: 0,
+            verify: 0,
+            approve: 0,
+            approved: 0,
+            rejected: 0,
+          },
+          amounts = { gross: 0n, approved: 0n };
+        const items = rows.map((n) => {
+          const parsed = fields.safeParse(n.data);
+          if (!parsed.success)
+            throw new ApiError(
+              503,
+              "SOURCE_INVALID",
+              "Supplier invoice source needs review.",
+            );
+          n.data = parsed.data;
+          const calculated = totals(n.data);
+          if (!(n.state in counts))
+            throw new ApiError(
+              503,
+              "SOURCE_INVALID",
+              "Supplier invoice state needs review.",
+            );
+          counts[n.state as keyof typeof counts]++;
+          amounts.gross += BigInt(calculated.gross);
+          if (n.state === "approved")
+            amounts.approved += BigInt(calculated.gross);
+          return { ...n, totals: calculated };
+        });
+        const policy = await tx.apPolicy.findUnique({
+          where: {
+            organisationId_entityId: {
+              organisationId: i.organisationId,
+              entityId,
+            },
+          },
+        });
+        const latest = invoiceId
+          ? await tx.$queryRaw<
+              { scan_state: string }[]
+            >`SELECT scan_state FROM "ApDocument" WHERE invoice_id=${invoiceId}::uuid AND organisation_id=${i.organisationId}::uuid AND entity_id=${entityId}::uuid ORDER BY revision DESC,id DESC LIMIT 1`
+          : [];
+        return {
+          items,
+          counts,
+          total: items.length,
+          gross: amounts.gross.toString(),
+          approvedGross: amounts.approved.toString(),
+          capabilities,
+          policyPublished: !!policy?.published,
+          documentReady:
+            !!latest[0] &&
+            ["clean", "synthetic"].includes(latest[0].scan_state),
+          retrievedAt: new Date().toISOString(),
+        };
+      },
+      { isolationLevel: "RepeatableRead" },
+    );
   }
   async capabilities(i: Identity, entityId: string) {
     return this.db.$transaction(async (tx) => {
@@ -404,6 +487,7 @@ export class PayablesService {
       limit: number;
       status?: string;
       dueBefore?: string;
+      month?: string;
       assignee?: string;
     },
   ) {
@@ -412,7 +496,7 @@ export class PayablesService {
         await this.permission(tx, i, b.entityId);
         const rows = await tx.$queryRaw<
           (Invoice & { supplier_name: string; document_ready: boolean })[]
-        >`SELECT n.*,s.name AS supplier_name,COALESCE((SELECT d.scan_state IN ('synthetic','clean') FROM "ApDocument" d WHERE d.invoice_id=n.id ORDER BY d.revision DESC,d.id DESC LIMIT 1),false) AS document_ready FROM "ApInvoice" n JOIN "ApSupplier" s ON s.id=n.supplier_id WHERE n.organisation_id=${i.organisationId}::uuid AND n.entity_id=${b.entityId}::uuid AND (position(lower(${b.search}) in lower(s.name))>0 OR position(lower(${b.search}) in lower(n.data->>'reference'))>0) AND (${b.status || ""}='' OR n.state=${b.status || ""}) AND (${b.dueBefore || ""}='' OR n.data->>'dueDate'<=${b.dueBefore || ""}) ORDER BY n.created_at DESC,n.id DESC LIMIT 10001`;
+        >`SELECT n.*,s.name AS supplier_name,COALESCE((SELECT d.scan_state IN ('synthetic','clean') FROM "ApDocument" d WHERE d.invoice_id=n.id ORDER BY d.revision DESC,d.id DESC LIMIT 1),false) AS document_ready FROM "ApInvoice" n JOIN "ApSupplier" s ON s.id=n.supplier_id WHERE n.organisation_id=${i.organisationId}::uuid AND n.entity_id=${b.entityId}::uuid AND (position(lower(${b.search}) in lower(s.name))>0 OR position(lower(${b.search}) in lower(n.data->>'reference'))>0) AND (${b.month || ""}='' OR left(n.data->>'invoiceDate',7)=${b.month || ""}) AND (${b.status || ""}='' OR n.state=${b.status || ""}) AND (${b.dueBefore || ""}='' OR n.data->>'dueDate'<=${b.dueBefore || ""}) ORDER BY n.created_at DESC,n.id DESC LIMIT 10001`;
         if (rows.length > 10000)
           throw new ApiError(
             422,
@@ -549,6 +633,7 @@ export class PayablesService {
       action: string;
       reason?: string;
     },
+    context?: { entityId: string; channel: "assistant" },
   ) {
     return this.db.$transaction(async (tx) => {
       const n = await this.invoice(
@@ -563,122 +648,144 @@ export class PayablesService {
               ? "approve"
               : "view",
       );
-      return this.once(tx, i, b.operationId, { id, ...b }, async () => {
-        if (n.version !== b.expectedVersion) throw conflict();
-        if (
-          ["challenge", "reject", "correction"].includes(b.action) &&
-          !b.reason?.trim()
-        )
-          throw new ApiError(422, "REASON_REQUIRED", "A reason is required.");
-        let state = n.state,
-          route = n.route;
-        if (b.action === "correction") {
-          if (state !== "review") throw conflict();
-          await tx.$executeRaw`UPDATE "ApInvoice" SET correction_reason=${b.reason!},version=version+1,updated_at=now() WHERE id=${id}::uuid`;
-          n.version++;
-          n.correction_reason = b.reason!;
-          await this.event(tx, i, n, "correction", b.reason);
-          return { id, state, version: n.version };
-        }
-        if (b.action === "review") {
-          if (n.correction_reason)
-            throw new ApiError(
-              422,
-              "CORRECTION_REQUIRED",
-              "Save corrected invoice details before submitting the requested correction.",
-            );
-          if (state !== "review") throw conflict();
-          await this.checkSupplier(tx, i, n.entity_id, n.supplier_id);
-          if (!totals(n.data).matches)
-            throw new ApiError(
-              422,
-              "TOTAL_MISMATCH",
-              "Declared total differs from calculated lines. Correct the fields before submitting.",
-            );
-          const docs =
-            await tx.$queryRaw`SELECT scan_state FROM "ApDocument" WHERE invoice_id=${id}::uuid ORDER BY revision DESC,id DESC LIMIT 1`;
+      if (context && n.entity_id !== context.entityId) throw missing();
+      return this.once(
+        tx,
+        i,
+        b.operationId,
+        context ? { id, ...b, context } : { id, ...b },
+        async () => {
+          if (n.version !== b.expectedVersion) throw conflict();
           if (
-            (docs as { scan_state: string }[])[0]?.scan_state !== "synthetic" &&
-            (docs as { scan_state: string }[])[0]?.scan_state !== "clean"
+            ["challenge", "reject", "correction"].includes(b.action) &&
+            !b.reason?.trim()
           )
-            throw new ApiError(
-              422,
-              "DOCUMENT_QUARANTINED",
-              "A cleared original PDF is required. Configure the scanner and rescan quarantined documents.",
+            throw new ApiError(422, "REASON_REQUIRED", "A reason is required.");
+          let state = n.state,
+            route = n.route;
+          if (b.action === "correction") {
+            if (state !== "review") throw conflict();
+            await tx.$executeRaw`UPDATE "ApInvoice" SET correction_reason=${b.reason!},version=version+1,updated_at=now() WHERE id=${id}::uuid`;
+            n.version++;
+            n.correction_reason = b.reason!;
+            await this.event(
+              tx,
+              i,
+              n,
+              "correction",
+              b.reason,
+              context ? { origin: "assistant" } : undefined,
             );
-          const p = await tx.$queryRaw<
-            { published: Policy; published_version: number }[]
-          >`SELECT published,published_version FROM "ApPolicy" WHERE organisation_id=${i.organisationId}::uuid AND entity_id=${n.entity_id}::uuid FOR SHARE`;
-          if (!p[0]?.published)
-            throw new ApiError(
-              422,
-              "POLICY_REQUIRED",
-              "Publish an approval policy first.",
-            );
-          await this.assignees(tx, i, n.entity_id, p[0].published);
-          route = routePolicy(
-            p[0].published,
-            totals(n.data).gross,
-            p[0].published_version,
-            i.userId,
-          );
-          state = route.verified ? "approve" : "verify";
-        } else {
-          if (!route) throw conflict();
-          if (state === "verify") {
-            if (route.verifierId !== i.userId)
-              throw new ApiError(
-                403,
-                "FORBIDDEN",
-                "Only the assigned verifier can decide.",
-              );
-            await this.permission(tx, i, n.entity_id, "verify");
-            if (b.action === "verify") {
-              route = { ...route, verified: true };
-              state = "approve";
-            } else if (b.action !== "challenge") throw conflict();
-          } else if (state === "approve") {
-            if (
-              route.approverIds[route.step] !== i.userId ||
-              route.submittedBy === i.userId
-            )
-              throw new ApiError(
-                403,
-                "FORBIDDEN",
-                "Only the current assigned approver can decide.",
-              );
-            await this.permission(tx, i, n.entity_id, "approve");
-            if (b.action === "approve") {
-              route = { ...route, step: route.step + 1 };
-              if (route.step === route.approverIds.length) {
-                for (const actor of route.approverIds)
-                  await this.permission(
-                    tx,
-                    { ...i, userId: actor },
-                    n.entity_id,
-                    "approve",
-                  );
-                state = "approved";
-              }
-            } else if (
-              !["challenge", "reject", "correction"].includes(b.action)
-            )
-              throw conflict();
-          } else throw conflict();
-          if (b.action === "challenge") {
-            state = "review";
-            route = null;
-            n.revision++;
+            return { id, state, version: n.version };
           }
-          if (b.action === "reject") state = "rejected";
-        }
-        await tx.$executeRaw`UPDATE "ApInvoice" SET state=${state},route=${JSON.stringify(route)}::jsonb,revision=${n.revision},version=version+1,updated_at=now() WHERE id=${id}::uuid`;
-        n.version++;
-        n.route = route;
-        n.state = state;
-        await this.event(tx, i, n, b.action, b.reason);
-        return { id, state, version: n.version };
-      });
+          if (b.action === "review") {
+            if (n.correction_reason)
+              throw new ApiError(
+                422,
+                "CORRECTION_REQUIRED",
+                "Save corrected invoice details before submitting the requested correction.",
+              );
+            if (state !== "review") throw conflict();
+            await this.checkSupplier(tx, i, n.entity_id, n.supplier_id);
+            if (!totals(n.data).matches)
+              throw new ApiError(
+                422,
+                "TOTAL_MISMATCH",
+                "Declared total differs from calculated lines. Correct the fields before submitting.",
+              );
+            const docs =
+              await tx.$queryRaw`SELECT scan_state FROM "ApDocument" WHERE invoice_id=${id}::uuid ORDER BY revision DESC,id DESC LIMIT 1`;
+            if (
+              (docs as { scan_state: string }[])[0]?.scan_state !==
+                "synthetic" &&
+              (docs as { scan_state: string }[])[0]?.scan_state !== "clean"
+            )
+              throw new ApiError(
+                422,
+                "DOCUMENT_QUARANTINED",
+                "A cleared original PDF is required. Configure the scanner and rescan quarantined documents.",
+              );
+            const p = await tx.$queryRaw<
+              { published: Policy; published_version: number }[]
+            >`SELECT published,published_version FROM "ApPolicy" WHERE organisation_id=${i.organisationId}::uuid AND entity_id=${n.entity_id}::uuid FOR SHARE`;
+            if (!p[0]?.published)
+              throw new ApiError(
+                422,
+                "POLICY_REQUIRED",
+                "Publish an approval policy first.",
+              );
+            await this.assignees(tx, i, n.entity_id, p[0].published);
+            route = routePolicy(
+              p[0].published,
+              totals(n.data).gross,
+              p[0].published_version,
+              i.userId,
+            );
+            state = route.verified ? "approve" : "verify";
+          } else {
+            if (!route) throw conflict();
+            if (state === "verify") {
+              if (route.verifierId !== i.userId)
+                throw new ApiError(
+                  403,
+                  "FORBIDDEN",
+                  "Only the assigned verifier can decide.",
+                );
+              await this.permission(tx, i, n.entity_id, "verify");
+              if (b.action === "verify") {
+                route = { ...route, verified: true };
+                state = "approve";
+              } else if (b.action !== "challenge") throw conflict();
+            } else if (state === "approve") {
+              if (
+                route.approverIds[route.step] !== i.userId ||
+                route.submittedBy === i.userId
+              )
+                throw new ApiError(
+                  403,
+                  "FORBIDDEN",
+                  "Only the current assigned approver can decide.",
+                );
+              await this.permission(tx, i, n.entity_id, "approve");
+              if (b.action === "approve") {
+                route = { ...route, step: route.step + 1 };
+                if (route.step === route.approverIds.length) {
+                  for (const actor of route.approverIds)
+                    await this.permission(
+                      tx,
+                      { ...i, userId: actor },
+                      n.entity_id,
+                      "approve",
+                    );
+                  state = "approved";
+                }
+              } else if (
+                !["challenge", "reject", "correction"].includes(b.action)
+              )
+                throw conflict();
+            } else throw conflict();
+            if (b.action === "challenge") {
+              state = "review";
+              route = null;
+              n.revision++;
+            }
+            if (b.action === "reject") state = "rejected";
+          }
+          await tx.$executeRaw`UPDATE "ApInvoice" SET state=${state},route=${JSON.stringify(route)}::jsonb,revision=${n.revision},version=version+1,updated_at=now() WHERE id=${id}::uuid`;
+          n.version++;
+          n.route = route;
+          n.state = state;
+          await this.event(
+            tx,
+            i,
+            n,
+            b.action,
+            b.reason,
+            context ? { origin: "assistant" } : undefined,
+          );
+          return { id, state, version: n.version };
+        },
+      );
     });
   }
   private async scanPdf(bytes: Buffer) {
@@ -828,23 +935,38 @@ export class PayablesService {
     i: Identity,
     id: string,
     b: { operationId: string; expectedVersion: number },
+    context?: { entityId: string; channel: "assistant" },
   ) {
     return this.db.$transaction(async (tx) => {
       const n = await this.invoice(tx, i, id, "review");
-      return this.once(tx, i, b.operationId, { id, ...b }, async () => {
-        if (n.version !== b.expectedVersion || n.state !== "approved")
-          throw conflict();
-        const old = await tx.$queryRaw<
-          { id: string }[]
-        >`SELECT id FROM "ApExport" WHERE invoice_id=${id}::uuid AND revision=${n.revision}`;
-        if (old[0]) return old[0];
-        const exportId = randomUUID(),
-          bytes = Buffer.from(csv(n.data, n.revision)),
-          digest = createHash("sha256").update(bytes).digest("hex");
-        await tx.$executeRaw`INSERT INTO "ApExport"(id,organisation_id,entity_id,invoice_id,revision,bytes,digest,actor_id) VALUES(${exportId}::uuid,${i.organisationId}::uuid,${n.entity_id}::uuid,${id}::uuid,${n.revision},${bytes},${digest},${i.userId}::uuid)`;
-        await this.event(tx, i, n, "exported");
-        return { id: exportId };
-      });
+      if (context && n.entity_id !== context.entityId) throw missing();
+      return this.once(
+        tx,
+        i,
+        b.operationId,
+        context ? { id, ...b, context } : { id, ...b },
+        async () => {
+          if (n.version !== b.expectedVersion || n.state !== "approved")
+            throw conflict();
+          const old = await tx.$queryRaw<
+            { id: string }[]
+          >`SELECT id FROM "ApExport" WHERE invoice_id=${id}::uuid AND revision=${n.revision}`;
+          if (old[0]) return old[0];
+          const exportId = randomUUID(),
+            bytes = Buffer.from(csv(n.data, n.revision)),
+            digest = createHash("sha256").update(bytes).digest("hex");
+          await tx.$executeRaw`INSERT INTO "ApExport"(id,organisation_id,entity_id,invoice_id,revision,bytes,digest,actor_id) VALUES(${exportId}::uuid,${i.organisationId}::uuid,${n.entity_id}::uuid,${id}::uuid,${n.revision},${bytes},${digest},${i.userId}::uuid)`;
+          await this.event(
+            tx,
+            i,
+            n,
+            "exported",
+            undefined,
+            context ? { origin: "assistant" } : undefined,
+          );
+          return { id: exportId };
+        },
+      );
     });
   }
   async exportFile(i: Identity, id: string) {

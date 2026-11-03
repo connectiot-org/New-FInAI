@@ -6,6 +6,10 @@ import { LedgerService } from "../ledger/source";
 import type { Identity } from "../config";
 import type { Plan, Fact, Source } from "./validation";
 import { ApiError } from "../errors";
+import { PayablesService } from "../payables/service";
+import { randomUUID } from "node:crypto";
+import { titles, type InvoiceProposal } from "../payables/assistant";
+import type { Prisma } from "@prisma/client";
 export function previousMonth(month: string) {
   const y = Number(month.slice(0, 4)),
     m = Number(month.slice(5));
@@ -22,7 +26,15 @@ export class AssistantFacts {
     @Inject(ReceivablesDetailRepository)
     private receivables: ReceivablesDetailRepository,
     @Inject(LedgerService) private ledger: LedgerService,
+    @Inject(PayablesService) private payables: PayablesService,
   ) {}
+  authorizeInvoices(
+    tx: Prisma.TransactionClient,
+    i: Identity,
+    entityId: string,
+  ) {
+    return this.payables.permission(tx, i, entityId);
+  }
   capabilities() {
     return { ledgerMappingsEnabled: this.ledger.approved.size > 0 };
   }
@@ -33,6 +45,7 @@ export class AssistantFacts {
   ) {
     const facts: Fact[] = [],
       sources: Source[] = [],
+      proposals: InvoiceProposal[] = [],
       notes: Record<string, string> = {},
       now = new Date().toISOString();
     let recvId: string | undefined;
@@ -78,7 +91,170 @@ export class AssistantFacts {
       if (op.kind === "unsupported") {
         note(
           "unsupported",
-          "This assistant only reads authorized imported sources, saved checklist tasks and subscriptions. It cannot post, pay, approve, forecast, disclose secrets or access another user's records. Choose a supported read question or supply an approved complete source.",
+          "Ask about authorized imported sources, saved tasks, subscriptions or GBP supplier invoices. Invoice decisions require your explicit confirmation and current assignment. Posting, payment, forecasting, secrets and other users' records are unavailable.",
+        );
+        continue;
+      }
+      if (op.kind === "supplier_invoices") {
+        if (scope.currency !== "GBP") {
+          note(
+            "supplier_currency",
+            "Supplier invoices support GBP. Start a GBP conversation; no currency conversion is inferred.",
+          );
+          continue;
+        }
+        const read = await this.payables.assistantSnapshot(
+          identity,
+          scope.entityId,
+          period,
+          op.invoiceId,
+          op.invoiceSearch,
+        );
+        const single = op.invoiceId ? read.items[0] : undefined;
+        const s: Source = {
+          id: `s${index}`,
+          label: single
+            ? `Supplier invoice ${single.data.reference} · version ${single.version}`
+            : `${period} supplier invoice register`,
+          href: `/workspace/payables/invoices${single ? `/${single.id}` : ""}?${new URLSearchParams({ entityId: scope.entityId, month: period, ...(!single && op.invoiceSearch ? { search: op.invoiceSearch } : {}) })}`,
+          basis: `Current supplier invoice records with invoice dates in ${period}${!single && op.invoiceSearch ? `, matching supplier/reference text: ${op.invoiceSearch}` : ""}. Registered totals include rejected invoices; approved totals are workflow status, not posted expenses or proof of payment.`,
+          capturedAt: null,
+          importedAt: null,
+          retrievedAt: read.retrievedAt,
+          version: single?.version ?? null,
+          snapshotId: null,
+        };
+        sources.push(s);
+        if (!single) {
+          add(s, "Registered supplier invoices", String(read.total), "count");
+          add(
+            s,
+            "Registered gross including rejected invoices",
+            read.gross,
+            "minor",
+            "GBP",
+          );
+          add(s, "Approved gross", read.approvedGross, "minor", "GBP");
+          for (const [state, count] of Object.entries(read.counts))
+            add(s, `${state} invoices`, String(count), "count");
+          for (const n of read.items.slice(0, 4)) {
+            add(
+              s,
+              `${n.supplier_name} · ${n.data.reference} [${n.id}] · ${n.state}`,
+              n.totals.gross,
+              "minor",
+              "GBP",
+            );
+            Object.assign(facts.at(-1)!, {
+              recordId: n.id,
+              recordKind: "supplier_invoice",
+            });
+          }
+          note(
+            `supplier_records${index}`,
+            `Showing at most4 of ${read.total} invoices; totals include the entire selected month. Ask about an exact invoice ID before proposing a decision.`,
+          );
+        } else {
+          for (const [label, value] of [
+            ["Net", single.totals.net],
+            ["Tax", single.totals.tax],
+            ["Gross", single.totals.gross],
+          ])
+            add(
+              s,
+              `${single.data.reference} · ${label}`,
+              value,
+              "minor",
+              "GBP",
+            );
+          add(s, "Invoice state", single.state);
+          add(
+            s,
+            "Invoice dates",
+            `Issued ${single.data.invoiceDate}; due ${single.data.dueDate}`,
+          );
+          add(
+            s,
+            "Document and totals",
+            `${read.documentReady ? "Cleared PDF" : "Cleared PDF required"}; ${single.totals.matches ? "declared total matches" : "declared total mismatch"}`,
+          );
+          add(
+            s,
+            "Approval route",
+            single.route
+              ? `${single.route.reason}; verification ${single.route.verified ? "complete" : "pending"}; ${single.route.step} of ${single.route.approverIds.length} approvals recorded`
+              : "No submitted approval route",
+          );
+          add(
+            s,
+            "Revision and coding",
+            `Revision ${single.revision}; ${single.data.lines.length} lines; accounts ${[...new Set(single.data.lines.map((l) => l.account))].join(", ")}`,
+          );
+          if (single.correction_reason)
+            add(s, "Correction requested", single.correction_reason);
+          for (const f of facts.filter((f) => f.sourceId === s.id))
+            Object.assign(f, {
+              recordId: single.id,
+              recordKind: "supplier_invoice",
+            });
+          const action = op.invoiceAction || "explain",
+            caps = read.capabilities,
+            route = single.route;
+          const verifier =
+            single.state === "verify" &&
+            route?.verifierId === identity.userId &&
+            caps.verify;
+          const approver =
+            single.state === "approve" &&
+            route?.approverIds[route.step] === identity.userId &&
+            route?.submittedBy !== identity.userId &&
+            caps.approve;
+          const eligible =
+            action === "review"
+              ? caps.review &&
+                single.state === "review" &&
+                !single.correction_reason &&
+                single.totals.matches &&
+                read.documentReady &&
+                read.policyPublished
+              : action === "correction"
+                ? caps.review && single.state === "review"
+                : action === "verify"
+                  ? verifier
+                  : action === "approve" || action === "reject"
+                    ? approver
+                    : action === "challenge"
+                      ? verifier || approver
+                      : action === "export"
+                        ? caps.review && single.state === "approved"
+                        : false;
+          if (action !== "explain") {
+            if (eligible)
+              proposals.push({
+                operationId: randomUUID(),
+                invoiceId: single.id,
+                entityId: scope.entityId,
+                reference: single.data.reference,
+                expectedVersion: single.version,
+                revision: single.revision,
+                action,
+                title: titles[action],
+                description: `Review invoice ${single.data.reference}, revision ${single.revision}, version ${single.version}. Confirming rechecks your permissions, assignment and the current invoice.`,
+                reasonRequired: ["correction", "challenge", "reject"].includes(
+                  action,
+                ),
+                sourceId: s.id,
+              });
+            else
+              note(
+                `supplier_action${index}`,
+                "That action is unavailable for your current permission, assignment or invoice readiness. Open the invoice to inspect the current state; no decision was recorded.",
+              );
+          }
+        }
+        note(
+          "supplier_confirmation",
+          "Invoice actions are proposals only. Review the source and confirm explicitly; saved facts and proposals can become stale. Export prepares a CSV and does not post or pay.",
         );
         continue;
       }
@@ -434,6 +610,6 @@ export class AssistantFacts {
         "independent_sources",
         "Each module has its own source basis and cutoff. No automatic cross-source reconciliation or currency conversion is assumed.",
       );
-    return { facts, sources, notes };
+    return { facts, sources, notes, proposals };
   }
 }

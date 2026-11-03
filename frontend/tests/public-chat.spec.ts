@@ -522,7 +522,7 @@ test("built public chat opens without sign-in, selects any free text model, keep
 test("public model search, missing key, catalog failure/empty and provider errors stay visible without fake output", async ({
   page,
 }) => {
-  await page.goto(origin + "/workspace/assistant");
+  await page.goto(origin + "/demo/assistant");
   await page.getByLabel("Find a model").fill("beta");
   await expect(page.getByLabel("Chat model").locator("option")).toHaveCount(2);
   await page.getByLabel("Chat model").selectOption(beta);
@@ -569,7 +569,7 @@ test("the free router is preferred when available and the actual served model is
 }) => {
   rows.push(row("openrouter/free", "Free model router"));
   mode = "router";
-  await page.goto(origin + "/workspace/assistant");
+  await page.goto(origin + "/demo/assistant");
   await expect(page.getByLabel("Chat model")).toHaveValue("openrouter/free");
   await page.getByLabel("Your message").fill("Router hello");
   await page.getByRole("button", { name: "Send message", exact: true }).click();
@@ -582,7 +582,7 @@ test("stopping/clearing a pending response cannot publish a late answer or resen
   page,
 }) => {
   mode = "slow";
-  await page.goto(origin + "/workspace/assistant");
+  await page.goto(origin + "/demo/assistant");
   await page.getByLabel("Your message").fill("Cancelled question");
   await page.getByRole("button", { name: "Send message", exact: true }).click();
   await expect.poll(() => completions.length).toBe(1);
@@ -603,7 +603,6 @@ test("financial Assistant remains behind its session gate when public chat is en
   page,
 }) => {
   await page.goto(origin + "/workspace/assistant");
-  await page.goto(origin + "/workspace/assistant/records");
   await expect(page).toHaveURL(/\/workspace\/assistant\/records$/);
   await expect(page.getByLabel("Account name")).toBeVisible();
   await expect(page.getByLabel("Chat model")).toHaveCount(0);

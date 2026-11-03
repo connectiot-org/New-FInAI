@@ -77,6 +77,27 @@ export class AssistantService {
       },
     };
   }
+  private async invoiceGuard(
+    tx: Tx,
+    i: Identity,
+    entityId: string,
+    turns: Pick<AssistantTurn, "plan" | "answer">[],
+  ) {
+    if (
+      turns.some(
+        (t) =>
+          plan
+            .safeParse(t.plan)
+            .data?.operations.some((o) => o.kind === "supplier_invoices") ||
+          answer
+            .safeParse(t.answer)
+            .data?.sources.some((s) =>
+              s.href.startsWith("/workspace/payables/"),
+            ),
+      )
+    )
+      await this.facts.authorizeInvoices(tx, i, entityId);
+  }
   async models() {
     if (this.provider.models) return this.provider.models();
     return {
@@ -327,6 +348,7 @@ export class AssistantService {
           skip: start,
           take: limit,
         });
+      await this.invoiceGuard(tx, i, c.entityId, rows);
       return {
         ...conversation(c),
         offset: start,
@@ -506,6 +528,7 @@ export class AssistantService {
         if (t.conversationId !== id) throw missing();
         if (t.digest !== digest({ conversationId: id, ...input }))
           throw conflict();
+        await this.invoiceGuard(tx, i, c.entityId, [t]);
         return { conversationVersion: c.version, turn: turn(t) };
       });
       if (replay) return replay;
@@ -523,6 +546,7 @@ export class AssistantService {
       if (existing) {
         if (existing.conversationId !== id) throw missing();
         if (existing.digest !== d) throw conflict();
+        await this.invoiceGuard(tx, i, c.entityId, [existing]);
         return { c, t: existing, run: false };
       }
       if (!this.provider.configured)
@@ -656,6 +680,7 @@ export class AssistantService {
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             take: 4,
           });
+        await this.invoiceGuard(tx, i, c.entityId, recent);
         return {
           preference: pref
             ? { detail: pref.detail, note: pref.note }
@@ -686,6 +711,7 @@ export class AssistantService {
             question: t.question,
             ...context,
             available: [
+              "supplier_invoices",
               "receivables",
               "invoices",
               "checklist",
@@ -699,25 +725,48 @@ export class AssistantService {
       await this.db.$transaction((tx) => this.guard(tx, i, c.entityId, hash));
       const references = context.recent.flatMap((r) => r.references || []);
       for (const op of planned.operations) {
+        if (
+          op.kind === "supplier_invoices" &&
+          op.invoiceSearch &&
+          !t.question.toLowerCase().includes(op.invoiceSearch.toLowerCase()) &&
+          !references.some((r) =>
+            r.label.toLowerCase().includes(op.invoiceSearch!.toLowerCase()),
+          )
+        ) {
+          op.kind = "clarify";
+          op.reason = "ambiguous";
+          op.invoiceSearch = null;
+          op.invoiceId = null;
+          op.invoiceAction = "explain";
+        }
         for (const [field, kind] of [
           ["customerId", "customer"],
           ["accountId", "account"],
+          ["invoiceId", "supplier_invoice"],
         ] as const) {
           const id = op[field];
           if (
             id &&
-            !t.question.includes(id) &&
+            !(field === "invoiceId"
+              ? t.question.toLowerCase().includes(id.toLowerCase())
+              : t.question.includes(id)) &&
             !references.some((r) => r.id === id && r.kind === kind)
           ) {
             op.kind = "clarify";
             op.reason = "ambiguous";
             op.customerId = null;
             op.accountId = null;
+            op.invoiceId = null;
+            op.invoiceAction = "explain";
           }
         }
       }
       const evidence = await this.facts.retrieve(i, c, planned);
-      await this.db.$transaction((tx) => this.guard(tx, i, c.entityId, hash));
+      await this.db.$transaction(async (tx) => {
+        await this.guard(tx, i, c.entityId, hash);
+        if (planned?.operations.some((o) => o.kind === "supplier_invoices"))
+          await this.facts.authorizeInvoices(tx, i, c.entityId);
+      });
       const selected = composition.parse(
         await provider.compose(
           {
@@ -746,10 +795,14 @@ export class AssistantService {
       const facts = selected.factIds.map((id) =>
         evidence.facts.find((f) => f.id === id)!,
       );
-      const sourceIds = new Set(facts.map((f) => f.sourceId));
+      const sourceIds = new Set([
+        ...facts.map((f) => f.sourceId),
+        ...evidence.proposals.map((p) => p.sourceId),
+      ]);
       // Caveats cannot be omitted by a model. Every retrieved source basis remains visible.
       output = answer.parse({
         facts,
+        proposals: evidence.proposals,
         sources: evidence.sources.filter((s) => sourceIds.has(s.id)),
         notes: Object.values(evidence.notes).slice(0, 8),
         basis:
@@ -783,6 +836,11 @@ export class AssistantService {
           },
         });
         if (!row || controller.signal.aborted) return;
+        if (
+          output &&
+          planned?.operations.some((o) => o.kind === "supplier_invoices")
+        )
+          await this.facts.authorizeInvoices(tx, i, c.entityId);
         await tx.assistantTurn.update({
           where: { id: t.id },
           data: output

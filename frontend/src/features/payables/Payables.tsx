@@ -12,6 +12,7 @@ import {
   useParams,
   useLocation,
   useBlocker,
+  useSearchParams,
 } from "react-router-dom";
 import { z } from "zod";
 import {
@@ -131,7 +132,15 @@ export function Payables() {
   const { basePath } = usePayablesClient();
   const c = useWorkspace(),
     location = useLocation();
-  const [entityId, setEntityId] = useState(c.entities[0]?.id || "");
+  const [params, setParams] = useSearchParams();
+  const requestedEntity = params.get("entityId");
+  const entityId =
+    requestedEntity === null
+      ? c.entities[0]?.id || ""
+      : c.entities.some((e) => e.id === requestedEntity)
+        ? requestedEntity
+        : "";
+  const companyQuery = `?entityId=${entityId}`;
   return (
     <div className="ap-root" key={c.revision}>
       <div className="ap-top">
@@ -144,8 +153,13 @@ export function Payables() {
           Company
           <select
             value={entityId}
-            onChange={(e) => setEntityId(e.target.value)}
+            onChange={(e) => {
+              const next = new URLSearchParams(params);
+              next.set("entityId", e.target.value);
+              setParams(next);
+            }}
           >
+            {!entityId && <option value="">Choose a company</option>}
             {c.entities.map((e) => (
               <option key={e.id} value={e.id}>
                 {e.name}
@@ -155,12 +169,16 @@ export function Payables() {
         </label>
       </div>
       <nav className="ap-nav" aria-label="Payables">
-        <Link to={basePath + "/invoices"}>Invoices</Link>
-        <Link to={basePath + "/suppliers"}>Suppliers</Link>
-        <Link to={basePath + "/export"}>Accounting export</Link>
-        <Link to={basePath + "/settings/approvals"}>Approval settings</Link>
+        <Link to={basePath + "/invoices" + companyQuery}>Invoices</Link>
+        <Link to={basePath + "/suppliers" + companyQuery}>Suppliers</Link>
+        <Link to={basePath + "/export" + companyQuery}>Accounting export</Link>
+        <Link to={basePath + "/settings/approvals" + companyQuery}>
+          Approval settings
+        </Link>
         {c.administrator && (
-          <Link to={basePath + "/settings/access"}>Invoice access</Link>
+          <Link to={basePath + "/settings/access" + companyQuery}>
+            Invoice access
+          </Link>
         )}
       </nav>
       {!entityId ? (
@@ -222,8 +240,16 @@ function Register({
   exportView: boolean;
 }) {
   const { request, basePath } = usePayablesClient();
+  const [params, setParams] = useSearchParams();
+  const month = params.get("month") || "",
+    search = params.get("search") || "";
+  const setSearch = (value: string) => {
+    const next = new URLSearchParams(params);
+    if (value) next.set("search", value);
+    else next.delete("search");
+    setParams(next);
+  };
   const [queue, setQueue] = useState(exportView ? "export" : "all"),
-    [search, setSearch] = useState(""),
     [status, setStatus] = useState(""),
     [due, setDue] = useState(""),
     [assignee, setAssignee] = useState(""),
@@ -240,13 +266,14 @@ function Register({
             offset: String(offset),
             limit: "20",
             ...(status ? { status } : {}),
+            ...(month ? { month } : {}),
             ...(due ? { dueBefore: due } : {}),
             ...(assignee ? { assignee } : {}),
           }),
         listSchema,
         { signal },
       ),
-    [entityId, queue, search, status, due, assignee, offset, request],
+    [entityId, queue, search, status, due, assignee, offset, request, month],
   );
   const rows = useLoad(load),
     navigate = useNavigate();
@@ -263,6 +290,20 @@ function Register({
           </button>
         )}
       </div>
+      <label>
+        Invoice month
+        <input
+          type="month"
+          value={month}
+          onChange={(e) => {
+            const next = new URLSearchParams(params);
+            if (e.target.value) next.set("month", e.target.value);
+            else next.delete("month");
+            setOffset(0);
+            setParams(next);
+          }}
+        />
+      </label>
       {exportView && (
         <p>
           Approval and accounting export are separate from payment. An export
@@ -376,7 +417,14 @@ function Register({
                   {rows.value.items.map((n) => (
                     <tr key={n.id}>
                       <td>
-                        <Link to={basePath + "/invoices/" + n.id}>
+                        <Link
+                          to={
+                            basePath +
+                            "/invoices/" +
+                            n.id +
+                            `?entityId=${entityId}`
+                          }
+                        >
                           <strong>{n.supplier}</strong>
                           <small>{n.reference}</small>
                         </Link>
@@ -445,7 +493,9 @@ function Register({
         <InvoiceForm
           entityId={entityId}
           close={() => setAdding(false)}
-          done={(id) => navigate(basePath + "/invoices/" + id)}
+          done={(id) =>
+            navigate(basePath + "/invoices/" + id + `?entityId=${entityId}`)
+          }
         />
       )}
     </>
@@ -885,7 +935,10 @@ function Detail({
       caps.capabilities.approve;
   return (
     <>
-      <Link className="ap-back" to={basePath + "/invoices"}>
+      <Link
+        className="ap-back"
+        to={basePath + "/invoices" + `?entityId=${entityId}`}
+      >
         <ArrowLeft size={16} />
         All invoices
       </Link>
@@ -897,6 +950,14 @@ function Detail({
         </div>
         <strong className="ap-total">{amount(n.totals.gross)}</strong>
       </div>
+      {!development && (
+        <Link
+          className="ap-assistant-link"
+          to={`/workspace/assistant/records?${new URLSearchParams({ entityId, month: n.data.invoiceDate.slice(0, 7), currency: "GBP", invoiceId: n.id })}`}
+        >
+          Ask FinAI about this invoice
+        </Link>
+      )}
       <Notice error={error} />
       {n.correctionReason && (
         <p className="ap-error" role="alert">

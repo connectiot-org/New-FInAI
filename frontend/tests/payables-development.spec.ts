@@ -1,11 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
-const root = "/development/payables/invoices";
+const root = "/demo/payables/invoices";
 const open = async (page: Page) => {
-  await page.goto("/");
-  await page
-    .getByRole("banner")
-    .getByRole("link", { name: "Supplier invoices", exact: true })
-    .click();
+  await page.goto("/demo/invoices");
   await expect(page).toHaveURL(root);
   await expect(
     page.getByRole("region", { name: "Development preview" }),
@@ -243,7 +239,7 @@ test("development policies save/publish and reasoned correction/rejection remain
 test("demo aliases refresh directly and every workflow stage has a ready sample", async ({
   page,
 }) => {
-  for (const alias of ["/demo/invoices", "/invoices", "/invoice-approvals"]) {
+  for (const alias of ["/demo/invoices", "/demo/payables/invoices"]) {
     await page.goto(alias);
     await page.reload();
     await expect(
@@ -329,4 +325,31 @@ test("new stage samples are added without overwriting an older browser's invoice
     page.getByRole("link", { name: /LOCAL-EDIT-KEPT/ }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /DEV-1002/ })).toBeVisible();
+});
+
+test("legacy invoice routes open the authenticated workspace and retain invoice/company scope", async ({
+  page,
+}) => {
+  for (const alias of [
+    "/development/payables/invoices",
+    "/invoices",
+    "/invoice-approvals",
+  ]) {
+    await page.goto(alias);
+    await expect(page).toHaveURL("/workspace/payables/invoices");
+    await expect(
+      page.getByRole("heading", {
+        name: /Sign in to your finance workspace|Workspace configuration required/,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Development preview" }),
+    ).toHaveCount(0);
+  }
+  const id = "11111111-1111-4111-8111-111111111111",
+    company = "22222222-2222-4222-8222-222222222222";
+  await page.goto(`/development/payables/invoices/${id}?entityId=${company}`);
+  await expect(page).toHaveURL(
+    `/workspace/payables/invoices/${id}?entityId=${company}`,
+  );
 });

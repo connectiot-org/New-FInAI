@@ -1,6 +1,6 @@
 # Supplier invoice approvals
 
-A separate public development preview is available at `/development/payables/invoices` with browser-only sample records and no login/database requirement. It never calls this private API, grants a company identity, or claims document scanning/real approval. See `../frontend/README.md` for that preview.
+The legacy `/development/payables/*` URLs now redirect to the equivalent authenticated workspace route. A separate public development preview is available at `/demo/payables/invoices` with browser-only sample records and no login/database requirement. It never calls this private API, grants a company identity, or claims document scanning/real approval. See `../frontend/README.md` for that preview.
 
 Private application entry: `/workspace/payables/invoices`. Suppliers, accounting export, approval policies and invoice-access settings live under `/workspace/payables/`. The existing demo Bills screen remains independent.
 
@@ -77,3 +77,11 @@ From the repository root, `bash backend/scripts/payables-storage-check.sh` verif
 Use encrypted, access-controlled off-host backups and target restore rehearsals before real-company use. Local tests do not establish production RPO/RTO, scanner health, monitoring, jurisdictional compliance or hosting compatibility. Roll application code back compatibly while retaining additive AP tables/history; never use migrate reset, destructive reseeding or volume deletion.
 
 OCR/email intake, purchase/budget matching, payments/settlement, advanced delegations/quorums, ERP acknowledgements and regulated exchange remain explicitly deferred integrations. No non-working payment, OCR or ERP controls are exposed. No production deployment, real-data import or paid resource was performed.
+
+## Private FinAI Assistant
+
+The additive [Invoice Assistant contract](../contracts/invoice-assistant.md) exposes read-only GBP invoice grounding and server-built proposals. Invoice links open `/workspace/assistant/records` with the authorized company and invoice-date month. An exact UUID from the question or bounded authorized prior references is required for an individual action. Summaries read at most1000 monthly records and distinguish registered gross (including rejected invoices) from approved workflow totals; neither is posted expenses, payable settlement or proof of payment.
+
+`POST /api/v1/payables/invoices/:id/assistant-actions` requires a real session/CSRF and exact company/version. Review, verification, sequential approval, correction, challenge, rejection and CSV preparation delegate to existing transactions. No model calls a mutation. The UI requires review/confirmation and any reason; uncertain retries retain the original operation ID and payload. Assistant-channel provenance is recorded in the business event and security audit inside that transaction. AP view authorization is rechecked before sending evidence to composition, at final publication, when reading historical answers, and on stable turn replay. Historical facts/proposals can become stale; decisions always use current server state.
+
+No new migration, automatic approval, payment, accounting posting, OCR, account provisioning or public demo identity is introduced. Configuring only an OpenRouter key is insufficient for private company data. Follow `ASSISTANT.md` and the existing database/session/scanner runbooks before hosted verification.

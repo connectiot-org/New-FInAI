@@ -140,3 +140,36 @@
     overflow-y: auto;
   }
 }
+
+.assistant-invoice-action {
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-light);
+}
+.assistant-invoice-action dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(560px, calc(100vw - 32px));
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 80px #101b3433;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  color: var(--text);
+  background: var(--surface, white);
+}
+.assistant-invoice-action dialog::backdrop {
+  background: #101b345c;
+}
+.assistant-invoice-action h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.assistant-invoice-action a {
+  display: inline-block;
+  margin-right: 12px;
+}

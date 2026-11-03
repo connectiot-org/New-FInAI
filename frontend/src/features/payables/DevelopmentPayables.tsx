@@ -44,6 +44,9 @@ export function DevelopmentPayables() {
           FinAI
         </Link>
         <span>Supplier invoices</span>
+        <Link to="/workspace/payables/invoices">
+          Sign in to company invoices
+        </Link>
         <Link to="/">Back to FinAI</Link>
       </header>
       <main>
@@ -91,7 +94,7 @@ export function DevelopmentPayables() {
                 await resetDevelopment();
                 setActor(0);
                 setGeneration((g) => g + 1);
-                navigate("/development/payables/invoices");
+                navigate("/demo/payables/invoices");
               } catch {
                 setError("Could not reset this browser’s development data.");
               } finally {

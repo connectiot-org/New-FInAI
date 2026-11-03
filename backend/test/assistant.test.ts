@@ -13,6 +13,7 @@ import { ChecklistRepository } from "../src/checklist.repository";
 import { ReceivablesDetailRepository } from "../src/receivables/detail.repository";
 import { ReceivablesRepository } from "../src/receivables/repository";
 import { AssistantService } from "../src/assistant/service";
+import { PayablesService } from "../src/payables/service";
 import { AssistantFacts } from "../src/assistant/facts";
 import {
   OpenRouterProvider,
@@ -200,6 +201,7 @@ before(async () => {
     acl,
     new ReceivablesDetailRepository(db, acl),
     ledger,
+    new PayablesService(db),
   );
   service = new AssistantService(db, acl, facts);
   service.provider = provider;
