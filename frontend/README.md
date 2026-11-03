@@ -87,7 +87,11 @@ The latest review replaces the previously borrowed hero image with an original S
 
 Open **Supplier invoices** in the homepage header (mobile: public navigation menu), welcome screen or app sidebar. These development entries now open `/development/payables/invoices` directly, without sign-in or a server/database connection. The clearly labelled preview uses the same invoice interface with separate browser-only IndexedDB data, sample roles, original sample PDFs, approvals and balanced CSV. Changes persist in this browser; Reset preview restores the sample. Development PDFs are explicitly unscanned: use sample documents only.
 
-The preview’s **Company workspace** link opens the separate authenticated `/workspace/payables/invoices` feature. Real workspace data still requires provisioned accounts, company/AP grants and the existing backend/scanner configuration. Preview storage never supplies a live API fallback or company identity.
+The short public routes `/demo/invoices`, `/invoices` and `/invoice-approvals` open the same no-login preview and survive refresh. Six samples cover review, a declared-total mismatch, factual verification, approval, rejection and export. PDFs open automatically beside the grouped details. Existing browser edits are preserved when the new samples are added.
+
+Build a runnable standalone copy with `npm run build:invoice-demo`, or run the complete built-artifact browser checks with `npm run test:invoice-demo`. The output at `artifacts/invoice-demo/` contains public static files, `serve.mjs`, a README and a build digest. Run `node serve.mjs` inside that output folder and open `http://127.0.0.1:4173/demo/invoices`; no npm install, account, database or backend is required to run the built copy. The invoice CI workflow uploads that folder as `finai-invoice-demo`.
+
+The separate authenticated `/workspace/payables/invoices` feature remains available for configured company workspaces. Real workspace data still requires provisioned accounts, company/AP grants and the existing backend/scanner configuration. Preview storage never supplies a live API fallback or company identity.
 
 `/workspace/payables/invoices` provides persistent supplier invoice review, private PDF preview, optional factual verification, sequential approvals, correction/challenge/rejection, policy/access settings and balanced CSV export. It uses the existing session/configuration gates and makes no fixture fallback. Existing demo Bills/Invoices remain separate.
 

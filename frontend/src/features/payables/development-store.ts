@@ -49,6 +49,7 @@ const invoiceSchema = detailSchema
   .extend({ documents: z.array(documents) });
 const stateSchema = z.object({
   format: z.literal(1),
+  sampleVersion: z.literal(2).optional(),
   suppliers: suppliersSchema.shape.items,
   invoices: z.array(invoiceSchema),
   policy: z.object({
@@ -68,9 +69,9 @@ type Invoice = z.infer<typeof invoiceSchema>;
 type Definition = z.infer<typeof definitionSchema>;
 const uuid = () => crypto.randomUUID();
 const supplierId = "20000000-0000-4000-8000-000000000001";
-function samplePdf() {
-  const stream =
-    "BT /F1 18 Tf 40 740 Td (Development sample supplier invoice) Tj 0 -30 Td /F1 12 Tf (Sample data only - GBP 120.00) Tj ET";
+function samplePdf(reference = "DEV-1001", gross = "12000") {
+  const amount = `${BigInt(gross) / 100n}.${(BigInt(gross) % 100n).toString().padStart(2, "0")}`;
+  const stream = `BT /F1 18 Tf 40 740 Td (FinAI sample supplier invoice) Tj 0 -30 Td /F1 12 Tf (${reference} - GBP ${amount}) Tj 0 -22 Td (Development sample only) Tj ET`;
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
@@ -91,6 +92,14 @@ function samplePdf() {
     .join("")}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
   return new Blob([pdf], { type: "application/pdf" });
 }
+const sampleDigests = [
+  "b4d889e3e42c3d45d48368bbb5fc9ab21f85eb7494681ad32ef56e37d4660499",
+  "d6021027d85b3d345b944122bd0f8fc18f82c219977c15b7edd22f97ace782ec",
+  "7a85a37d2d46c8d5c31514a3c86789215ea93211dfdc093ed49abefca7133c96",
+  "c2b5162fa899cd85495697baeab6126404c644645a506d40940182cde5b66e90",
+  "6c1b1796335cc60ebc4aa879cb3b7ae4f216fddaafe5a5ae4901c74e3ed3208f",
+  "d10277737e073ece50e93b36fc5652cc997ed65b816e84b375039c4ca57bf1c8",
+];
 function seed(): State {
   const definition: Definition = {
     currency: "GBP",
@@ -104,64 +113,156 @@ function seed(): State {
     ],
     fallback: { verifierId: null, approverIds: [developmentActors[2].id] },
   };
-  const data: InvoiceData = {
-    supplierId,
-    reference: "DEV-1001",
-    invoiceDate: "2026-11-01",
-    dueDate: "2026-12-01",
-    currency: "GBP",
-    declaredGross: "12000",
-    lines: [
-      {
-        description: "Sample design services",
-        quantity: "1",
-        unitMinor: "10000",
-        taxCode: "STANDARD",
-        taxBps: 2000,
-        recoverable: true,
-        account: "6000",
-        taxAccount: "2200",
-        payableAccount: "2100",
-        costCentre: "Operations",
-      },
-    ],
-  };
+  const suppliers = [
+    {
+      id: supplierId,
+      name: "Sample Studio Supplier",
+      taxId: "SAMPLE-STUDIO",
+      active: true,
+      version: 1,
+    },
+    {
+      id: "20000000-0000-4000-8000-000000000002",
+      name: "Sample Cloud Hosting",
+      taxId: "SAMPLE-CLOUD",
+      active: true,
+      version: 1,
+    },
+    {
+      id: "20000000-0000-4000-8000-000000000003",
+      name: "Sample Office Supplies",
+      taxId: "SAMPLE-OFFICE",
+      active: true,
+      version: 1,
+    },
+  ];
+  const samples = [
+    {
+      reference: "DEV-1001",
+      supplier: 0,
+      net: "10000",
+      state: "review",
+      description: "Brand design services",
+    },
+    {
+      reference: "DEV-1002",
+      supplier: 1,
+      net: "100000",
+      state: "verify",
+      description: "Quarterly cloud hosting",
+    },
+    {
+      reference: "DEV-1003",
+      supplier: 2,
+      net: "37500",
+      state: "approve",
+      description: "Office equipment",
+    },
+    {
+      reference: "DEV-1004",
+      supplier: 0,
+      net: "20000",
+      state: "approved",
+      description: "Website maintenance",
+    },
+    {
+      reference: "DEV-1005",
+      supplier: 1,
+      net: "25000",
+      state: "rejected",
+      description: "Duplicate hosting request",
+    },
+    {
+      reference: "DEV-1006",
+      supplier: 2,
+      net: "10000",
+      state: "review",
+      description: "Office stationery - check document total",
+    },
+  ] as const;
+  const invoices: Invoice[] = samples.map((sample, index) => {
+    const gross = String((BigInt(sample.net) * 120n) / 100n);
+    const data: InvoiceData = {
+      supplierId: suppliers[sample.supplier].id,
+      reference: sample.reference,
+      invoiceDate: "2026-11-01",
+      dueDate: "2026-12-01",
+      currency: "GBP",
+      declaredGross: index === 5 ? "12100" : gross,
+      lines: [
+        {
+          description: sample.description,
+          quantity: "1",
+          unitMinor: sample.net,
+          taxCode: "STANDARD",
+          taxBps: 2000,
+          recoverable: true,
+          account: "6000",
+          taxAccount: "2200",
+          payableAccount: "2100",
+          costCentre: "Operations",
+        },
+      ],
+    };
+    const assignment =
+      sample.state === "verify" ? definition.rules[0] : definition.fallback;
+    return {
+      id: `30000000-0000-4000-8000-00000000000${index + 1}`,
+      entityId: developmentCompany,
+      data,
+      version: 1,
+      revision: 1,
+      state: sample.state,
+      correctionReason: null,
+      route:
+        sample.state === "review"
+          ? null
+          : {
+              policyVersion: 1,
+              reason:
+                sample.state === "verify"
+                  ? "Amount threshold GBP500"
+                  : "Mandatory fallback",
+              verifierId: assignment.verifierId,
+              approverIds: assignment.approverIds,
+              step: sample.state === "approved" ? 1 : 0,
+              verified: sample.state !== "verify",
+              submittedBy: developmentActors[0].id,
+            },
+      documents: [
+        {
+          id: uuid(),
+          filename:
+            index === 0
+              ? "sample-invoice.pdf"
+              : `${sample.reference.toLowerCase()}.pdf`,
+          digest: sampleDigests[index],
+          scanState: "development",
+          revision: 1,
+          blob: samplePdf(sample.reference, gross),
+        },
+      ],
+      events: [
+        {
+          id: uuid(),
+          actorId: developmentActors[0].id,
+          revision: 1,
+          action: "sample-loaded",
+          reason:
+            sample.state === "rejected"
+              ? "Sample rejection: duplicate request"
+              : "Preloaded development example",
+          createdAt: "2026-11-03T09:00:00.000Z",
+        },
+      ],
+      exports: [],
+    };
+  });
   return {
     format: 1,
-    suppliers: [
-      {
-        id: supplierId,
-        name: "Sample Studio Supplier",
-        taxId: "DEVELOPMENT",
-        active: true,
-        version: 1,
-      },
-    ],
-    invoices: [
-      {
-        id: "30000000-0000-4000-8000-000000000001",
-        entityId: developmentCompany,
-        data,
-        version: 1,
-        revision: 1,
-        state: "review",
-        correctionReason: null,
-        route: null,
-        documents: [
-          {
-            id: uuid(),
-            filename: "sample-invoice.pdf",
-            digest:
-              "6fa4ba8aaac7dfa0b4f00d889f9521eac57794115844480a4265cc83dfcd1aaf",
-            scanState: "development",
-            revision: 1,
-            blob: samplePdf(),
-          },
-        ],
-        events: [],
-        exports: [],
-      },
-    ],
+    sampleVersion: 2,
+    suppliers,
+    invoices,
     policy: {
       version: 1,
       draft: definition,
@@ -172,6 +273,7 @@ function seed(): State {
     operations: {},
   };
 }
+
 async function transaction<T>(
   run: (state: State) => T,
   reset = false,
@@ -199,6 +301,16 @@ async function transaction<T>(
             reset || request.result === undefined
               ? seed()
               : stateSchema.parse(request.result);
+          if (!state.sampleVersion) {
+            const samples = seed();
+            for (const supplier of samples.suppliers)
+              if (!state.suppliers.some((s) => s.id === supplier.id))
+                state.suppliers.push(supplier);
+            for (const invoice of samples.invoices)
+              if (!state.invoices.some((n) => n.id === invoice.id))
+                state.invoices.push(invoice);
+            state.sampleVersion = 2;
+          }
           result = run(state);
           store.put(state, "state");
         } catch (e) {
@@ -594,7 +706,7 @@ export function developmentClient(actor: number): PayablesClient {
               !n.documents.length ||
               !total(n.data).matches ||
               !!n.correctionReason,
-            ...(n.route
+            ...(n.route && ["verify", "approve"].includes(n.state)
               ? {
                   owner:
                     n.state === "verify"

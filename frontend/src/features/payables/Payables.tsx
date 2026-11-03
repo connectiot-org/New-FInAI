@@ -347,7 +347,7 @@ function Register({
             <option value="">Anyone</option>
             {caps.members.map((m) => (
               <option key={m.id} value={m.id}>
-                {m.id.slice(0, 8)}
+                {m.name || m.id.slice(0, 8)}
               </option>
             ))}
           </select>
@@ -791,6 +791,21 @@ function Detail({
   );
   const state = useLoad(load),
     n = state.value;
+  const firstDocument = n?.documents[0]?.id;
+  useEffect(() => {
+    if (!development || !firstDocument) return;
+    let active = true;
+    binary(`/invoices/${id}/documents/${firstDocument}`, undefined, true)
+      .then((blob) => {
+        if (active && blob) setPreviewBlob(blob);
+      })
+      .catch((error: Error) => {
+        if (active) setError(error.message);
+      });
+    return () => {
+      active = false;
+    };
+  }, [development, firstDocument, id, binary]);
   const act = async (action: string) => {
     if (!n) return;
     setBusy(true);

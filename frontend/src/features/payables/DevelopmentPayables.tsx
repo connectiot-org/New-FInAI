@@ -44,7 +44,7 @@ export function DevelopmentPayables() {
           FinAI
         </Link>
         <span>Supplier invoices</span>
-        <Link to="/workspace/payables/invoices">Company workspace</Link>
+        <Link to="/">Back to FinAI</Link>
       </header>
       <main>
         <section className="ap-development" aria-label="Development preview">

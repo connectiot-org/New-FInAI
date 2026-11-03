@@ -38,7 +38,6 @@ test("development invoices open without sign-in or API, render PDF, approve, bal
   await page
     .getByRole("link", { name: /Sample Studio Supplier DEV-1001/ })
     .click();
-  await page.getByRole("button", { name: "Preview", exact: true }).click();
   await expect(page.locator(".ap-pdf canvas")).toBeVisible();
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -239,4 +238,95 @@ test("development policies save/publish and reasoned correction/rejection remain
   await expect(
     page.getByRole("button", { name: "Prepare accounting export" }),
   ).toHaveCount(0);
+});
+
+test("demo aliases refresh directly and every workflow stage has a ready sample", async ({
+  page,
+}) => {
+  for (const alias of ["/demo/invoices", "/invoices", "/invoice-approvals"]) {
+    await page.goto(alias);
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: "Invoices", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Sign in", exact: true }),
+    ).toHaveCount(0);
+  }
+  await expect(
+    page.getByRole("tab", { name: "All 6", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("row", { name: /DEV-1005/ })
+      .getByRole("cell", { name: "Closed", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Review 2", exact: true }).click();
+  await page.getByRole("link", { name: /DEV-1006/ }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "differs from calculated",
+  );
+  await expect(
+    page.getByRole("button", { name: "Confirm details & submit" }),
+  ).toBeDisabled();
+  await page.getByRole("link", { name: "All invoices", exact: true }).click();
+  await role(page, "Verifier");
+  await page.getByRole("tab", { name: "Verify 1", exact: true }).click();
+  await expect(page.getByRole("link", { name: /DEV-1002/ })).toBeVisible();
+  await expect(
+    page
+      .getByLabel("Assigned to")
+      .getByRole("option", { name: "First approver", exact: true }),
+  ).toHaveCount(1);
+  await role(page, "First approver");
+  await page.getByRole("tab", { name: "Approve 1", exact: true }).click();
+  await expect(page.getByRole("link", { name: /DEV-1003/ })).toBeVisible();
+  await role(page, "Reviewer");
+  await page
+    .getByRole("link", { name: "Accounting export", exact: true })
+    .click();
+  await page.getByRole("link", { name: /DEV-1004/ }).click();
+  const downloaded = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Prepare accounting export" }).click();
+  expect((await downloaded).suggestedFilename()).toBe(
+    "development-invoice-export.csv",
+  );
+});
+
+test("new stage samples are added without overwriting an older browser's invoice edits", async ({
+  page,
+}) => {
+  await open(page);
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve, reject) => {
+      const request = indexedDB.open("finai-invoices-development-v1", 1);
+      request.onsuccess = () => {
+        const db = request.result,
+          tx = db.transaction("workspace", "readwrite"),
+          store = tx.objectStore("workspace"),
+          get = store.get("state");
+        get.onsuccess = () => {
+          const state = get.result;
+          delete state.sampleVersion;
+          state.invoices = [state.invoices[0]];
+          state.invoices[0].data.reference = "LOCAL-EDIT-KEPT";
+          state.suppliers = [state.suppliers[0]];
+          store.put(state, "state");
+        };
+        tx.oncomplete = () => {
+          db.close();
+          resolve();
+        };
+        tx.onerror = () => reject(tx.error);
+      };
+    });
+  });
+  await page.reload();
+  await expect(
+    page.getByRole("tab", { name: "All 6", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /LOCAL-EDIT-KEPT/ }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /DEV-1002/ })).toBeVisible();
 });

@@ -60,9 +60,16 @@ jobs:
       - name: Invoice UI and real application journeys
         working-directory: frontend
         run: |
+          npm run test:invoice-demo
           npm run test:payables
           npm run test:payables-transport
           npm run test:payables:integration
+      - name: Save runnable invoice demo
+        uses: actions/upload-artifact@v4
+        with:
+          name: finai-invoice-demo
+          path: frontend/artifacts/invoice-demo/
+          retention-days: 7
       - name: Verify private document and export restore
         run: bash backend/scripts/payables-storage-check.sh
       - name: Save failed browser evidence

@@ -209,6 +209,10 @@ const router = createBrowserRouter([
     ],
   },
   { path: "/welcome", element: <Welcome /> },
+  ...["/demo/invoices", "/invoices", "/invoice-approvals"].map((path) => ({
+    path,
+    element: <Navigate to="/development/payables/invoices" replace />,
+  })),
   ...[
     "invoices",
     "invoices/:id",
