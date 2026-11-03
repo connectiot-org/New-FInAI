@@ -206,6 +206,12 @@ for (const mode of ["remote", "embedded", "packaged"])
               () => document.documentElement.scrollWidth <= innerWidth + 1,
             ),
           ).toBeTruthy();
+          expect(
+            (await page
+              .locator(".ap-document-row > div")
+              .first()
+              .boundingBox())!.width,
+          ).toBeGreaterThanOrEqual(120);
           await page.screenshot({
             path: `artifacts/payables/live-${width}.png`,
             fullPage: true,

@@ -121,7 +121,15 @@ async function setup(page: Page) {
           matches: false,
           lines: [{ net: "10000", tax: "2000" }],
         },
-        documents: [],
+        documents: [
+          {
+            id: "55555555-5555-4555-8555-555555555555",
+            filename: "supplier-invoice-" + "x".repeat(160) + ".pdf",
+            digest: "a".repeat(64),
+            scanState: "clean",
+            revision: 1,
+          },
+        ],
         events: [],
         exports: [],
         payment: "unpaid",
@@ -171,6 +179,11 @@ for (const width of [1440, 390, 320])
         () => document.documentElement.scrollWidth <= innerWidth + 1,
       ),
     ).toBeTruthy();
+    const documentMetadata = page.locator(".ap-document-row > div").first();
+    await expect(documentMetadata).toBeVisible();
+    expect(
+      (await documentMetadata.boundingBox())!.width,
+    ).toBeGreaterThanOrEqual(120);
     await page.screenshot({
       path: `artifacts/payables/detail-${width}.png`,
       fullPage: true,

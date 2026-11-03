@@ -1,5 +1,9 @@
 # Current progress — 2026-10-19
 
+## Full product verification — 3 November 2026 (Asia/Dhaka)
+
+Fresh verification of invoice commit e729bdc, whose tree matches the existing PR#21 merge on main8f8fd56:230 local application tests passed across every21 browser test files plus backend/transport suites; separate frozen installs, schema/generation, both compile/lint/build gates, seven contract validators/OpenAPI files, zero-vulnerability audits, storage/full application restore and asset scans passed. Screenshot review found a320px filename-width defect; a new assertion reproduced8.9px, then the scoped mobile correction passed all8 updated UI and6 real remote/embedded/packaged journeys. No backend/schema/dependency change. The correction and evidence are delivered on the existing feature branch; no main merge or deployment performed. Hosted Actions/live requests remain environment-proxy403, so no hosted result is claimed. Full commands, finding and limits: [payables-verification.md](payables-verification.md).
+
 ## Supplier invoice approvals — 3 November 2026 (Asia/Dhaka)
 
 Completed the manual-entry authenticated supplier-invoice pilot from base36b2214 for delivery on `feat/supplier-invoice-approvals`: supplier editing, private PDF/ClamAV adapter, exact GBP/coding, optional verification, one/two-step threshold approvals, corrections/challenge/rejection, immutable history, balanced replay-safe CSV, policies and AP access administration. Existing demo/marketing and strict WorkspaceContext remain independent. Eight additive AP tables; removal of company access cascades grants and preserves financial history; grant changes revoke affected organisation sessions.

@@ -450,6 +450,9 @@
   .ap-document-row {
     flex-wrap: wrap;
   }
+  .ap-document-row > div {
+    flex-basis: calc(100% - 40px);
+  }
   .ap-policy {
     padding: 18px;
   }
