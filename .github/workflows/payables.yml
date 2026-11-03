@@ -1,0 +1,81 @@
+name: Supplier invoice product checks
+on:
+  push:
+    paths:
+      [
+        "backend/**",
+        "frontend/**",
+        "contracts/payables*",
+        "contracts/generate-payables.mts",
+        "contracts/validate_payables.mjs",
+        ".github/workflows/payables.yml",
+      ]
+  pull_request:
+    paths:
+      [
+        "backend/**",
+        "frontend/**",
+        "contracts/payables*",
+        "contracts/generate-payables.mts",
+        "contracts/validate_payables.mjs",
+        ".github/workflows/payables.yml",
+      ]
+permissions:
+  contents: read
+jobs:
+  invoice-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Install locked applications
+        run: |
+          npm ci --prefix backend --no-audit --no-fund
+          npm ci --prefix frontend --no-audit --no-fund
+      - name: Compile and validate backend
+        working-directory: backend
+        run: |
+          npm run db:init
+          npm run db:up
+          npm run generate
+          npm run typecheck
+          npm run lint
+          npm run build
+          npm test
+      - name: Validate payables contract
+        run: node contracts/validate_payables.mjs
+      - name: Prepare browser
+        working-directory: frontend
+        run: |
+          npx playwright install --with-deps chromium
+          npm run typecheck
+          npm run lint
+      - name: Invoice UI and real application journeys
+        working-directory: frontend
+        run: |
+          npm run test:payables
+          npm run test:payables-transport
+          npm run test:payables:integration
+      - name: Verify private document and export restore
+        run: bash backend/scripts/payables-storage-check.sh
+      - name: Save failed browser evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: invoice-failure-evidence
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Stop owned test database
+        if: always()
+        working-directory: backend
+        run: docker compose stop db

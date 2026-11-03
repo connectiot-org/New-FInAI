@@ -75,3 +75,7 @@ Assistant and ledger contracts: [assistant.md](assistant.md), [assistant.openapi
 
 
 Public model test chat is a separate stateless boundary: [public-chat.md](public-chat.md) and [public-chat.schema.json](public-chat.schema.json). It requires no financial session/database and cannot access financial sources. Existing private Assistant contracts stay unchanged; its page is now /workspace/assistant/records. Validate with `node contracts/validate_public_chat.mjs`.
+
+## Supplier invoice approvals 1.0.0
+
+[Payables contract](payables.md) and [OpenAPI](payables.openapi.json) define the separate authenticated supplier-invoice workflow, explicit AP grants, private original documents, revision-bound verification/approval, policy publication and immutable balanced export. Existing module contracts and strict WorkspaceContext remain unchanged. Validate with `node contracts/validate_payables.mjs`; regenerate schema artifacts with `node --import ./backend/node_modules/tsx/dist/loader.mjs contracts/generate-payables.mts` from the repository root. Cross-field financial and state-machine refinements additionally run in real backend tests. Operational setup and boundaries: [backend/PAYABLES.md](../backend/PAYABLES.md).

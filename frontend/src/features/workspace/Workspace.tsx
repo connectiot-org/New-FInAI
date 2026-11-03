@@ -59,6 +59,7 @@ function WorkspaceBody() {
         <NavLink to="/workspace/assistant/records">FinAI Assistant</NavLink>
         <NavLink to="/workspace/ledger">Imported ledger</NavLink>
         <NavLink to="/workspace/receivables/invoices">Receivables</NavLink>
+        <NavLink to="/workspace/payables/invoices">Supplier invoices</NavLink>
         <NavLink to="/workspace/checklist">Monthly checklist</NavLink>
         <NavLink to="/workspace/subscriptions">Subscriptions</NavLink>
         {c.entities.some((e) => e.canImport) && (

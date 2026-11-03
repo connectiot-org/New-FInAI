@@ -26,12 +26,13 @@ for (const root of [
   "artifacts/workspace-dist",
   "artifacts/assistant-dist",
   "artifacts/public-chat-dist",
+  "artifacts/payables-dist",
 ]) {
   if (!existsSync(root))
     throw new Error(
       "Build demo, session, receivables, workspace, Assistant and public chat assets before scanning.",
     );
-  const assets = files(root).filter((path) => /\.(js|css|html)$/.test(path));
+  const assets = files(root).filter((path) => /\.(m?js|css|html)$/.test(path));
   for (const path of assets) {
     const text = readFileSync(path, "utf8");
     if (secrets.some((secret) => text.includes(secret)))
@@ -43,7 +44,8 @@ for (const root of [
         root.includes("receivables-dist") ||
         root.includes("workspace-dist") ||
         root.includes("assistant-dist") ||
-        root.includes("public-chat-dist")) &&
+        root.includes("public-chat-dist") ||
+        root.includes("payables-dist")) &&
       text.includes("http://127.0.0.1:3000/api/v1")
     )
       throw new Error(

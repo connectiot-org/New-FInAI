@@ -4,7 +4,9 @@ import type { AddressInfo } from "node:net";
 import { createRequire } from "node:module";
 import { randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve, basename } from "node:path";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { PrismaClient as Client } from "../../backend/node_modules/@prisma/client";
 import {
@@ -23,6 +25,14 @@ const argon = require("../../backend/node_modules/argon2/argon2.cjs") as {
 };
 process.loadEnvFile("../backend/.env");
 const original = process.env.DATABASE_URL!;
+// Explicit custom-engine source builds are a native development target, not RHEL deployment evidence.
+const sourceEngine = process.env.PRISMA_QUERY_ENGINE_LIBRARY;
+const packagedEngine = sourceEngine
+  ? resolve(".finai-server/node_modules/.prisma/client", basename(sourceEngine))
+  : resolve(
+      ".finai-server/node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node",
+    );
+
 if (!["127.0.0.1", "localhost"].includes(new URL(original).hostname))
   throw new Error("Disposable local database required");
 const schema = "vercel_" + randomUUID().replaceAll("-", "");
@@ -132,6 +142,15 @@ async function call(
   };
 }
 test.beforeAll(async () => {
+  if (sourceEngine) {
+    expect(existsSync(packagedEngine)).toBe(true);
+    expect(
+      createHash("sha256").update(readFileSync(packagedEngine)).digest("hex"),
+    ).toBe(
+      createHash("sha256").update(readFileSync(sourceEngine)).digest("hex"),
+    );
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY = packagedEngine;
+  }
   admin = new PrismaClient();
   await admin.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
   const url = new URL(original);
@@ -198,11 +217,7 @@ test("missing database gives an actionable safe error and does not boot local/de
   }
 });
 test("packaged backend runs without a listener and anonymous/spoofed requests cannot access private data", async () => {
-  expect(
-    existsSync(
-      ".finai-server/node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node",
-    ),
-  ).toBe(true);
+  expect(existsSync(packagedEngine)).toBe(true);
   expect((await call("/auth/session")).status).toBe(401);
   expect(listening).toBe(false);
   const result = await new Promise<number>((resolve, reject) => {

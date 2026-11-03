@@ -1,4 +1,8 @@
 import "reflect-metadata";
+import { createHash } from "node:crypto";
+import { PayablesController, uploadQuery } from "./payables/controller";
+import { PayablesService } from "./payables/service";
+import { ClamAvScanner } from "./payables/scanner";
 import { AssistantController } from "./assistant/controller";
 import { AssistantService } from "./assistant/service";
 import { AssistantFacts } from "./assistant/facts";
@@ -66,6 +70,9 @@ import { requestAuditContext } from "./audit";
 type AuthRequest = Request & { identity: Identity; sessionHash?: string };
 const isPreview = (req: Request) =>
   req.method === "POST" && req.path === "/api/v1/receivables/imports/preview";
+const isInvoiceUpload = (req: Request) =>
+  req.method === "POST" &&
+  /^\/api\/v1\/payables\/invoices\/[a-f0-9-]{36}\/documents$/.test(req.path);
 const empty = z.strictObject({});
 @Controller("api/v1")
 class ChecklistController {
@@ -144,6 +151,7 @@ class ChecklistController {
 }
 @Module({
   controllers: [
+    PayablesController,
     AssistantController,
     LedgerController,
     WorkspaceController,
@@ -154,6 +162,7 @@ class ChecklistController {
     ReceivablesDetailController,
   ],
   providers: [
+    PayablesService,
     AssistantService,
     AssistantFacts,
     LedgerService,
@@ -212,6 +221,9 @@ export async function createApplication(
       .split(",")
       .filter(Boolean),
   );
+  app.get(PayablesService).scanner = new ClamAvScanner(
+    options.env || process.env,
+  );
   const db = app.get(Database);
   const auth = new Auth(db);
   const server = app.getHttpServer();
@@ -266,8 +278,10 @@ export async function createApplication(
           !["GET", "HEAD"].includes(req.method) &&
           (req.headers.origin !== config.origins[0] ||
             !(
-              isPreview(req)
-                ? /^application\/octet-stream$/i
+              isPreview(req) || isInvoiceUpload(req)
+                ? isInvoiceUpload(req)
+                  ? /^application\/pdf$/i
+                  : /^application\/octet-stream$/i
                 : /^application\/json(?:\s*;|$)/i
             ).test(req.headers["content-type"] || ""))
         )
@@ -325,7 +339,11 @@ export async function createApplication(
       }
       if (
         ["POST", "PATCH", "DELETE"].includes(req.method) &&
-        !/^application\/json(?:\s*;|$)/i.test(req.headers["content-type"] || "")
+        !(
+          isInvoiceUpload(req)
+            ? /^application\/pdf$/i
+            : /^application\/json(?:\s*;|$)/i
+        ).test(req.headers["content-type"] || "")
       )
         throw new ApiError(
           422,
@@ -371,6 +389,60 @@ export async function createApplication(
       sendError(e, req, res);
     }
   });
+  app.use(
+    async (
+      req: AuthRequest & { apSynthetic?: boolean },
+      res: Response,
+      next: NextFunction,
+    ) => {
+      if (!isInvoiceUpload(req)) return next();
+      try {
+        if (config.mode !== "session" || req.headers["content-encoding"])
+          throw new ApiError(
+            403,
+            "FORBIDDEN",
+            "Uncompressed authenticated PDF required.",
+          );
+        const session = await auth.session(req);
+        auth.csrf(req, session);
+        await auth.limit(
+          `ap-upload:${session.organisationId}:${session.userId}`,
+          10,
+          900,
+        );
+        const query = parse(uploadQuery, req.query);
+        const invoiceId = parse(uuid, req.path.split("/")[5]);
+        const actor = {
+          organisationId: session.organisationId,
+          userId: session.userId,
+        };
+        await app
+          .get(PayablesService)
+          .uploadAllowed(actor, invoiceId, query.entityId);
+        express.raw({
+          type: "application/pdf",
+          limit: 1048576,
+          inflate: false,
+        })(req, res, (err?: unknown) => {
+          if (err) return next(err);
+          if (!Buffer.isBuffer(req.body))
+            return next(
+              new ApiError(422, "INVALID_PDF", "A PDF body is required."),
+            );
+          // Exact allowlisted synthetic fixtures only, never a claim of malware scanning.
+          const digest = createHash("sha256")
+            .update(req.body as Buffer)
+            .digest("hex");
+          req.apSynthetic =
+            (options.env || process.env).NODE_ENV === "test" &&
+            (options.env || process.env).AP_SYNTHETIC_PDF_SHA256 === digest;
+          next();
+        });
+      } catch (error) {
+        sendError(error, req, res);
+      }
+    },
+  );
   app.use(express.json({ limit: "16kb" }));
   app.use(async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -380,6 +452,7 @@ export async function createApplication(
       }
       if (config.mode === "session") {
         if (req.path === "/health/ready" && req.method === "GET") {
+          await db.$queryRaw`SELECT 1 FROM "ApInvoice" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
           await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
           await db.$queryRaw`SELECT id, organisation_id, entity_id, version, source_name, source_captured_at, imported_at, importing_actor_id, digest, row_count FROM "ReceivableSnapshot" LIMIT 1`;
@@ -426,6 +499,7 @@ export async function createApplication(
         return;
       }
       if (req.path === "/health/ready") {
+        await db.$queryRaw`SELECT 1 FROM "ApInvoice" LIMIT 1`;
         await db.$queryRaw`SELECT 1 FROM "ChecklistTask" LIMIT 1`;
         await db.$queryRaw`SELECT 1 FROM "SubscriptionRenewal" LIMIT 1`;
         await db.$queryRaw`SELECT id, organisation_id, entity_id, version, source_name, source_captured_at, imported_at, importing_actor_id, digest, row_count FROM "ReceivableSnapshot" LIMIT 1`;
