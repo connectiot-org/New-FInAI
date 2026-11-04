@@ -1,3 +1,4 @@
+/** Northstar sample selector; private imported receivables use the separate validated API adapter. */
 import type { DemoState } from "../../types/domain";
 import { inScope } from "../../demo/selectors";
 

@@ -1,3 +1,4 @@
+/** Public invoice sample shell. Its local roles and client never authorize company API access. */
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BrandMark } from "../../components/shared/BrandMark";

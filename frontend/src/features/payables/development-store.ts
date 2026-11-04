@@ -1,3 +1,4 @@
+/** Browser-only invoice samples in separate IndexedDB; no company session, real scanner or financial posting. */
 import { z } from "zod";
 import {
   dataSchema,

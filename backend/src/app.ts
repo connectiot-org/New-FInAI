@@ -1,3 +1,4 @@
+/** Shared Nest composition root for the listening API and listener-free private Vercel runtime. */
 import "reflect-metadata";
 import { createHash } from "node:crypto";
 import { PayablesController, uploadQuery } from "./payables/controller";

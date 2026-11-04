@@ -1,3 +1,4 @@
+// Public sample/chat routes and authenticated company routes keep separate data authority.
 import { OperationalSource } from "../features/assistant/OperationalSource";
 import { LedgerSource } from "../features/assistant/LedgerSource";
 import { Imports } from "../features/workspace/Imports";

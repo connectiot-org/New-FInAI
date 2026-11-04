@@ -1,3 +1,4 @@
+/** Public, stateless model-chat wrapper. Private financial records use features/assistant/Assistant.tsx. */
 import { lazy, Suspense } from "react";
 const Chat = lazy(() =>
   import("./public-chat/PublicChat").then((module) => ({

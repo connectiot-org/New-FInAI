@@ -28,16 +28,19 @@ export function createEmbeddedHandler(options: {
   let application: Promise<App> | undefined;
   const handler = async (req: Request, res: ServerResponse) => {
     const fail = (status: number, code: string, message: string) => {
+      if (res.destroyed || res.writableEnded) return;
       if (res.headersSent) {
         res.destroy();
         return;
       }
+      const requestId = randomUUID();
       res.writeHead(status, {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
+        "X-Request-Id": requestId,
         ...(status === 408 || status === 422 ? { Connection: "close" } : {}),
       });
-      res.end(JSON.stringify({ code, message, requestId: randomUUID() }));
+      res.end(JSON.stringify({ code, message, requestId }));
     };
     const domain =
       env.VERCEL_ENV === "preview"

@@ -460,11 +460,20 @@ test("persistent payables, assignment isolation, export replay and revisions", a
             bytes,
           );
           infected = true;
+          const beforeRescan = new Date("2001-01-01T00:00:00Z");
+          await db.$executeRaw`UPDATE "ApInvoice" SET updated_at=${beforeRescan} WHERE id=${id}::uuid`;
           const scanned = await service.rescan(actors[0], id, doc.id, {
             operationId: randomUUID(),
             expectedVersion: 2,
           });
           assert.equal(scanned.scanState, "infected");
+          const [changed] = await db.$queryRaw<
+            { updated_at: Date }[]
+          >`SELECT updated_at FROM "ApInvoice" WHERE id=${id}::uuid`;
+          assert.ok(
+            changed.updated_at > beforeRescan,
+            "Rescan updates the invoice modification timestamp",
+          );
           await assert.rejects(service.document(actors[0], id, doc.id));
           assert.equal(
             (await service.detail(actors[0], id)).events[0].reason,

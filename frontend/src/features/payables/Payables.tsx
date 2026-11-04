@@ -87,36 +87,39 @@ function useLoad<T>(load: (signal: AbortSignal) => Promise<T>) {
 function MoneyInput({
   value,
   onChange,
+  disabled = false,
 }: {
   value: string;
   onChange: (minor: string) => void;
+  disabled?: boolean;
 }) {
-  const [raw, setRaw] = useState(() =>
-    /^\d+$/.test(value)
-      ? `${BigInt(value) / 100n}.${(BigInt(value) % 100n).toString().padStart(2, "0")}`
-      : "",
-  );
+  const display = (minor: string) =>
+    /^\d+$/.test(minor)
+      ? `${BigInt(minor) / 100n}.${(BigInt(minor) % 100n).toString().padStart(2, "0")}`
+      : "";
+  const [draft, setDraft] = useState(() => ({ value, raw: display(value) }));
+  // Reused line/rule components must reflect a different controlled amount.
+  // Keep the user's decimal draft when the parent echoes its canonical value.
+  if (draft.value !== value) setDraft({ value, raw: display(value) });
   return (
     <input
       required
+      disabled={disabled}
       inputMode="decimal"
       pattern="[0-9]+([.][0-9]{1,2})?"
-      value={raw}
+      value={draft.value === value ? draft.raw : display(value)}
       onChange={(e) => {
         const v = e.target.value;
         if (!/^\d{0,8}(\.\d{0,2})?$/.test(v)) return;
-        setRaw(v);
-        if (!v) {
-          onChange("");
-          return;
-        }
         const [whole, fraction = ""] = v.split(".");
-        onChange(
-          (
-            BigInt(whole || 0) * 100n +
-            BigInt(fraction.padEnd(2, "0"))
-          ).toString(),
-        );
+        const minor = v
+          ? (
+              BigInt(whole || 0) * 100n +
+              BigInt(fraction.padEnd(2, "0"))
+            ).toString()
+          : "";
+        setDraft({ value: minor, raw: v });
+        onChange(minor);
       }}
     />
   );
@@ -623,6 +626,7 @@ function InvoiceForm({
             <label>
               Supplier
               <select
+                disabled={busy}
                 aria-label="Supplier"
                 required
                 value={data.supplierId}
@@ -641,6 +645,7 @@ function InvoiceForm({
             <label>
               Supplier reference
               <input
+                disabled={busy}
                 required
                 maxLength={200}
                 value={data.reference}
@@ -650,6 +655,7 @@ function InvoiceForm({
             <label>
               Invoice date
               <input
+                disabled={busy}
                 type="date"
                 required
                 value={data.invoiceDate}
@@ -659,6 +665,7 @@ function InvoiceForm({
             <label>
               Due date
               <input
+                disabled={busy}
                 type="date"
                 required
                 value={data.dueDate}
@@ -668,6 +675,7 @@ function InvoiceForm({
             <label>
               Total on supplier document (GBP)
               <MoneyInput
+                disabled={busy}
                 value={data.declaredGross}
                 onChange={(v) => update("declaredGross", v)}
               />
@@ -705,6 +713,7 @@ function InvoiceForm({
                       }[k]
                     }
                     <input
+                      disabled={busy}
                       required
                       value={l[k]}
                       onChange={(e) =>
@@ -721,6 +730,7 @@ function InvoiceForm({
                 <label>
                   Unit price (GBP)
                   <MoneyInput
+                    disabled={busy}
                     value={l.unitMinor}
                     onChange={(v) =>
                       update(
@@ -735,6 +745,7 @@ function InvoiceForm({
                 <label>
                   Tax treatment
                   <select
+                    disabled={busy}
                     value={l.taxCode}
                     onChange={(e) =>
                       update(
@@ -759,6 +770,7 @@ function InvoiceForm({
                 </label>
                 <label className="ap-checkbox">
                   <input
+                    disabled={busy}
                     type="checkbox"
                     checked={l.recoverable}
                     onChange={(e) =>
@@ -778,6 +790,7 @@ function InvoiceForm({
               {data.lines.length > 1 && (
                 <button
                   type="button"
+                  disabled={busy}
                   onClick={() =>
                     update(
                       "lines",
@@ -792,7 +805,7 @@ function InvoiceForm({
           ))}
           <button
             type="button"
-            disabled={data.lines.length >= 50}
+            disabled={busy || data.lines.length >= 50}
             onClick={() => update("lines", [...data.lines, { ...blankLine }])}
           >
             Add line
@@ -821,7 +834,13 @@ function Detail({
   caps: Caps;
 }) {
   const { request, binary, basePath, development } = usePayablesClient();
-  const [previewBlob, setPreviewBlob] = useState<Blob>();
+  // Preview bytes belong to this exact authorized detail snapshot, not just a document filename.
+  const [preview, setPreview] = useState<{
+    detail: z.infer<typeof detailSchema>;
+    documentId: string;
+    blob: Blob;
+  }>();
+  const previewGeneration = useRef({ generation: 0 });
   const current = useWorkspace(),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -843,19 +862,22 @@ function Detail({
     n = state.value;
   const firstDocument = n?.documents[0]?.id;
   useEffect(() => {
-    if (!development || !firstDocument) return;
-    let active = true;
-    binary(`/invoices/${id}/documents/${firstDocument}`, undefined, true)
-      .then((blob) => {
-        if (active && blob) setPreviewBlob(blob);
-      })
-      .catch((error: Error) => {
-        if (active) setError(error.message);
-      });
+    const scope = previewGeneration.current;
+    const generation = ++scope.generation;
+    setPreview(undefined);
+    if (development && firstDocument && n)
+      void binary(`/invoices/${id}/documents/${firstDocument}`, undefined, true)
+        .then((blob) => {
+          if (generation === scope.generation && blob)
+            setPreview({ detail: n, documentId: firstDocument, blob });
+        })
+        .catch((error: Error) => {
+          if (generation === scope.generation) setError(error.message);
+        });
     return () => {
-      active = false;
+      scope.generation++;
     };
-  }, [development, firstDocument, id, binary]);
+  }, [development, firstDocument, n, id, binary]);
   const act = async (action: string) => {
     if (!n) return;
     setBusy(true);
@@ -1007,6 +1029,8 @@ function Detail({
                     <button
                       disabled={busy}
                       onClick={() => {
+                        previewGeneration.current.generation++;
+                        setPreview(undefined);
                         setBusy(true);
                         request(
                           `/invoices/${id}/documents/${d.id}/scan`,
@@ -1052,10 +1076,16 @@ function Detail({
                       !["synthetic", "clean"].includes(d.scanState))
                   }
                   onClick={() => {
+                    const generation = ++previewGeneration.current.generation;
+                    setPreview(undefined);
                     setBusy(true);
                     binary(`/invoices/${id}/documents/${d.id}`, undefined, true)
                       .then((blob) => {
-                        if (blob) setPreviewBlob(blob);
+                        if (
+                          blob &&
+                          generation === previewGeneration.current.generation
+                        )
+                          setPreview({ detail: n, documentId: d.id, blob });
                       })
                       .catch((e) => setError(e.message))
                       .finally(() => setBusy(false));
@@ -1074,7 +1104,11 @@ function Detail({
                 accept="application/pdf,.pdf"
                 disabled={busy}
                 onChange={async (e) => {
-                  const file = e.target.files?.[0];
+                  const input = e.currentTarget;
+                  const file = input.files?.[0];
+                  // Retain the File/operation ID, while allowing the same native
+                  // selection to trigger a deliberate retry after a failed upload.
+                  input.value = "";
                   if (!file) return;
                   if (file.size > 1048576) {
                     setError("PDF must be at most 1 MiB.");
@@ -1109,7 +1143,12 @@ function Detail({
               />
             </label>
           )}
-          {previewBlob && <PdfPreview blob={previewBlob} />}
+          {preview?.detail === n &&
+            n.documents.some(
+              (d) =>
+                d.id === preview.documentId &&
+                (development || ["synthetic", "clean"].includes(d.scanState)),
+            ) && <PdfPreview blob={preview.blob} />}
           <p className="ap-muted">
             {development
               ? "Development files stay in this browser and are not malware-scanned. Use sample PDFs."
@@ -1403,11 +1442,11 @@ function Suppliers({
         >
           <label>
             Legal / display name
-            <input name="name" required maxLength={200} />
+            <input disabled={busy} name="name" required maxLength={200} />
           </label>
           <label>
             Tax identifier
-            <input name="taxId" maxLength={200} />
+            <input disabled={busy} name="taxId" maxLength={200} />
           </label>
           <button className="primary" disabled={busy}>
             Add supplier
@@ -1445,6 +1484,7 @@ function Suppliers({
             <label>
               Supplier name
               <input
+                disabled={busy}
                 required
                 maxLength={200}
                 value={editing.name}
@@ -1456,6 +1496,7 @@ function Suppliers({
             <label>
               Supplier tax identifier
               <input
+                disabled={busy}
                 maxLength={200}
                 value={editing.taxId}
                 onChange={(e) =>
@@ -1465,6 +1506,7 @@ function Suppliers({
             </label>
             <label className="ap-checkbox">
               <input
+                disabled={busy}
                 type="checkbox"
                 checked={editing.active}
                 onChange={(e) =>
@@ -1693,17 +1735,20 @@ function ChainFields({
   onChange,
   caps,
   label,
+  disabled = false,
 }: {
   value: Chain;
   onChange: (v: Chain) => void;
   caps: Caps;
   label: string;
+  disabled?: boolean;
 }) {
   return (
     <div className="ap-form-grid">
       <label>
         {label} verifier
         <select
+          disabled={disabled}
           value={value.verifierId || ""}
           onChange={(e) =>
             onChange({ ...value, verifierId: e.target.value || null })
@@ -1723,6 +1768,7 @@ function ChainFields({
         <label key={step}>
           {label} approver {step + 1}
           <select
+            disabled={disabled}
             value={value.approverIds[step] || ""}
             onChange={(e) => {
               const ids = [...value.approverIds];
@@ -1856,6 +1902,7 @@ function PolicyEditor({
             <label>
               Priority
               <input
+                disabled={busy}
                 type="number"
                 min={1}
                 max={100}
@@ -1875,6 +1922,7 @@ function PolicyEditor({
             <label>
               Gross amount at least (GBP)
               <MoneyInput
+                disabled={busy}
                 value={r.minimumGross}
                 onChange={(v) =>
                   setDefinition((d) => ({
@@ -1888,6 +1936,7 @@ function PolicyEditor({
             </label>
           </div>
           <ChainFields
+            disabled={busy}
             label={`Rule ${index + 1}`}
             value={r}
             caps={caps}
@@ -1937,6 +1986,7 @@ function PolicyEditor({
       </button>
       <h3>Mandatory fallback</h3>
       <ChainFields
+        disabled={busy}
         label="Fallback"
         value={definition.fallback}
         caps={caps}
@@ -1945,7 +1995,7 @@ function PolicyEditor({
       <div className="ap-preview">
         <label>
           Preview invoice total (GBP)
-          <MoneyInput value={preview} onChange={setPreview} />
+          <MoneyInput disabled={busy} value={preview} onChange={setPreview} />
         </label>
         <p>
           {rule ? `Priority ${rule.priority}` : "Mandatory fallback"} ·{" "}

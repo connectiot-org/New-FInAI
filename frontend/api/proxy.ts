@@ -26,13 +26,16 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   if (chatRoute?.startsWith("api/chat/"))
     return publicChat(req, res, chatRoute.slice("api/chat/".length));
   const fail = (status: number, message: string) => {
+    if (res.destroyed || res.writableEnded) return;
     if (res.headersSent) {
       res.destroy();
       return;
     }
+    const requestId = randomUUID();
     res.writeHead(status, {
       "Content-Type": "application/json",
       "Cache-Control": "no-store",
+      "X-Request-Id": requestId,
       ...(status === 408 || status === 422 ? { Connection: "close" } : {}),
     });
     res.end(
@@ -50,7 +53,7 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
                     ? "VALIDATION_FAILED"
                     : "UNAVAILABLE",
         message,
-        requestId: randomUUID(),
+        requestId,
       }),
     );
   };
@@ -134,15 +137,17 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     if (typeof value === "string") headers[name] = value;
   }
   headers["Content-Length"] = String(body.length);
+  let upstreamResponse: IncomingMessage | undefined;
   const upstream = request(
     target,
     {
       method: req.method,
       headers,
       servername: target.hostname,
-      timeout: 15000,
+      timeout: 25000,
     },
     (response) => {
+      upstreamResponse = response;
       if (
         response.statusCode !== 204 &&
         !(
@@ -193,5 +198,31 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
   );
   upstream.on("timeout", () => upstream.destroy(new Error("timeout")));
   upstream.on("error", () => fail(502, "Backend unavailable."));
-  upstream.end(body);
+  // Activity must not extend the function indefinitely, including a response
+  // that starts successfully but never finishes. Leave room within maxDuration.
+  const deadline = setTimeout(() => {
+    upstream.destroy(new Error("Backend response deadline exceeded"));
+    // A completed backend request can already be detached from its socket
+    // while a slow downstream is still draining buffered response bytes.
+    if (!res.writableFinished) {
+      if (res.headersSent || res.writableEnded) res.destroy();
+      else fail(502, "Backend response timed out.");
+    }
+  }, 30000);
+  deadline.unref();
+  const cleanup = () => {
+    clearTimeout(deadline);
+    res.off("finish", cleanup);
+    res.off("close", cleanup);
+    // A completed backend response may keep its pooled connection. Otherwise
+    // cancel remaining work when the browser leaves or a local failure finishes.
+    if (!upstreamResponse?.complete) {
+      upstreamResponse?.destroy();
+      upstream.destroy();
+    }
+  };
+  res.once("finish", cleanup);
+  res.once("close", cleanup);
+  if (res.destroyed) cleanup();
+  else upstream.end(body);
 }

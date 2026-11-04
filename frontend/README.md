@@ -1,100 +1,52 @@
 # FinAI frontend
 
-A standalone FinAI public website and accounting product demo for the fictional Northstar Analytics. React 19, TypeScript, Vite, Tailwind CSS, Radix dialogs/dropdowns, Redux Toolkit, TanStack Table, React Hook Form + Zod, Recharts, and Lucide. The default demo requires no backend, credentials, or external runtime services. An optional local persistent monthly checklist is available separately; see [checklist setup](docs/checklist.md).
+React 19, TypeScript and Vite browser application with a separate Node/Vercel API adapter. Start at the [repository guide](../docs/repository-guide.md) for each file's purpose and the [root README](../README.md) for end-to-end setup. There is no root npm workspace: install and run commands in this directory.
 
-## Install and run
+## Runtime boundaries
 
-Use Node 24 (tested with 24.19.0) and npm 11. Vite also supports Node 20.19+ or 22.12+.
+| Surface | Routes and behavior |
+| --- | --- |
+| Public invoice sample | `/demo/invoices` redirects to `/demo/payables/invoices`; `/development/payables/*` also redirects to samples. No sign-in/private API. Six sample invoices cover the workflow stages and a total mismatch; their sample PDFs and changes persist in separate IndexedDB `finai-invoices-development-v1`. |
+| Company invoices | `/workspace/payables/*` uses sessions, explicit AP grants, PostgreSQL and private original PDFs. FinAI links preserve company/month/GBP/invoice scope and require confirmation for proposed actions. |
+| Private financial Assistant | `/workspace/assistant` redirects to `/workspace/assistant/records`; authorized facts/history and confirmed proposals, without browser persistence of private records. |
+| Public model chat | `/demo/assistant` and `/assistant`; separate general model chat with no company-record access. Server configuration is required. |
+| Original Northstar sample | `/welcome` and the other demo routes use `finai-demo-v1`; local accounting, banking, reports, approvals and automations are simulations. The deterministic Assistant example remains at `/demo/assistant/offline`. |
+
+The public sample is never an automatic fallback for a failed company API. Database/provider/session errors remain visible. Demo persona selection is not authentication. Supported real invoice behavior and limits are in [backend/PAYABLES.md](../backend/PAYABLES.md).
+
+## Install, run and build
+
+Use Node 24/npm 11:
 
 ```sh
-cd /workspace/New-FInAI/frontend
 npm ci
-npm run dev -- --port 5173
-```
-
-Open `http://localhost:5173/` for the new public homepage, or `http://localhost:5173/welcome` to enter the accounting demo directly. Vite supports direct deep links. For a production static host, configure an SPA fallback to `index.html` for application paths; no API routes exist.
-
-```sh
+npm run dev -- --host 127.0.0.1 --port 5173
 npm run typecheck
 npm run lint
 npm run build
 npm test
-npm run preview -- --port 4173
 ```
 
-Playwright uses `/usr/bin/chromium` when available. Set `PLAYWRIGHT_CHROMIUM_PATH` to another system Chromium, or run `npx playwright install chromium` to use Playwright's bundled browser when no system Chromium is present. The browser suite starts a Vite server automatically and uses two workers. `npm run format` formats this directory only.
+Open `http://127.0.0.1:5173/demo/invoices` for sample invoices. Plain Vite serves the browser app; it does not start Nest or execute the Vercel/public-chat API handlers. Server features need their documented API/runtime configuration. Browser tests use the checked-in Chromium configuration; run `npx playwright install chromium` if needed, or set the documented `PLAYWRIGHT_CHROMIUM_PATH`. Dedicated suites start their own servers; run them sequentially to avoid port/artifact conflicts.
 
-## Demo journeys
+`npm run build:invoice-demo` produces `artifacts/invoice-demo/` with public assets and `serve.mjs`. Run `node artifacts/invoice-demo/serve.mjs` to open its README's standalone entry. It needs no account/database and performs no real scanning/payment/posting. Use sample files only.
 
-- Welcome → entity/period selectors → overview metric → scoped records.
-- Journal entries → New → balance debits/credits → Save → Submit → switch to Reviewer → Approve → switch to Accountant/Admin → Post → inspect ledger/report/audit → Reverse. Drafts do not affect reports.
-- Invoices → New → add lines → Save draft → Issue locally → apply partial/full demo receipts → inspect receivable and cash journals.
-- Bills → Inbox → open a document → change account coding → Submit → Reviewer/Admin approval → inspect source entry/activity → optionally record a demo payment.
-- Reconciliation → Unmatched → inspect a suggested journal → Confirm match → Unmatch. One unidentified statement fixture intentionally has no candidate.
-- Month-end close → task → evidence note or local attachment → Complete → Request review → Reviewer/Admin approves. Admin can lock/unlock a month; posting and source changes then respect the lock.
-- Reports → financial statement → change period/entity → expand groups → drill into an account and source journal → CSV export or print.
-- Assistant → example question → linked evidence → preview close-task proposal → explicitly approve. Unsupported questions return an honest fallback.
-- Automations → configure trigger, amount condition and review action → Save → Preview → Run locally → inspect result history. Integrations provide an explicit simulation wizard and local sync log.
-- Settings → members/demo personas, review policy, departments, notifications, compact density, simulated loading/empty/error states, or Reset demo.
+`npm run build:vercel` instead packages the private Nest backend outside public `dist/`, typechecks the Node API and builds session/API browser modes. It does not provision databases/accounts or run migrations/seeds. Keep database/provider/proxy settings server-only; `VITE_*` values are public. See [Vercel deployment](docs/vercel.md).
 
-## Data and calculations
+## Source organization
 
-The seed covers April–September 2026: 44 accounts, 24 customers, 16 vendors, 72 invoices, 48 bills, 12 contracts, two entities and 408 seeded journal lines. USD is the functional currency for both entities; consolidation simply adds USD values and clearly shows simulated 1.00 FX / zero eliminations. No unlike-currency totals are presented.
+- `src/main.tsx` mounts the app; `src/app/` owns routes and shells.
+- `src/features/` groups screens/clients by domain; lowercase feature folders group public/sample/private modules by domain; each retains its documented data boundary.
+- `src/demo/`, `src/store/` and `src/types/` implement the original sample data and transitions.
+- `src/lib/` contains shared private API/session helpers; `src/components/` contains shared presentation.
+- `api/proxy.ts` and `server/` run on Node, not in the browser.
+- `scripts/` contains build, fixture/service and transport verification utilities; `tests/` contains browser suites. Each `playwright.*.config.ts` selects its matching suite.
+- `docs/` contains feature, routing, design-reference and hosting guides. Validation JSON files are historical generated evidence for the version named inside them, not live hosting certificates.
 
-Amounts use integer cents; conversion to dollars happens only for presentation/export. Posted double-entry journals are canonical for ledger and statements. Opening cash is funded by common stock and retained earnings. Balance-sheet current earnings are cumulative posted revenue less expenses. Cash flow includes operating receipts/payments and opening financing. Balance-sheet and cash-flow controls reconcile to zero for each seeded month/entity. Monthly-in-arrears invoices recognize revenue immediately; contract commitments are forecasts and deferred revenue is zero in the initial seed.
+See the [complete file catalog](../docs/repository-guide.md#frontend-files) and [verification map](../docs/repository-guide.md#verification).
 
-All demo business data lives in versioned `localStorage` under `finai-demo-v1`. Invalid/older data falls back to the consistent seed with a notice. Local mutations produce object-specific before/after audit events. Reset in Settings → Preferences restores the seed, clears saved report views and returns to the Admin persona. Browser storage failure leaves a visible warning and session-only changes.
+## Working safely
 
-PDF/image attachments use session object URLs, never an upload or remote OCR call. Only an evidence filename/note may be persisted; reselect the file after a refresh. No File object or object URL is persisted. Conversation text is session-only. Saved report shortcuts retain report identity; entity/period are the current global scope.
+Preserve the original `finai-demo-v1` and separate invoice sample store. Do not persist company records, credentials or financial chat history in browser storage. Do not put secrets into generated public assets. Generated `dist/`, `.finai-server/`, `.vercel/`, `node_modules/`, `artifacts/` and browser results are ignored output; edit their source/generator instead.
 
-## Boundaries and limitations
-
-All payments, connections, approvals, period locks, automations and assistant answers are simulations. Roles are UI demonstrations, not authentication or a security boundary. The review threshold highlights high-value documents; all bills/journals still require approval. Automation runs create local review results/history and never post entries or send messages. Source-linked journals cannot be reversed independently because that would detach invoice/bill balances; manual journals support linked reversals.
-
-The frontend has no customer/vendor/contract creation engine, production tax logic, real multi-currency accounting, billing service, or API integration. Contact profiles and contract terms are fixture read views. Reconciliation is a deliberately small September statement sample, including an exception. Only the supported local rules described above are implemented.
-
-The public Rillet homepage is now accessible through verified HTTPS. Its fonts, section order, colors, hero geometry and visible dashboard composition informed the current implementation. FinAI branding, synthetic records and local workflows remain explicit. Private Rillet screens and live animations have not been inspected; total pixel identity is not claimed. See `docs/reference-map.md` for evidence and `docs/route-matrix.md` for behavior and verification coverage.
-
-## Future adapter boundary
-
-`src/types/domain.ts` defines serializable domain records and `DemoService`; `src/store/index.ts` contains transitions and the `localDemoService` adapter. Replace that adapter in a separate integration task when APIs exist. UI components do not issue remote business requests. Calculation selectors are in `src/demo/selectors.ts`; report composition is in `src/features/Reports.tsx`. Do not connect a backend to run this prototype.
-
-Existing backend and root repository files are untouched. No deployment has been performed. Development uses the existing isolated checkout; do not create a worktree unless explicitly requested.
-
-## Public website
-
-The root route opens the reference-based FinAI homepage: white/black navigation, Space Grotesk headings, DM Sans body text, original cityscape-backed working dashboard, eight-card platform grid, purple AI section, integration tiles, local workflow carousel and purple final CTA. Twelve product pages live under `/product/`. `/resources` contains interactive previews, workflow guides and FAQs; `/customers` shows clearly fictional demo records; `/about` describes the prototype. All public navigation works without a backend or lead-collection service. The footer guide bookmark persists locally under `finai-public-guide`.
-
-Fourteen public-site Playwright tests cover navigation/deep links, preview search/source links, walkthroughs, keyboard FAQs, missing-product recovery, containment at 1440/1280/1024/390 pixels, measured reference geometry, full-width mobile platform cards, product feature/source/carousel behavior, workflow carousel, guide persistence and expandable workspace navigation, plus original identity, keyboard preview tabs, mobile solution links and 320px containment. Together with the 19 accounting tests, **33 tests pass**. Build and lint also pass. Production route results and responsive measurements are saved in `docs/homepage-validation.json`; screenshots are in `docs/screenshots/`.
-
-The earlier blocked-access fallback has been replaced using observed public reference evidence. HTTPS downloads verified TLS and the shared stylesheet's source integrity hash; Chromium rendered an isolated local static copy with remote scripts omitted. The environment's proxy certificate was not added to browser trust. Customer endorsements, ratings and certifications are replaced by honest demo labels and workflow examples. The original application artwork and self-hosted font licenses are documented in `docs/reference-assets.md`. Existing accounting workflows are retained, with a white/gray/purple workspace, compact expandable rail and canonical-data snapshot.
-
-## REA workflow and latest reference revision
-
-[Step-by-step clone, reference preparation, REA capture, comparison and verification](docs/rea-workflow.md) is now reproducible with the official pinned `rea-agents@6.5.0` CLI and its reverse-engineer-anything skill. No MCP registration or native analysis engine is required. `scripts/capture-rillet-reference.py` retrieves a verified, integrity-checked static reference; `scripts/rea-ui-audit.mjs` captures and compares desktop/mobile screenshots and retains complete REA evidence under ignored `artifacts/`.
-
-The latest comparison corrected the desktop logo/platform spacing, card proportions, AI heading and rail width, plus the mobile single-column card layout and AI presentation. Public product pages now include the observed gray-gradient hero, boxed benefits, four large feature cards, lavender workflow panel and related-product carousel. All links use FinAI's local records and existing workflows. Current evidence summaries: [REA audit](docs/rea-validation.json) and [section measurements](docs/rea-section-comparison.json). Pixel difference is reported as differing pixels, not a semantic similarity percentage or a claim about unseen screens.
-
-## Content and UI review
-
-The latest review replaces the previously borrowed hero image with an original SVG cityscape, unifies the FinAI monogram, and uses independent marketing copy and integration category icons. Fictional companies and functional workflow stories provide examples without invented endorsements. Keyboard preview tabs, mobile solution navigation, readable secondary text and narrow-screen workspace controls have been improved. See [content and UI review](docs/content-ui-review.md) for validation scope, evidence, and reference-access limits.
-
-## Persistent monthly checklist
-
-`/close/checklist` is a separate, optional local PostgreSQL-backed feature. It does not change `/close` approval/evidence/locking or financial demo storage. See [checklist setup and verification](docs/checklist.md) for API mode, migrations and dedicated browser tests. Default builds use a clearly labeled session-only checklist demo and make no checklist API requests. No production identity or public API deployment is provided.
-
-## Authenticated supplier invoices
-
-Open **Supplier invoices** in the homepage header/mobile menu, welcome screen or demo sidebar to open `/demo/payables/invoices` directly, without a sign-in form. `/development/payables/*` opens the corresponding demo route; `/invoices`, `/invoice-approvals` and `/demo/invoices` open the sample invoice list. Legacy company UUID query parameters are discarded on entry to the sample company.
-
-The interface is clearly labelled Development preview and uses the existing separate IndexedDB store, sample PDFs and roles. No private API/auth requests occur in this flow. Sample changes persist; existing `finai-demo-v1` storage is preserved. Use sample documents only. Real company invoices and FinAI controls remain separately authenticated at `/workspace/payables/invoices`; browser samples never supply a real identity or a live-error fallback.
-
-Build a runnable standalone copy with `npm run build:invoice-demo`, or run the complete built-artifact browser checks with `npm run test:invoice-demo`. The output at `artifacts/invoice-demo/` contains public static files, `serve.mjs`, a README and a build digest. Run `node serve.mjs` inside that output folder and open `http://127.0.0.1:4173/demo/invoices`; no npm install, account, database or backend is required to run the built copy. The invoice CI workflow uploads that folder as `finai-invoice-demo`.
-
-The separate authenticated `/workspace/payables/invoices` feature remains available for configured company workspaces. Real workspace data still requires provisioned accounts, company/AP grants and the existing backend/scanner configuration. Preview storage never supplies a live API fallback or company identity.
-
-`/workspace/payables/invoices` provides persistent supplier invoice review, private PDF preview, optional factual verification, sequential approvals, correction/challenge/rejection, policy/access settings and balanced CSV export. It uses the existing session/configuration gates and makes no fixture fallback. Existing demo Bills/Invoices remain separate.
-
-After backend setup, run `npm run test:payables` for controlled UI cases, `npm run test:payables-transport` for adapter bounds, and `npm run test:payables:integration` for the real multi-account PostgreSQL/HTTPS journey through remote, embedded and packaged backends. See [the operator runbook](../backend/PAYABLES.md) for scanner configuration, permissions, exact money and release boundaries. Production account, scanner and database provisioning remain operator prerequisites; no deployment is performed by the feature build.
-
-Invoice details link to the private FinAI Assistant with the company, invoice-date month, GBP currency and exact invoice ID. Ask for facts or a proposed review/verification/approval/correction/challenge/rejection/export. A proposal records no decision until you review and confirm it. Reasons, current assignments, permissions, document/policy readiness, optimistic versions, audit rollback and safe retries use the same server rules as the invoice screens. Public model chat cannot access invoices. See [Invoice Assistant contract](../contracts/invoice-assistant.md).
+Current feature guides: [checklist](docs/checklist.md), [subscriptions](docs/subscriptions.md), [receivables](docs/outstanding-customers.md), [workspace](docs/production-workspace.md), [private Assistant](docs/assistant.md), [public chat readiness](docs/assistant-production.md), and [Vercel/invoice routing](docs/vercel.md). The latest [production verification report](../context/production-verification.md) separates measured local checks from unresolved hosted release requirements.

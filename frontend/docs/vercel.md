@@ -59,6 +59,10 @@ The function initializes Nest without binding a TCP listener. It validates the h
 
 Both embedded and remote private adapters enforce an absolute input deadline: 5 seconds for ordinary bodies, 15 seconds for dedicated raw uploads. An unfinished body receives a no-store HTTP 408 `REQUEST_TIMEOUT` response and connection closure, before backend initialization or forwarding. Disconnects and oversize inputs release the reader's timers/listeners. Financial mutations still require explicit user retry with their existing stable operation ID/version; a transport failure does not authorize an automatic repeat.
 
+Remote forwarding has a 25-second socket inactivity limit and a 30-second absolute response deadline after input collection. Client disconnects and incomplete/error responses close unfinished upstream work; the hard deadline also closes an unfinished downstream response. A response already started is terminated rather than completed with invalid mixed JSON. Locally generated errors use the same UUID in `X-Request-Id` and the safe JSON envelope.
+
+Browser invoice requests retain 10-second ordinary / 15-second download budgets. Document rescans allow 35 seconds and PDF uploads 45 seconds, including session lookup, input and the scanner's two bounded commands. These longer limits apply only to those operations and remain within the function's 60-second ceiling. Uncertain writes still require deliberate retry with the original operation/version semantics.
+
 Assistant work is registered with waitUntil before 202 is sent. The function duration is 60 seconds; the existing 40-second durable lease and conditional completion/cancellation rules remain. A killed/timed-out invocation expires safely instead of automatically repeating model spend. This is not an unlimited job queue. PostgreSQL sessions and turns survive warm-instance replacement; no private browser cache is introduced.
 
 ## Verification and remaining release work
