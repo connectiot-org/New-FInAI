@@ -1,6 +1,6 @@
 # Repository and file guide
 
-This is the purpose catalog for every tracked repository file, grouped by responsibility. Start with [README.md](../README.md) for runnable entry points. The [current verification report](../context/production-verification.md) records tested behavior and remaining release gates; this guide explains where that behavior lives.
+This is the purpose catalog for every tracked repository file, grouped by responsibility. Start with [README.md](../README.md) for runnable entry points. The [latest verification report](../context/invoice-workspace-refresh.md#final-developertester-verification--4-november-2026) records tested behavior and remaining release gates; this guide explains where that behavior lives.
 
 ## Organization rules
 
@@ -188,10 +188,10 @@ Each row below describes one exact file. Test source describes intended verifica
 | File | Purpose |
 | --- | --- |
 | `frontend/src/features/payables/DevelopmentPayables.tsx` | Hosts the labelled no-login sample company, local role selection/reset and context providers at the public demo invoice routes. |
-| `frontend/src/features/payables/Payables.tsx` | Implements the shared invoice register/detail/metadata form, suppliers, PDF actions, approvals, immutable exports, policies and grant screens. |
+| `frontend/src/features/payables/Payables.tsx` | Implements the shared invoice register/detail/metadata form, stable draft-row identity and safe create recovery, suppliers, PDF actions, approvals, immutable exports, policies and grant screens. |
 | `frontend/src/features/payables/PdfPreview.tsx` | Renders bounded original PDF pages through PDF.js with actions/XFA disabled and lifecycle-safe document/worker cleanup. |
-| `frontend/src/features/payables/api.ts` | Provides the private invoice JSON/binary client, CSRF/session and identity guards, deadlines/downloads, money formatting and injectable client context. |
-| `frontend/src/features/payables/development-store.ts` | Implements the isolated finai-invoices-development-v1 IndexedDB sample backend, local transitions/retries, sample documents and CSV exports. |
+| `frontend/src/features/payables/api.ts` | Provides the private invoice JSON/binary client, definite-rejection metadata, CSRF/session and identity guards, deadlines/downloads, money formatting and injectable client context. |
+| `frontend/src/features/payables/development-store.ts` | Implements the isolated finai-invoices-development-v1 IndexedDB sample backend, local transitions/retries and pre-write validation, sample documents and CSV exports. |
 | `frontend/src/features/payables/payables.css` | Styles invoice navigation, queues, metadata dialogs/lines, PDF preview, assignment history, policy/access editors and mobile containment. |
 | `frontend/src/features/payables/schemas.ts` | Defines shared invoice capability, register/detail, supplier, financial data and saved-result schemas used by private and sample clients. |
 
@@ -613,8 +613,8 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | [context/final-review-inventory.tsv](../context/final-review-inventory.tsv) | Paths, line counts, SHA-256 values and verification groups for 306 application/contract/workflow files in that review. | Historical provenance inventory. It is not proof that every line executed or that later source still has those hashes. |
 | [context/release-signoff.md](../context/release-signoff.md) | Follow-up review of private ingress/scanner deadlines, the 276-test local matrix, recovery and remaining external gates. | Historical sign-off record for `fix/release-signoff`; hosted activation explicitly remains uncleared. |
 | [context/release-signoff-inventory.tsv](../context/release-signoff-inventory.tsv) | Updated 307-file scope/hash/line-count inventory from the release-signoff review. | Historical evidence for that source tree, not an automatically maintained live index. |
-| [context/production-verification.md](../context/production-verification.md) | Current review from merged main `73f76dd`: independent findings, coordinated corrections, fresh checks and release disposition. | Full-codebase review record for `fix/production-verification`. Read its measured results and deployment gates alongside the newer invoice UI report; do not infer production readiness from the filename. |
-| [context/invoice-workspace-refresh.md](../context/invoice-workspace-refresh.md) | Current invoice workspace layout/filtering refresh, functional regression checks, screenshots and delivery limits. | Current UI delivery record; the referenced Moss page was inaccessible, so no exact visual copy or hosted production success is claimed. |
+| [context/production-verification.md](../context/production-verification.md) | Prior review from merged main `73f76dd`: independent findings, coordinated corrections, checks and release disposition. | Full-codebase review record for `fix/production-verification`. Read its measured results and deployment gates alongside the newer invoice UI report; do not infer production readiness from the filename. |
+| [context/invoice-workspace-refresh.md](../context/invoice-workspace-refresh.md) | Invoice workspace layout/filtering refresh and appended final full-matrix review from merged main `43b0481`, fixes, regression checks and delivery limits. | Latest verification and UI delivery record; the referenced Moss page and hosted origin were inaccessible, so no exact visual copy or hosted production success is claimed. |
 
 ### This navigation document
 

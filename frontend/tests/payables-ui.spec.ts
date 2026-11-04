@@ -934,3 +934,214 @@ test("controlled UI: a stale last-page URL offers recovery without a backwards r
     page.getByText("1–1 of 1 invoices · GBP", { exact: true }),
   ).toBeVisible();
 });
+
+test("controlled UI: removing same-priced lines preserves the remaining row's own decimal draft", async ({
+  page,
+}) => {
+  await setup(page);
+  const detail = reviewedInvoiceDetail();
+  detail.data.lines[1].unitMinor = "1000";
+  detail.data.declaredGross = "2400";
+  detail.totals = {
+    ...detail.totals,
+    net: "2000",
+    tax: "400",
+    gross: "2400",
+    recoverable: "400",
+    lines: [
+      { net: "1000", tax: "200" },
+      { net: "1000", tax: "200" },
+    ],
+  };
+  let saved: Record<string, unknown> | undefined;
+  await page.route("**/api/v1/payables/invoices/" + invoice, async (r) => {
+    if (r.request().method() === "PATCH") {
+      saved = r.request().postDataJSON();
+      return r.fulfill({ json: { id: invoice } });
+    }
+    return r.fulfill({ json: detail });
+  });
+  await page.goto("/workspace/payables/invoices/" + invoice);
+  await page
+    .getByRole("button", { name: "Edit metadata", exact: true })
+    .click();
+  const form = page.getByRole("dialog");
+  const first = form.getByRole("group", { name: "Line 1", exact: true });
+  const second = form.getByRole("group", { name: "Line 2", exact: true });
+  await second.getByLabel("Unit price (GBP)").fill("10.0");
+  await first.getByLabel("Unit price (GBP)").fill("10.");
+  await first.getByRole("button", { name: "Remove line", exact: true }).click();
+  const remaining = form.getByRole("group", { name: "Line 1", exact: true });
+  await expect(
+    remaining.getByLabel("Description", { exact: true }),
+  ).toHaveValue("Second line");
+  await expect(remaining.getByLabel("Unit price (GBP)")).toHaveValue("10.0");
+  await form.getByLabel("Total on supplier document (GBP)").fill("12.00");
+  await form.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect.poll(() => saved?.declaredGross).toBe("1200");
+  expect(saved?.lines).toEqual([detail.data.lines[1]]);
+});
+
+test("controlled UI: removing an edited rule cannot transfer its partial threshold draft", async ({
+  page,
+}) => {
+  await setup(page);
+  const definition = {
+    currency: "GBP",
+    rules: [
+      {
+        priority: 1,
+        minimumGross: "500000",
+        verifierId: null,
+        approverIds: [user],
+      },
+      {
+        priority: 2,
+        minimumGross: "100000",
+        verifierId: null,
+        approverIds: [user],
+      },
+    ],
+    fallback: { verifierId: null, approverIds: [user] },
+  };
+  let saved: Record<string, unknown> | undefined;
+  await page.route("**/api/v1/payables/approval-policies?*", (r) =>
+    r.fulfill({
+      json: {
+        item: {
+          version: 3,
+          draft: definition,
+          published: definition,
+          publishedVersion: 2,
+        },
+      },
+    }),
+  );
+  await page.route("**/api/v1/payables/approval-policies", async (r) => {
+    saved = r.request().postDataJSON();
+    await r.fulfill({ json: { version: 4 } });
+  });
+  await page.goto("/workspace/payables/settings/approvals");
+  await page
+    .getByRole("group", { name: "Amount rule 1", exact: true })
+    .getByLabel("Gross amount at least (GBP)")
+    .fill("1000.");
+  await page
+    .getByRole("button", { name: "Remove rule 1", exact: true })
+    .click();
+  const remaining = page.getByRole("group", {
+    name: "Amount rule 1",
+    exact: true,
+  });
+  await expect(remaining.getByLabel("Priority", { exact: true })).toHaveValue(
+    "2",
+  );
+  await expect(remaining.getByLabel("Gross amount at least (GBP)")).toHaveValue(
+    "1000.00",
+  );
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect.poll(() => saved?.expectedVersion).toBe(3);
+  expect(saved?.definition).toEqual({
+    ...definition,
+    rules: [definition.rules[1]],
+  });
+});
+
+async function newInvoiceDraft(page: Page, reference: string) {
+  await page.goto("/workspace/payables/invoices");
+  await page.getByRole("button", { name: "Add invoice", exact: true }).click();
+  const form = page.getByRole("dialog", { name: "Add invoice", exact: true });
+  await form.getByLabel("Supplier", { exact: true }).selectOption(supplier);
+  for (const [label, value] of [
+    ["Supplier reference", reference],
+    ["Invoice date", "2026-11-01"],
+    ["Due date", "2026-12-01"],
+    ["Total on supplier document (GBP)", "10.00"],
+    ["Description", "Correctable invoice"],
+    ["Unit price (GBP)", "10.00"],
+    ["Expense account", "6000"],
+    ["Tax account", "2200"],
+    ["Payable account", "2100"],
+    ["Cost centre", "Operations"],
+  ])
+    await form.getByLabel(label).fill(value);
+  return form;
+}
+
+for (const [status, code] of [
+  [422, "VALIDATION_FAILED"],
+  [409, "DUPLICATE_REFERENCE"],
+] as const) {
+  test(`controlled UI: a rejected new invoice can be corrected after ${code}`, async ({
+    page,
+  }) => {
+    await setup(page);
+    const attempts: Record<string, unknown>[] = [];
+    await page.route("**/api/v1/payables/invoices", async (r) => {
+      attempts.push(r.request().postDataJSON());
+      if (attempts.length === 1)
+        return r.fulfill({
+          status,
+          json: {
+            code,
+            message: "Correct the invoice fields.",
+            requestId: crypto.randomUUID(),
+          },
+        });
+      return r.fulfill({ json: { id: invoice } });
+    });
+    const form = await newInvoiceDraft(page, "REJECTED-001");
+    await form.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect(form.getByRole("alert")).toHaveText(
+      "Correct the invoice fields.",
+    );
+    await form.getByLabel("Supplier reference").fill("CORRECTED-001");
+    await form.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect.poll(() => attempts.length).toBe(2);
+    expect(attempts[1].id).toBe(attempts[0].id);
+    expect(attempts[1].reference).toBe("CORRECTED-001");
+    expect(attempts[1].lines).toEqual(attempts[0].lines);
+    await expect(form).toHaveCount(0);
+  });
+}
+
+for (const [status, code] of [
+  [503, "UNAVAILABLE"],
+  [409, "CONFLICT"],
+] as const) {
+  test(`controlled UI: an ambiguous new invoice retains its original payload after ${code}`, async ({
+    page,
+  }) => {
+    await setup(page);
+    const attempts: Record<string, unknown>[] = [];
+    await page.route("**/api/v1/payables/invoices", async (r) => {
+      attempts.push(r.request().postDataJSON());
+      if (attempts.length === 1)
+        return r.fulfill({
+          status,
+          json: {
+            code,
+            message: "The invoice outcome is unresolved.",
+            requestId: crypto.randomUUID(),
+          },
+        });
+      return r.fulfill({ json: { id: invoice } });
+    });
+    const form = await newInvoiceDraft(page, "UNCERTAIN-001");
+    await form.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect(form.getByRole("alert")).toHaveText(
+      "The invoice outcome is unresolved.",
+    );
+    await form.getByLabel("Supplier reference").fill("DIFFERENT-002");
+    await form.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect(form.getByRole("alert")).toContainText(
+      "Resolve the previous uncertain save",
+    );
+    expect(attempts).toHaveLength(1);
+    await form.getByLabel("Supplier reference").fill("UNCERTAIN-001");
+    await form.getByRole("button", { name: "Save draft", exact: true }).click();
+    await expect.poll(() => attempts.length).toBe(2);
+    expect(attempts[1]).toEqual(attempts[0]);
+    await expect(form).toHaveCount(0);
+  });
+}

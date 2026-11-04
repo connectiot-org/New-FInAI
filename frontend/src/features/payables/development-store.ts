@@ -336,8 +336,8 @@ async function transaction<T>(
 export async function resetDevelopment() {
   await transaction(() => undefined, true);
 }
-const failure = (message: string): never => {
-  throw new Error(message);
+const failure = (message: string, rejected = false): never => {
+  throw Object.assign(new Error(message), { rejected });
 };
 function permission(actor: number, capability: keyof ReturnType<typeof caps>) {
   if (!caps(actor)[capability])
@@ -371,7 +371,7 @@ function total(data: InvoiceData) {
     lines: rows.map((l) => ({ net: String(l.net), tax: String(l.tax) })),
   };
 }
-function checkedData(value: unknown) {
+function validateData(value: unknown) {
   const data = dataSchema.parse(value);
   if (
     !data.lines.length ||
@@ -406,10 +406,19 @@ function checkedData(value: unknown) {
   total(data);
   return data;
 }
+// Only input validation before a new operation is a definite rejection.
+// Receipt conflicts and storage failures may follow a committed write.
+function checkedData(value: unknown) {
+  try {
+    return validateData(value);
+  } catch (error) {
+    throw Object.assign(error as Error, { rejected: true });
+  }
+}
 const normalized = (s: string) => s.normalize("NFKC").trim().toLowerCase();
 function validateSupplier(state: State, data: InvoiceData, exclude?: string) {
   if (!state.suppliers.some((s) => s.id === data.supplierId && s.active))
-    failure("Choose an active supplier.");
+    failure("Choose an active supplier.", true);
   if (
     state.invoices.some(
       (n) =>
@@ -418,7 +427,7 @@ function validateSupplier(state: State, data: InvoiceData, exclude?: string) {
         normalized(n.data.reference) === normalized(data.reference),
     )
   )
-    failure("This supplier reference already exists.");
+    failure("This supplier reference already exists.", true);
 }
 function version(n: { version: number }, expected: number) {
   if (n.version !== expected)

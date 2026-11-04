@@ -2,7 +2,7 @@
 
 FinAI combines a public sample finance workspace with separate authenticated company workflows: supplier invoice review/approval/export, checklist tasks, subscription records, imported receivables and a grounded FinAI Assistant. The web app uses React 19/Vite; the API uses NestJS 11, Prisma and PostgreSQL. Each application has its own manifest and lockfile.
 
-Start with the [repository and file guide](docs/repository-guide.md) for every folder/file's purpose. The latest [production verification report](context/production-verification.md) records actual tests, fixes and outstanding hosting gates. The [invoice workspace refresh](context/invoice-workspace-refresh.md) records the newer interface/filtering changes and their checks. Historical reports describe the version they tested; they are not live deployment status.
+Start with the [repository and file guide](docs/repository-guide.md) for every folder/file's purpose. The [latest verification](context/invoice-workspace-refresh.md#final-developertester-verification--4-november-2026) records the final full test matrix, fixes and outstanding hosting gates. The same report also describes the invoice workspace refresh; the [prior broad review](context/production-verification.md) retains its dated evidence. Historical reports describe the version they tested; they are not live deployment status.
 
 ## Choose the right entry
 

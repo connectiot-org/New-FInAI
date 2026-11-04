@@ -54,7 +54,16 @@ export async function request<T>(
         new Error(
           error.success ? error.data.message : "Invoice request failed.",
         ),
-        { status: response.status },
+        {
+          status: response.status,
+          // Only authoritative pre-commit validation/duplicate responses allow
+          // edited create retries. Unknown outcomes retain the original payload.
+          rejected:
+            error.success &&
+            ([400, 422].includes(response.status) ||
+              (response.status === 409 &&
+                error.data.code === "DUPLICATE_REFERENCE")),
+        },
       );
     }
     const parsed = schema.safeParse(data);

@@ -552,3 +552,82 @@ test("invoice queues support arrow, Home and End keyboard navigation", async ({
   await expect(all).toBeFocused();
   await expect(all).toHaveAttribute("aria-selected", "true");
 });
+
+test("removing a same-priced sample line retains valid input and persists the remaining draft", async ({
+  page,
+}) => {
+  await open(page);
+  await page
+    .getByRole("link", { name: /Sample Studio Supplier DEV-1001/ })
+    .click();
+  await page
+    .getByRole("button", { name: "Edit metadata", exact: true })
+    .click();
+  const form = page.getByRole("dialog");
+  await form.getByRole("button", { name: "Add line", exact: true }).click();
+  const second = form.getByRole("group", { name: "Line 2", exact: true });
+  for (const [label, value] of [
+    ["Description", "Retained equal-price line"],
+    ["Expense account", "6000"],
+    ["Tax account", "2200"],
+    ["Payable account", "2100"],
+    ["Cost centre", "Operations"],
+    ["Unit price (GBP)", "100.00"],
+  ])
+    await second.getByLabel(label, { exact: true }).fill(value);
+  const first = form.getByRole("group", { name: "Line 1", exact: true });
+  await first.getByLabel("Unit price (GBP)").fill("100.");
+  await first.getByRole("button", { name: "Remove line", exact: true }).click();
+  await expect(form.getByLabel("Unit price (GBP)")).toHaveValue("100.00");
+  await form.getByLabel("Total on supplier document (GBP)").fill("100.00");
+  await form.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await expect(page.locator(".ap-total")).toHaveText("£100.00");
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Edit metadata", exact: true })
+    .click();
+  const restored = page.getByRole("dialog");
+  await expect(restored.getByLabel("Unit price (GBP)")).toHaveValue("100.00");
+  await expect(restored.getByLabel("Description", { exact: true })).toHaveValue(
+    "Retained equal-price line",
+  );
+});
+
+test("a duplicate sample invoice can be corrected and saved without discarding entered fields", async ({
+  page,
+}) => {
+  await open(page);
+  await page.getByRole("button", { name: "Add invoice", exact: true }).click();
+  const form = page.getByRole("dialog");
+  await form
+    .getByLabel("Supplier", { exact: true })
+    .selectOption({ label: "Sample Studio Supplier" });
+  for (const [label, value] of [
+    ["Supplier reference", "DEV-1001"],
+    ["Invoice date", "2026-11-01"],
+    ["Due date", "2026-12-01"],
+    ["Total on supplier document (GBP)", "10.00"],
+    ["Description", "Correctable sample invoice"],
+    ["Unit price (GBP)", "10.00"],
+    ["Expense account", "6000"],
+    ["Tax account", "2200"],
+    ["Payable account", "2100"],
+    ["Cost centre", "Operations"],
+  ])
+    await form.getByLabel(label).fill(value);
+  await form.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(form.getByRole("alert")).toContainText(
+    "reference already exists",
+  );
+  await form.getByLabel("Supplier reference").fill("CORRECTED-SAMPLE-001");
+  await form.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(form).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "CORRECTED-SAMPLE-001", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByText("Correctable sample invoice", { exact: true }),
+  ).toBeVisible();
+});

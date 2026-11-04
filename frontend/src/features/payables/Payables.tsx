@@ -757,6 +757,11 @@ function InvoiceForm({
   const [data, setData] = useState(initial || fresh()),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  // Local row identity keeps decimal drafts with their line, including equal prices.
+  // These IDs are never included in the financial payload or retry digest.
+  const [lineKeys, setLineKeys] = useState(() =>
+    (initial?.lines || [blankLine]).map(() => crypto.randomUUID()),
+  );
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialog.current?.showModal();
@@ -815,6 +820,8 @@ function InvoiceForm({
       leaving.current = true;
       done(result.id);
     } catch (e) {
+      if (!id && (e as { rejected?: boolean }).rejected === true)
+        pending.current = undefined;
       setError((e as Error).message);
     } finally {
       setBusy(false);
@@ -922,7 +929,7 @@ function InvoiceForm({
           </div>
           <h3>Accounting lines</h3>
           {data.lines.map((l, index) => (
-            <fieldset key={index}>
+            <fieldset key={lineKeys[index]}>
               <legend>Line {index + 1}</legend>
               <div className="ap-form-grid">
                 {(
@@ -1025,12 +1032,13 @@ function InvoiceForm({
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() =>
+                  onClick={() => {
+                    setLineKeys((keys) => keys.filter((_, i) => i !== index));
                     update(
                       "lines",
                       data.lines.filter((_, i) => i !== index),
-                    )
-                  }
+                    );
+                  }}
                 >
                   Remove line
                 </button>
@@ -1040,7 +1048,10 @@ function InvoiceForm({
           <button
             type="button"
             disabled={busy || data.lines.length >= 50}
-            onClick={() => update("lines", [...data.lines, { ...blankLine }])}
+            onClick={() => {
+              setLineKeys((keys) => [...keys, crypto.randomUUID()]);
+              update("lines", [...data.lines, { ...blankLine }]);
+            }}
           >
             Add line
           </button>
@@ -2051,6 +2062,9 @@ function PolicyEditor({
     [preview, setPreview] = useState("12000"),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const [ruleKeys, setRuleKeys] = useState(() =>
+    (item?.draft?.rules || []).map(() => crypto.randomUUID()),
+  );
   const operation = useRef<{ key: string; id: string } | undefined>(undefined);
   const rule = definition.rules
     .slice()
@@ -2130,7 +2144,7 @@ function PolicyEditor({
       </span>
       <Notice error={error} />
       {definition.rules.map((r, index) => (
-        <fieldset key={index}>
+        <fieldset key={ruleKeys[index]}>
           <legend>Amount rule {index + 1}</legend>
           <div className="ap-form-grid">
             <label>
@@ -2185,12 +2199,13 @@ function PolicyEditor({
           />
           <button
             disabled={busy}
-            onClick={() =>
+            onClick={() => {
+              setRuleKeys((keys) => keys.filter((_, i) => i !== index));
               setDefinition((d) => ({
                 ...d,
                 rules: d.rules.filter((_, i) => i !== index),
-              }))
-            }
+              }));
+            }}
           >
             Remove rule {index + 1}
           </button>
@@ -2198,7 +2213,8 @@ function PolicyEditor({
       ))}
       <button
         disabled={busy || definition.rules.length >= 10}
-        onClick={() =>
+        onClick={() => {
+          setRuleKeys((keys) => [...keys, crypto.randomUUID()]);
           setDefinition((d) => ({
             ...d,
             rules: [
@@ -2213,8 +2229,8 @@ function PolicyEditor({
                 approverIds: [""],
               },
             ],
-          }))
-        }
+          }));
+        }}
       >
         Add amount rule
       </button>

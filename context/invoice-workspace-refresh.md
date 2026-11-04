@@ -59,3 +59,64 @@ The complete repository guide now covers all 339 source/control/evidence files e
 Branch: `feat/invoice-workspace-refresh`, based on `1d99aa9`; it includes the preceding production-verification fixes as well as this UI. Source/docs/tests are committed and pushed for review. Merging/deploying the reviewed commit and completing the existing private-company deployment handoff remain necessary before the hosted site can be represented as verified for real company use. The requested Moss page was inaccessible; no exact current visual copy is claimed.
 
 Local per-command evidence is under ignored `frontend/artifacts/invoice-workspace-refresh/`; final follow-ups are `/tmp/finai-workspace-final-quality.log`, `/tmp/finai-workspace-scope-pages.log`, `/tmp/finai-workspace-demo-final.log`. Historical source inventories and broad-review outcomes remain dated snapshots.
+
+
+## Final developer/tester verification — 4 November 2026
+
+Starting clean from merged main `43b0481` on `fix/invoice-final-verification`. Sequential coordinator/frontend/reviewer scope: check remaining row-identity/draft, URL/scope, financial/auth/document/Assistant boundaries and run the entire checked-in release matrix again. Backend/runtime contracts remain unchanged; no worktrees/agents or production resource/data mutations. Acceptance is reproducible passing checks plus explicit live/container readiness limits, not an impossible guarantee of zero hidden defects. The findings, verification and remaining release limits for this pass follow below.
+
+
+### Reproduced corrections
+
+1. **Equal-valued editable rows retained the wrong decimal draft.** Invoice lines and policy rules used array indexes as React keys. When two canonical values were equal, deleting an earlier row could transfer its unfinished input (for example `10.`) to the remaining row, even though that row previously held valid `10.0`. Two private regressions failed before the fix. Stable local row keys now follow each line/rule through insertion/removal, stay outside financial payloads/digests and preserve the remaining input. A real IndexedDB regression verifies saving and reloading the remaining sample line.
+2. **A rejected create prevented correcting the form.** After an authoritative validation failure or duplicate supplier reference, the form's uncertain-save guard retained the old payload and blocked corrected fields. Both private correction regressions failed before the fix; the existing ambiguity cases passed. The JSON client now identifies parsed 400/422 and explicit `409 DUPLICATE_REFERENCE` rejections; sample input/supplier validation identifies only pre-write failures. The form releases its pending payload only for these definite rejections and retains the same create UUID. Network/503, generic 409, malformed responses and storage/receipt uncertainty keep the conservative retry behavior. Two uncertainty regressions ensure edited payloads are blocked and the original payload/UUID can be replayed. A sample duplicate-reference correction is also saved/reloaded through IndexedDB.
+
+The six focused private cases and two persisted sample cases pass after these fixes. No account/authentication removal, new API payload, schema, migration, dependency, financial authority or runtime deployment change was required. Comments explain local row identity and the boundary between rejected and uncertain writes. Existing folders and import paths remain stable.
+
+
+### Runtime and release limits for the final pass
+
+The fresh local database is PostgreSQL 17.6 on Debian; Node is 24.19.0 and npm is 11.9.0. Local Prisma generation/runtime uses the documented official pinned 6.19.3 native engine override (commit `c2990dca591cba766e3b7ef5d9e8a84796e47ab7`), preserving normal TLS/checksum verification. These are local compatibility results, not proof of Vercel's production native runtime or this Neon project's settings. The earlier PostgreSQL 18 evaluation remains historical rather than being represented as rerun here.
+
+- All seven schema/example validators and all seven OpenAPI descriptions pass; OpenAPI lint retains 29 existing nonblocking warnings. Full application and AP-only synthetic backup/restore rehearsals pass, including approved invoice/PDF/export bytes, history/routes/policies/grants and tenant constraints. The first restore attempt omitted the environment's required native engine override; the properly configured rerun passed without changing the rehearsal or migrations.
+- A fresh standard Docker build remains **blocked** at Prisma's pinned `schema-engine.gz.sha256` download with proxy 403. No checksum/TLS bypass was applied and no successful standard container is claimed.
+- A fresh HEAD request to the requested hosted invoice URL remains **blocked before reaching the origin** by outbound proxy CONNECT403. This does not establish either origin health or failure. No Vercel/Neon private bindings, hosted accounts/grants, real scanner/provider, deployment or production data was accessed/changed.
+- Real-company release still requires the reviewed code to be merged/deployed, private runtime configuration and account/AP grants, scanner/provider readiness and a hosted end-to-end smoke test using the deployment handoff. Public sample routes stay clearly separate from authenticated company routes. Production availability, operational acceptance and the absence of undiscovered defects are not certified by local tests.
+
+The repository/file catalog remains complete for all 339 tracked files, exactly once; local relative links resolve and private/generated artifacts remain ignored. Report/navigation entries now link to this final pass. Dated earlier reports retain their original counts/hashes rather than being silently rewritten.
+
+
+### Final measured matrix and delivery
+
+Both applications completed frozen dependency installs, typecheck, lint and build. Backend `npm test` passed **87** tests (0 skipped). The frontend/browser/API/transport matrix below passed **224** checks (0 skipped), for **311 automated checks total**. Both npm audits report **0 vulnerabilities**. Contract validation, restore and asset results are additional checks, not additions to that test count. Focused/red reproduction runs are not counted again; the same browser tests run against Vite and the standalone built runtime are distinct runtime checks.
+
+| Command (frontend/) | Result | Checks | Seconds |
+| --- | --- | --- | --- |
+| `npm ci --no-audit --no-fund` | PASS | — | 7 |
+| `npm run typecheck` | PASS | — | 10 |
+| `npm run lint` | PASS | — | 3 |
+| `npm run build` | PASS | — | 17 |
+| `npm run test` | PASS | 67 | 122 |
+| `npm run test:invoice-demo` | PASS | 15 | 37 |
+| `npm run test:checklist` | PASS | 14 | 30 |
+| `npm run test:subscriptions` | PASS | 4 | 14 |
+| `npm run test:session` | PASS | 1 | 14 |
+| `npm run test:receivables` | PASS | 5 | 12 |
+| `npm run test:receivables:production` | PASS | 1 | 14 |
+| `npm run test:workspace` | PASS | 18 | 30 |
+| `npm run test:workspace:production` | PASS | 2 | 27 |
+| `npm run test:assistant` | PASS | 20 | 36 |
+| `npm run test:assistant:production` | PASS | 1 | 26 |
+| `npm run test:public-chat` | PASS | 22 | 24 |
+| `npm run test:vercel` | PASS | 6 | 46 |
+| `npm run test:payables` | PASS | 27 | 86 |
+| `npm run test:payables-transport` | PASS | 12 | 71 |
+| `npm run test:payables:integration` | PASS | 9 | 144 |
+| `node scripts/check-assets.ts` | PASS | — | 0 |
+| `npm audit` | PASS | — | 0 |
+
+The nine final real-database invoice cases exercise remote, embedded and private packaged runtimes: original PDF persistence, mismatch/coding correction, factual verification, two sequential approvals, immutable balanced export and restart; private FinAI facts/proposals/explicit confirmation, uncertain retry and stale proposals; and session/CSRF, scope/grants, assignment, money/version/idempotency controls. Providers/scanners use controlled local fixtures. This is complete checked-in suite execution, not a claim that every possible line/branch/input or real hosted provider was covered. The final 27-case controlled invoice suite includes every new regression. Formatting, patch cleanliness, the 339-file catalog/links and tracked Neon-password/private-key-marker checks pass; no secret values were printed. Fresh 320px sample and 1440px private-detail screenshots were inspected, with containment checks retained.
+
+Local command logs, before-fix traces/screenshots, command summaries and all 339 file hashes are retained in ignored `frontend/artifacts/invoice-final-verification/`. The source inventory records exactly the reviewed files, not executed-line coverage. The final public-only runnable sample is `frontend/artifacts/invoice-final-verification/finai-invoices-reviewed.zip`; run `node serve.mjs` after unzipping and open `http://127.0.0.1:4173/demo/invoices`. Archive integrity and the build metadata's index digest are verified. It contains 29 files, 1002968 bytes, SHA-256 `166c3f970b022bb2a288e208b8690d7f9d23369418308d69cff5514d95586445`. This archive is local ignored evidence, not an uploaded GitHub artifact or authenticated company service.
+
+Delivery branch: `fix/invoice-final-verification`, based on merged main `43b0481`. The scoped source/tests/documentation are committed and pushed for review; main and hosting are unchanged. The final local suite is green; the standard Docker download and hosted-origin checks remain blocked as documented above. Production activation and live smoke verification remain operator steps in the existing handoff, and no zero-hidden-bug or immediate live-company-readiness guarantee is made.
