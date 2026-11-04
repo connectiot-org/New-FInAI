@@ -1,6 +1,6 @@
 # Supplier invoice approvals
 
-The legacy `/development/payables/*` URLs now redirect to the equivalent authenticated workspace route. A separate public development preview is available at `/demo/payables/invoices` with browser-only sample records and no login/database requirement. It never calls this private API, grants a company identity, or claims document scanning/real approval. See `../frontend/README.md` for that preview.
+The latest public invoice navigation and legacy `/development/payables/*` URLs open the labelled browser-only demo directly; real company routes remain authenticated. A separate public development preview is available at `/demo/payables/invoices` with browser-only sample records and no login/database requirement. It never calls this private API, grants a company identity, or claims document scanning/real approval. See `../frontend/README.md` for that preview.
 
 Private application entry: `/workspace/payables/invoices`. Suppliers, accounting export, approval policies and invoice-access settings live under `/workspace/payables/`. The existing demo Bills screen remains independent.
 

@@ -20,9 +20,9 @@ This release packages the real NestJS API into the existing Vercel API function.
 
 ## Opening supplier invoices
 
-**Supplier invoices** in the homepage header/mobile menu, app sidebar and welcome screen opens `/workspace/payables/invoices` for real company records. Legacy `/development/payables/*` redirects preserve invoice IDs and company scope and require the same sign-in. `/invoices` and `/invoice-approvals` open the authenticated list. Missing configuration stays visible.
+**Supplier invoices** in the public homepage/mobile menu, welcome screen and demo sidebar opens `/demo/payables/invoices` directly. Legacy `/development/payables/*` redirects to the sample route; `/invoices`, `/invoice-approvals` and `/demo/invoices` also open the sample list. The explicit preview needs no account/database and makes no private API/auth requests. Real-company `entityId` query parameters are removed when entering the sample company.
 
-No-login samples are separate at `/demo/invoices` → `/demo/payables/invoices`, using the preserved separate IndexedDB store and sample roles. These samples never supply a fallback or company identity to the private workspace. `npm run build:invoice-demo` still creates the independent static sample bundle.
+Real company invoices remain protected at `/workspace/payables/invoices`. Their configuration errors stay visible; samples never become a private API fallback. `npm run build:invoice-demo` still creates the independent static sample bundle. The demo header has no company sign-in selection.
 
 Private invoice details open FinAI Assistant with the exact company/month/GBP/invoice scope. It retrieves authorized invoice facts and offers explicit confirmation for eligible actions. Confirmation calls the same financial transactions; model outputs cannot write data. Revoking invoice access also blocks stored invoice answers and late publication. The real model/provider, database, accounts/AP grants and private PDF scanner must be configured and tested on the deployed environment; local controlled providers do not establish hosted readiness. See [Invoice Assistant contract](../../contracts/invoice-assistant.md).
 

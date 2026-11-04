@@ -85,9 +85,9 @@ The latest review replaces the previously borrowed hero image with an original S
 
 ## Authenticated supplier invoices
 
-Open **Supplier invoices** in the homepage header (mobile: public navigation menu), welcome screen or app sidebar. These entries open `/workspace/payables/invoices` for real company records behind sign-in. Legacy `/development/payables/*` URLs redirect to the equivalent authenticated route while retaining invoice/company query parameters. `/invoices` and `/invoice-approvals` also open the authenticated list. Real data requires configured PostgreSQL, provisioned accounts, company access and explicit AP grants.
+Open **Supplier invoices** in the homepage header/mobile menu, welcome screen or demo sidebar to open `/demo/payables/invoices` directly, without a sign-in form. `/development/payables/*` opens the corresponding demo route; `/invoices`, `/invoice-approvals` and `/demo/invoices` open the sample invoice list. Legacy company UUID query parameters are discarded on entry to the sample company.
 
-No-login samples are separate at `/demo/invoices` → `/demo/payables/invoices`. Six sample workflows and original sample PDFs use their existing separate IndexedDB database; no production error falls back to sample data. Existing sample edits and `finai-demo-v1` are preserved. Use sample documents only.
+The interface is clearly labelled Development preview and uses the existing separate IndexedDB store, sample PDFs and roles. No private API/auth requests occur in this flow. Sample changes persist; existing `finai-demo-v1` storage is preserved. Use sample documents only. Real company invoices and FinAI controls remain separately authenticated at `/workspace/payables/invoices`; browser samples never supply a real identity or a live-error fallback.
 
 Build a runnable standalone copy with `npm run build:invoice-demo`, or run the complete built-artifact browser checks with `npm run test:invoice-demo`. The output at `artifacts/invoice-demo/` contains public static files, `serve.mjs`, a README and a build digest. Run `node serve.mjs` inside that output folder and open `http://127.0.0.1:4173/demo/invoices`; no npm install, account, database or backend is required to run the built copy. The invoice CI workflow uploads that folder as `finai-invoice-demo`.
 
