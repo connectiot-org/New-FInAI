@@ -428,3 +428,127 @@ test("leaving a PDF while its bytes load does not start an orphan preview worker
   });
   expect(workers).toBe(0);
 });
+
+test("invoice workspace filters stay organized through refresh and clear without losing the queue", async ({
+  page,
+}) => {
+  await open(page);
+  const overview = page.getByRole("region", { name: "Invoice overview" });
+  await expect(overview.getByRole("button")).toHaveCount(4);
+  await overview.getByRole("button", { name: /^Needs review/ }).click();
+  await expect(
+    page.getByRole("tab", { name: "Review 2", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await page.getByPlaceholder("Supplier or invoice reference").fill("DEV-1006");
+  await page.getByLabel("Invoice month").fill("2026-11");
+  await page.getByLabel("Status", { exact: true }).selectOption("review");
+  await page.getByLabel("Due on or before").fill("2026-12-31");
+  await expect(
+    page.getByRole("link", { name: /Sample Office Supplies DEV-1006/ }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/queue=review/);
+  await page.reload();
+  await expect(
+    page.getByPlaceholder("Supplier or invoice reference"),
+  ).toHaveValue("DEV-1006");
+  await expect(page.getByLabel("Invoice month")).toHaveValue("2026-11");
+  await expect(page.getByLabel("Status", { exact: true })).toHaveValue(
+    "review",
+  );
+  await expect(page.getByLabel("Due on or before")).toHaveValue("2026-12-31");
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  await expect(
+    page.getByRole("tab", { name: "Review 2", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByPlaceholder("Supplier or invoice reference"),
+  ).toHaveValue("");
+  await expect(page.getByLabel("Invoice month")).toHaveValue("");
+  await expect(
+    page.getByRole("button", { name: "Clear filters", exact: true }),
+  ).toHaveCount(0);
+});
+
+test("workspace queue summaries open the actual export workflow", async ({
+  page,
+}) => {
+  await open(page);
+  await page
+    .getByRole("region", { name: "Invoice overview" })
+    .getByRole("button", { name: /^Ready to export/ })
+    .click();
+  await expect(page).toHaveURL(/\/demo\/payables\/export/);
+  await expect(
+    page.getByRole("heading", { name: "Ready for accounting export" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /DEV-1004/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /DEV-1001/ })).toHaveCount(0);
+  await page
+    .getByRole("region", { name: "Invoice overview" })
+    .getByRole("button", { name: /^All invoices/ })
+    .click();
+  await expect(page).toHaveURL(/\/demo\/payables\/invoices/);
+  await expect(
+    page.getByRole("tab", { name: "All 6", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+});
+
+for (const width of [1440, 320]) {
+  test(`organized invoice workspace contains its content at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await open(page);
+    await expect(
+      page.getByText("Sample workspace", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Development preview", { exact: true }),
+    ).toHaveCount(0);
+    const metrics = page.getByRole("region", { name: "Invoice overview" });
+    await expect(metrics.getByRole("button")).toHaveCount(4);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth + 1,
+      ),
+    ).toBe(true);
+    const month = await page.getByLabel("Invoice month").boundingBox();
+    expect(month!.width).toBeLessThan(220);
+    if (width > 900)
+      await expect(
+        page.getByRole("navigation", {
+          name: "Invoice workspace",
+          exact: true,
+        }),
+      ).toBeVisible();
+    else
+      await expect(
+        page.getByRole("navigation", { name: "Payables", exact: true }),
+      ).toBeVisible();
+    await page.screenshot({
+      path: `artifacts/payables/workspace-refresh-${width}.png`,
+      fullPage: true,
+    });
+  });
+}
+
+test("invoice queues support arrow, Home and End keyboard navigation", async ({
+  page,
+}) => {
+  await open(page);
+  const all = page.getByRole("tab", { name: "All 6", exact: true });
+  await all.focus();
+  await page.keyboard.press("ArrowRight");
+  const review = page.getByRole("tab", { name: "Review 2", exact: true });
+  await expect(review).toBeFocused();
+  await expect(review).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("End");
+  await expect(
+    page.getByRole("tab", { name: "Approve 0", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(all).toBeFocused();
+  await expect(all).toHaveAttribute("aria-selected", "true");
+});

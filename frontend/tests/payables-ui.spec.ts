@@ -727,3 +727,210 @@ test("controlled UI: the same PDF can be deliberately retried with its original 
   await expect(page.getByLabel("Add original PDF")).toHaveValue("");
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
+
+test("controlled UI: company invoice filters restore from the URL and forward the exact scope", async ({
+  page,
+}) => {
+  await setup(page);
+  const queries: URLSearchParams[] = [];
+  page.on("request", (r) => {
+    const url = new URL(r.url());
+    if (url.pathname === "/api/v1/payables/invoices")
+      queries.push(url.searchParams);
+  });
+  await page.goto(
+    `/workspace/payables/invoices?entityId=${entity}&queue=review&search=Studio&status=review&month=2026-11&dueBefore=2026-12-31`,
+  );
+  await expect(
+    page.getByRole("link", { name: "Studio Supply Ltd INV-2026-041" }),
+  ).toBeVisible();
+  const last = () => queries.at(-1);
+  expect(last()?.get("entityId")).toBe(entity);
+  expect(last()?.get("queue")).toBe("review");
+  expect(last()?.get("status")).toBe("review");
+  expect(last()?.get("month")).toBe("2026-11");
+  expect(last()?.get("dueBefore")).toBe("2026-12-31");
+  await page.reload();
+  await expect(
+    page.getByPlaceholder("Supplier or invoice reference"),
+  ).toHaveValue("Studio");
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  await expect.poll(() => last()?.get("search")).toBe("");
+  expect(last()?.get("queue")).toBe("review");
+  expect(last()?.get("entityId")).toBe(entity);
+  expect(last()?.has("dueBefore")).toBe(false);
+});
+
+test("controlled UI: register pagination refreshes and changing filters returns to the first page", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.route("**/api/v1/payables/invoices?*", (r) => {
+    const offset = Number(
+      new URL(r.request().url()).searchParams.get("offset") || 0,
+    );
+    return r.fulfill({
+      json: {
+        counts: { all: 21, review: 21, verify: 0, approve: 0, export: 0 },
+        total: 21,
+        offset,
+        limit: 20,
+        items: Array.from({ length: Math.min(20, 21 - offset) }, (_, index) => {
+          const row = offset + index + 1;
+          return {
+            id: `33333333-3333-4333-8333-${String(row).padStart(12, "0")}`,
+            supplier: "Paging supplier",
+            reference: `PAGE-${row}`,
+            dueDate: "2026-12-01",
+            invoiceDate: "2026-11-01",
+            gross: "10000",
+            currency: "GBP",
+            state: "review",
+            version: 1,
+            attention: false,
+          };
+        }),
+      },
+    });
+  });
+  await page.goto("/workspace/payables/invoices");
+  await expect(
+    page.getByRole("link", { name: "Paging supplier PAGE-1", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(page).toHaveURL(/offset=20/);
+  await expect(
+    page.getByRole("link", { name: "Paging supplier PAGE-21", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("21–21 of 21 invoices · GBP", { exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("link", { name: "Paging supplier PAGE-21", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Next", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("Status", { exact: true }).selectOption("review");
+  await expect(
+    page.getByRole("link", { name: "Paging supplier PAGE-1", exact: true }),
+  ).toBeVisible();
+  expect(new URL(page.url()).searchParams.has("offset")).toBe(false);
+});
+
+test("controlled UI: changing company clears its previous queue, paging and member filters", async ({
+  page,
+}) => {
+  await setup(page);
+  const other = "22222222-2222-4222-8222-222222222223";
+  await page.route("**/api/v1/workspace/context", (r) =>
+    r.fulfill({
+      json: {
+        userId: user,
+        organisationId: entity,
+        organisationName: "Synthetic finance workspace",
+        administrator: false,
+        revision: "b".repeat(64),
+        entities: [
+          {
+            id: entity,
+            name: "First company",
+            canWrite: true,
+            canImport: false,
+          },
+          {
+            id: other,
+            name: "Second company",
+            canWrite: true,
+            canImport: false,
+          },
+        ],
+      },
+    }),
+  );
+  const queries: URLSearchParams[] = [];
+  page.on("request", (r) => {
+    const url = new URL(r.url());
+    if (url.pathname === "/api/v1/payables/invoices")
+      queries.push(url.searchParams);
+  });
+  await page.goto(
+    `/workspace/payables/invoices?entityId=${entity}&queue=review&status=review&assignee=${user}&offset=20&month=2026-11&search=Studio`,
+  );
+  await expect(
+    page.getByRole("link", { name: "Studio Supply Ltd INV-2026-041" }),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Company", exact: true })
+    .selectOption(other);
+  await expect.poll(() => queries.at(-1)?.get("entityId")).toBe(other);
+  expect(queries.at(-1)?.get("offset")).toBe("0");
+  expect(queries.at(-1)?.get("queue")).toBe("all");
+  expect(queries.at(-1)?.has("assignee")).toBe(false);
+  expect(queries.at(-1)?.has("status")).toBe(false);
+  expect(queries.at(-1)?.get("month")).toBe("2026-11");
+  expect(queries.at(-1)?.get("search")).toBe("Studio");
+  const query = new URL(page.url()).searchParams;
+  expect(query.has("offset")).toBe(false);
+  expect(query.has("assignee")).toBe(false);
+});
+
+test("controlled UI: a stale last-page URL offers recovery without a backwards range", async ({
+  page,
+}) => {
+  await setup(page);
+  await page.route("**/api/v1/payables/invoices?*", (r) => {
+    const offset = Number(
+      new URL(r.request().url()).searchParams.get("offset") || 0,
+    );
+    return r.fulfill({
+      json: {
+        counts: { all: 1, review: 1, verify: 0, approve: 0, export: 0 },
+        total: 1,
+        offset,
+        limit: 20,
+        items: offset
+          ? []
+          : [
+              {
+                id: invoice,
+                supplier: "Studio Supply Ltd",
+                reference: "INV-2026-041",
+                dueDate: "2026-12-01",
+                invoiceDate: "2026-11-01",
+                gross: "12000",
+                currency: "GBP",
+                state: "review",
+                version: 1,
+                attention: false,
+              },
+            ],
+      },
+    });
+  });
+  await page.goto("/workspace/payables/invoices?offset=20");
+  await expect(
+    page.getByRole("heading", {
+      name: "No invoices on this page",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("0 of 1 invoices · GBP", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Go to first page", exact: true })
+    .click();
+  await expect(
+    page.getByRole("link", {
+      name: "Studio Supply Ltd INV-2026-041",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("1–1 of 1 invoices · GBP", { exact: true }),
+  ).toBeVisible();
+});

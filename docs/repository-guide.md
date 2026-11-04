@@ -556,7 +556,7 @@ Prisma applies the eight committed migration folders in chronological order: che
 
 ## Root and context files
 
-This section inventories tracked files outside `backend/`, `frontend/`, `contracts/` and `.github/`, plus the current production-review record being added. Generated files, local credentials, dependency folders and ignored test artifacts are excluded. Preserve existing paths: application imports, Vercel root selection, Docker build context and CI working directories already depend on the separate application folders.
+This section inventories tracked files outside `backend/`, `frontend/`, `contracts/` and `.github/`, including the dated review records for the current feature work. Generated files, local credentials, dependency folders and ignored test artifacts are excluded. Preserve existing paths: application imports, Vercel root selection, Docker build context and CI working directories already depend on the separate application folders.
 
 Current source, versioned contracts and executable runbooks determine behavior. A dated report records the checkout and checks that it names; its filename containing “production”, “final” or “sign-off” does not certify the deployed service. Historical inventories are evidence snapshots, not checksums of later modified source.
 
@@ -613,8 +613,8 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | [context/final-review-inventory.tsv](../context/final-review-inventory.tsv) | Paths, line counts, SHA-256 values and verification groups for 306 application/contract/workflow files in that review. | Historical provenance inventory. It is not proof that every line executed or that later source still has those hashes. |
 | [context/release-signoff.md](../context/release-signoff.md) | Follow-up review of private ingress/scanner deadlines, the 276-test local matrix, recovery and remaining external gates. | Historical sign-off record for `fix/release-signoff`; hosted activation explicitly remains uncleared. |
 | [context/release-signoff-inventory.tsv](../context/release-signoff-inventory.tsv) | Updated 307-file scope/hash/line-count inventory from the release-signoff review. | Historical evidence for that source tree, not an automatically maintained live index. |
-| [context/production-verification.md](../context/production-verification.md) | Current review from merged main `73f76dd`: independent findings, coordinated corrections, fresh checks and release disposition. | Current review record for this branch. Read its actual final results and remaining deployment gates; do not infer production readiness from the filename. |
-
+| [context/production-verification.md](../context/production-verification.md) | Current review from merged main `73f76dd`: independent findings, coordinated corrections, fresh checks and release disposition. | Full-codebase review record for `fix/production-verification`. Read its measured results and deployment gates alongside the newer invoice UI report; do not infer production readiness from the filename. |
+| [context/invoice-workspace-refresh.md](../context/invoice-workspace-refresh.md) | Current invoice workspace layout/filtering refresh, functional regression checks, screenshots and delivery limits. | Current UI delivery record; the referenced Moss page was inaccessible, so no exact visual copy or hosted production success is claimed. |
 
 ### This navigation document
 

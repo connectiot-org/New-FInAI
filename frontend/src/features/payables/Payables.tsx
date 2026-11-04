@@ -23,6 +23,13 @@ import {
   ChevronRight,
   CheckCircle2,
   SlidersHorizontal,
+  Search,
+  Building2,
+  Clock3,
+  Files,
+  ArrowUpRight,
+  FilterX,
+  AlertCircle,
 } from "lucide-react";
 import { useWorkspace } from "../workspace/context";
 import {
@@ -150,15 +157,27 @@ export function Payables() {
         <div>
           <span className="ap-eyebrow">PAYABLES</span>
           <h1>Invoices</h1>
-          <p>From supplier document to a clear approval decision.</p>
+          <p>A clear path from supplier invoice to approval and accounting.</p>
         </div>
-        <label>
-          Company
+        <label className="ap-company">
+          <span>
+            <Building2 size={13} aria-hidden="true" />
+            Company
+          </span>
           <select
             value={entityId}
             onChange={(e) => {
               const next = new URLSearchParams(params);
               next.set("entityId", e.target.value);
+              // Paging and assignees belong to the previous company's queue.
+              for (const key of [
+                "queue",
+                "status",
+                "dueBefore",
+                "assignee",
+                "offset",
+              ])
+                next.delete(key);
               setParams(next);
             }}
           >
@@ -172,10 +191,36 @@ export function Payables() {
         </label>
       </div>
       <nav className="ap-nav" aria-label="Payables">
-        <Link to={basePath + "/invoices" + companyQuery}>Invoices</Link>
-        <Link to={basePath + "/suppliers" + companyQuery}>Suppliers</Link>
-        <Link to={basePath + "/export" + companyQuery}>Accounting export</Link>
-        <Link to={basePath + "/settings/approvals" + companyQuery}>
+        <Link
+          aria-current={
+            location.pathname.includes("/invoices") ? "page" : undefined
+          }
+          to={basePath + "/invoices" + companyQuery}
+        >
+          Invoices
+        </Link>
+        <Link
+          aria-current={
+            location.pathname.endsWith("/suppliers") ? "page" : undefined
+          }
+          to={basePath + "/suppliers" + companyQuery}
+        >
+          Suppliers
+        </Link>
+        <Link
+          aria-current={
+            location.pathname.endsWith("/export") ? "page" : undefined
+          }
+          to={basePath + "/export" + companyQuery}
+        >
+          Accounting export
+        </Link>
+        <Link
+          aria-current={
+            location.pathname.endsWith("/approvals") ? "page" : undefined
+          }
+          to={basePath + "/settings/approvals" + companyQuery}
+        >
           Approval settings
         </Link>
         {c.administrator && (
@@ -233,6 +278,7 @@ const memberName = (caps: Caps, id: string | null | undefined) =>
   caps.members.find((m) => m.id === id)?.name ||
   id?.slice(0, 8) ||
   "Unassigned";
+// Filters live in the URL so refresh/back/forward preserve the user's view.
 function Register({
   entityId,
   caps,
@@ -245,19 +291,24 @@ function Register({
   const { request, basePath } = usePayablesClient();
   const [params, setParams] = useSearchParams();
   const month = params.get("month") || "",
-    search = params.get("search") || "";
-  const setSearch = (value: string) => {
+    search = params.get("search") || "",
+    queue = exportView ? "export" : params.get("queue") || "all",
+    status = params.get("status") || "",
+    due = params.get("dueBefore") || "",
+    assignee = params.get("assignee") || "";
+  const pageOffset = params.get("offset") || "0";
+  const offset = /^\d{1,9}$/.test(pageOffset) ? Number(pageOffset) : 0;
+  const [adding, setAdding] = useState(false);
+  const navigate = useNavigate();
+  const changeView = (changes: Record<string, string>, replace = false) => {
     const next = new URLSearchParams(params);
-    if (value) next.set("search", value);
-    else next.delete("search");
-    setParams(next);
+    for (const [name, value] of Object.entries(changes)) {
+      if (value && !(name === "offset" && value === "0")) next.set(name, value);
+      else next.delete(name);
+    }
+    if (!("offset" in changes)) next.delete("offset");
+    setParams(next, { replace });
   };
-  const [queue, setQueue] = useState(exportView ? "export" : "all"),
-    [status, setStatus] = useState(""),
-    [due, setDue] = useState(""),
-    [assignee, setAssignee] = useState(""),
-    [offset, setOffset] = useState(0),
-    [adding, setAdding] = useState(false);
   const load = useCallback(
     (signal: AbortSignal) =>
       request(
@@ -278,231 +329,414 @@ function Register({
       ),
     [entityId, queue, search, status, due, assignee, offset, request, month],
   );
-  const rows = useLoad(load),
-    navigate = useNavigate();
+  const rows = useLoad(load);
+  const filterCount = [search, status, month, due, assignee].filter(
+    Boolean,
+  ).length;
+  const counts = rows.value?.counts;
+  const invoicePath = (id: string) =>
+    basePath + "/invoices/" + id + `?entityId=${entityId}`;
   return (
     <>
-      <div className="ap-toolbar">
-        <h2>
-          {exportView ? "Ready for accounting export" : "Supplier invoices"}
-        </h2>
-        {caps.capabilities.review && (
-          <button className="primary" onClick={() => setAdding(true)}>
-            <Plus size={16} />
-            Add invoice
+      <section className="ap-metrics" aria-label="Invoice overview">
+        {[
+          {
+            label: "All invoices",
+            value: counts?.all,
+            hint: "Across your current filters",
+            target: "all",
+            Icon: Files,
+          },
+          {
+            label: "Needs review",
+            value: counts?.review,
+            hint: "Check details and coding",
+            target: "review",
+            Icon: FileText,
+          },
+          {
+            label: "Your approvals",
+            value: counts?.approve,
+            hint: "Assigned to you",
+            target: "approve",
+            Icon: Clock3,
+          },
+          {
+            label: "Ready to export",
+            value: counts?.export,
+            hint: "Approved for accounting",
+            target: "export",
+            Icon: Download,
+          },
+        ].map(({ label, value, hint, target, Icon }) => (
+          <button
+            key={target}
+            className={"ap-metric " + (queue === target ? "is-selected" : "")}
+            onClick={() => {
+              if (target === "export" && !exportView) {
+                const next = new URLSearchParams(params);
+                next.set("entityId", entityId);
+                next.delete("queue");
+                next.delete("offset");
+                navigate(basePath + "/export?" + next);
+              } else if (exportView && target !== "export") {
+                const next = new URLSearchParams(params);
+                next.set("entityId", entityId);
+                next.set("queue", target);
+                next.delete("offset");
+                navigate(basePath + "/invoices?" + next);
+              } else changeView({ queue: target });
+            }}
+          >
+            <span className="ap-metric-top">
+              <span>{label}</span>
+              <Icon size={17} aria-hidden="true" />
+            </span>
+            <strong>{value ?? "—"}</strong>
+            <span className="ap-metric-hint">{hint}</span>
           </button>
-        )}
-      </div>
-      <label>
-        Invoice month
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => {
-            const next = new URLSearchParams(params);
-            if (e.target.value) next.set("month", e.target.value);
-            else next.delete("month");
-            setOffset(0);
-            setParams(next);
-          }}
-        />
-      </label>
-      {exportView && (
-        <p>
-          Approval and accounting export are separate from payment. An export
-          does not confirm posting.
-        </p>
-      )}
-      {!exportView && (
-        <div className="ap-tabs" role="tablist" aria-label="Invoice queues">
-          {["all", "review", "verify", "approve"].map((t) => (
-            <button
-              role="tab"
-              aria-selected={queue === t}
-              key={t}
-              onClick={() => {
-                setQueue(t);
-                setOffset(0);
-              }}
-            >
-              {t === "all"
-                ? "All"
-                : t === "review"
-                  ? "Review"
-                  : t === "verify"
-                    ? "Verify"
-                    : "Approve"}
-              <span>
-                {rows.value?.counts[t as keyof typeof rows.value.counts] ?? "—"}
-              </span>
-            </button>
-          ))}
+        ))}
+      </section>
+      <section
+        className="ap-register"
+        aria-label={
+          exportView ? "Accounting export queue" : "Supplier invoice register"
+        }
+      >
+        <div className="ap-toolbar ap-register-heading">
+          <div>
+            <h2>
+              {exportView ? "Ready for accounting export" : "Supplier invoices"}
+            </h2>
+            <p>
+              {exportView
+                ? "Prepare an immutable accounting export for an approved invoice."
+                : "Review the details. Keep the right people in the loop."}
+            </p>
+          </div>
+          <div className="ap-register-actions">
+            <label className="ap-month-field">
+              Invoice month
+              <input
+                type="month"
+                value={month}
+                onChange={(e) => changeView({ month: e.target.value })}
+              />
+            </label>
+            {caps.capabilities.review && (
+              <button className="primary" onClick={() => setAdding(true)}>
+                <Plus size={16} aria-hidden="true" />
+                Add invoice
+              </button>
+            )}
+          </div>
         </div>
-      )}
-      <div className="ap-filters">
-        <label>
-          Search
-          <input
-            placeholder="Supplier or invoice reference"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setOffset(0);
-            }}
-          />
-        </label>
-        <label>
-          Status
-          <select
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setOffset(0);
-            }}
-          >
-            <option value="">All statuses</option>
-            {Object.entries(labels).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Due on or before
-          <input
-            type="date"
-            value={due}
-            onChange={(e) => {
-              setDue(e.target.value);
-              setOffset(0);
-            }}
-          />
-        </label>
-        <label>
-          Assigned to
-          <select
-            value={assignee}
-            onChange={(e) => {
-              setAssignee(e.target.value);
-              setOffset(0);
+        {exportView && (
+          <p className="ap-export-notice">
+            <ShieldNotice />
+            Approval and accounting export are separate from payment. An export
+            does not confirm posting.
+          </p>
+        )}
+        {!exportView && (
+          <div
+            className="ap-tabs"
+            role="tablist"
+            aria-label="Invoice queues"
+            onKeyDown={(e) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key))
+                return;
+              e.preventDefault();
+              const tabs = Array.from(
+                e.currentTarget.querySelectorAll<HTMLButtonElement>(
+                  'button[role="tab"]',
+                ),
+              );
+              const current = tabs.indexOf(e.target as HTMLButtonElement);
+              const next =
+                e.key === "Home"
+                  ? 0
+                  : e.key === "End"
+                    ? tabs.length - 1
+                    : (current +
+                        (e.key === "ArrowRight" ? 1 : -1) +
+                        tabs.length) %
+                      tabs.length;
+              tabs[next]?.focus();
+              changeView({
+                queue: ["all", "review", "verify", "approve"][next],
+              });
             }}
           >
-            <option value="">Anyone</option>
-            {caps.members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name || m.id.slice(0, 8)}
-              </option>
+            {["all", "review", "verify", "approve"].map((t) => (
+              <button
+                role="tab"
+                tabIndex={queue === t ? 0 : -1}
+                aria-selected={queue === t}
+                key={t}
+                onClick={() => changeView({ queue: t })}
+              >
+                {t === "all"
+                  ? "All"
+                  : t === "review"
+                    ? "Review"
+                    : t === "verify"
+                      ? "Verify"
+                      : "Approve"}
+                <span>
+                  {counts?.[t as keyof NonNullable<typeof counts>] ?? "—"}
+                </span>
+              </button>
             ))}
-          </select>
-        </label>
-      </div>
-      <Notice error={rows.error} />
-      {rows.error && <button onClick={rows.reload}>Retry</button>}
-      {!rows.value && !rows.error ? (
-        <p role="status">Loading invoices…</p>
-      ) : (
-        rows.value && (
-          <>
-            <div className="ap-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Supplier / reference</th>
-                    <th>Invoice date</th>
-                    <th>Due date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Responsible</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.value.items.map((n) => (
-                    <tr key={n.id}>
-                      <td>
-                        <Link
-                          to={
-                            basePath +
-                            "/invoices/" +
-                            n.id +
-                            `?entityId=${entityId}`
+          </div>
+        )}
+        <div className="ap-filters">
+          <label className="ap-search-field">
+            Search
+            <div className="ap-search-input">
+              <Search size={17} aria-hidden="true" />
+              <input
+                placeholder="Supplier or invoice reference"
+                value={search}
+                onChange={(e) => changeView({ search: e.target.value }, true)}
+              />
+            </div>
+          </label>
+          <label>
+            Status
+            <select
+              aria-label="Status"
+              value={status}
+              onChange={(e) => changeView({ status: e.target.value })}
+            >
+              <option value="">All statuses</option>
+              {Object.entries(labels).map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Due on or before
+            <input
+              type="date"
+              value={due}
+              onChange={(e) => changeView({ dueBefore: e.target.value })}
+            />
+          </label>
+          <label>
+            Assigned to
+            <select
+              aria-label="Assigned to"
+              value={assignee}
+              onChange={(e) => changeView({ assignee: e.target.value })}
+            >
+              <option value="">Anyone</option>
+              {caps.members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name || m.id.slice(0, 8)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {filterCount > 0 && (
+          <div className="ap-filter-summary">
+            <span>
+              {filterCount} active {filterCount === 1 ? "filter" : "filters"}
+            </span>
+            <button
+              onClick={() =>
+                changeView({
+                  search: "",
+                  status: "",
+                  month: "",
+                  dueBefore: "",
+                  assignee: "",
+                })
+              }
+            >
+              <FilterX size={14} aria-hidden="true" />
+              Clear filters
+            </button>
+          </div>
+        )}
+        <Notice error={rows.error} />
+        {rows.error && <button onClick={rows.reload}>Retry</button>}
+        {!rows.value && !rows.error ? (
+          <p className="ap-register-loading" role="status">
+            Loading invoices…
+          </p>
+        ) : (
+          rows.value && (
+            <>
+              <div className="ap-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Supplier / reference</th>
+                      <th>Invoice date</th>
+                      <th>Due date</th>
+                      <th className="ap-amount-column">Amount</th>
+                      <th>Status</th>
+                      <th>Responsible</th>
+                      <th aria-label="Open invoice" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.value.items.map((n) => (
+                      <tr key={n.id}>
+                        <td>
+                          <Link
+                            className="ap-supplier-link"
+                            to={invoicePath(n.id)}
+                          >
+                            <span
+                              className="ap-supplier-avatar"
+                              aria-hidden="true"
+                            >
+                              {n.supplier
+                                .split(/\s+/)
+                                .slice(0, 2)
+                                .map((part) => part[0])
+                                .join("")}
+                            </span>
+                            <span>
+                              <strong>{n.supplier}</strong>
+                              <small>{n.reference}</small>
+                            </span>
+                          </Link>
+                        </td>
+                        <td>
+                          <time dateTime={n.invoiceDate}>{n.invoiceDate}</time>
+                        </td>
+                        <td>
+                          <time dateTime={n.dueDate}>{n.dueDate}</time>
+                        </td>
+                        <td className="ap-money ap-amount-column">
+                          {amount(n.gross)}
+                          <small>GBP</small>
+                        </td>
+                        <td>
+                          <span className={"ap-status " + n.state}>
+                            {labels[n.state]}
+                          </span>
+                          {n.attention && (
+                            <small className="ap-warning">
+                              <AlertCircle size={12} aria-hidden="true" />
+                              Needs attention
+                            </small>
+                          )}
+                        </td>
+                        <td>
+                          <span className="ap-owner">
+                            {n.owner
+                              ? memberName(caps, n.owner)
+                              : n.state === "approved"
+                                ? "Complete"
+                                : n.state === "rejected"
+                                  ? "Closed"
+                                  : "Finance review"}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="ap-open-invoice"
+                            aria-label={"Open invoice " + n.reference}
+                            onClick={() => navigate(invoicePath(n.id))}
+                          >
+                            <ArrowUpRight size={17} aria-hidden="true" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {!rows.value.items.length && (
+                  <div className="ap-empty">
+                    <FileText size={30} aria-hidden="true" />
+                    <h3>
+                      {rows.value.total
+                        ? "No invoices on this page"
+                        : filterCount
+                          ? "No matching invoices"
+                          : "Your invoice queue is clear"}
+                    </h3>
+                    <p>
+                      {rows.value.total
+                        ? "The register changed. Return to the first page to see the current invoices."
+                        : filterCount
+                          ? "Try changing or clearing your filters."
+                          : caps.capabilities.review
+                            ? "Add a supplier invoice to start a review."
+                            : "Assigned invoices will appear here."}
+                    </p>
+                    {rows.value.total > 0 ? (
+                      <button onClick={() => changeView({ offset: "0" })}>
+                        Go to first page
+                      </button>
+                    ) : (
+                      filterCount > 0 && (
+                        <button
+                          onClick={() =>
+                            changeView({
+                              search: "",
+                              status: "",
+                              month: "",
+                              dueBefore: "",
+                              assignee: "",
+                            })
                           }
                         >
-                          <strong>{n.supplier}</strong>
-                          <small>{n.reference}</small>
-                        </Link>
-                      </td>
-                      <td>{n.invoiceDate}</td>
-                      <td>{n.dueDate}</td>
-                      <td className="ap-money">
-                        {amount(n.gross)} <small>GBP</small>
-                      </td>
-                      <td>
-                        <span className={"ap-status " + n.state}>
-                          {labels[n.state]}
-                        </span>
-                        {n.attention && (
-                          <small className="ap-warning">Needs attention</small>
-                        )}
-                      </td>
-                      <td>
-                        {n.owner
-                          ? memberName(caps, n.owner)
-                          : n.state === "approved"
-                            ? "Complete"
-                            : n.state === "rejected"
-                              ? "Closed"
-                              : "Finance review"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {!rows.value.total && (
-                <div className="ap-empty">
-                  <FileText size={30} />
-                  <h3>
-                    {search || status
-                      ? "No matching invoices"
-                      : "Your invoice queue is clear"}
-                  </h3>
-                  <p>
-                    {caps.capabilities.review
-                      ? "Add a supplier invoice to start a review."
-                      : "Assigned invoices will appear here."}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className="ap-pagination">
-              <span>{rows.value.total} invoices · GBP</span>
-              <button
-                disabled={!offset}
-                onClick={() => setOffset((v) => Math.max(0, v - 20))}
-              >
-                Previous
-              </button>
-              <button
-                disabled={offset + 20 >= rows.value.total}
-                onClick={() => setOffset((v) => v + 20)}
-              >
-                Next
-              </button>
-            </div>
-          </>
-        )
-      )}
+                          Show all in this queue
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="ap-pagination">
+                <span>
+                  {rows.value.items.length
+                    ? `${offset + 1}–${Math.min(offset + rows.value.items.length, rows.value.total)} of ${rows.value.total}`
+                    : rows.value.total
+                      ? `0 of ${rows.value.total}`
+                      : "0"}{" "}
+                  invoices · GBP
+                </span>
+                <button
+                  disabled={!offset}
+                  onClick={() =>
+                    changeView({ offset: String(Math.max(0, offset - 20)) })
+                  }
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={offset + 20 >= rows.value.total}
+                  onClick={() => changeView({ offset: String(offset + 20) })}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )
+        )}
+      </section>
       {adding && (
         <InvoiceForm
           entityId={entityId}
           close={() => setAdding(false)}
-          done={(id) =>
-            navigate(basePath + "/invoices/" + id + `?entityId=${entityId}`)
-          }
+          done={(id) => navigate(invoicePath(id))}
         />
       )}
     </>
   );
+}
+function ShieldNotice() {
+  return <CheckCircle2 size={16} aria-hidden="true" />;
 }
 function InvoiceForm({
   entityId,
