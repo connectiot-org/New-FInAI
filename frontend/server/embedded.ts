@@ -1,5 +1,6 @@
 import { IncomingMessage, type ServerResponse } from "node:http";
 import { randomBytes, randomUUID } from "node:crypto";
+import { readRequestBody, RequestBodyError } from "./request-body.js";
 
 type Request = IncomingMessage & { body?: unknown };
 type App = {
@@ -34,6 +35,7 @@ export function createEmbeddedHandler(options: {
       res.writeHead(status, {
         "Content-Type": "application/json",
         "Cache-Control": "no-store",
+        ...(status === 408 || status === 422 ? { Connection: "close" } : {}),
       });
       res.end(JSON.stringify({ code, message, requestId: randomUUID() }));
     };
@@ -98,28 +100,10 @@ export function createEmbeddedHandler(options: {
       return fail(400, "BAD_REQUEST", "Uncompressed request bytes required.");
     let body: Buffer;
     try {
-      if (upload && req.body !== undefined && !Buffer.isBuffer(req.body))
-        throw new Error();
-      if (Buffer.isBuffer(req.body)) body = req.body;
-      else if (req.body !== undefined)
-        body = Buffer.from(
-          typeof req.body === "string" ? req.body : JSON.stringify(req.body),
-        );
-      else {
-        const chunks: Buffer[] = [];
-        let bytes = 0;
-        for await (const chunk of req) {
-          const b = Buffer.from(chunk);
-          bytes += b.length;
-          if (bytes > maxBytes)
-            return fail(422, "VALIDATION_FAILED", "Request too large.");
-          chunks.push(b);
-        }
-        body = Buffer.concat(chunks);
-      }
-      if (body.length > maxBytes)
-        return fail(422, "VALIDATION_FAILED", "Request too large.");
-    } catch {
+      body = await readRequestBody(req, maxBytes, upload);
+    } catch (error) {
+      if (error instanceof RequestBodyError)
+        return fail(error.status, error.code, error.message);
       return fail(400, "BAD_REQUEST", "Invalid request body.");
     }
     try {

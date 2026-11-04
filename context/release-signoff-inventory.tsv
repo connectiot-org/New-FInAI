@@ -1,0 +1,308 @@
+path	lines	sha256	verification_group
+.github/workflows/checklist-release.yml	123	cfba9590df9881693820abe32d2a7e8e32ba3eb581195ebea9e81b9096c9e52f	configuration/documentation / inventory; review scope described in report
+.github/workflows/payables.yml	88	a2413366b32ccf6c220399a379708a1c0abfe0bd54e774286c14f1be46953962	configuration/documentation / inventory; review scope described in report
+backend/.dockerignore	6	60e2a872d5be05990157e0392c448899c4994351593ba8f4eef717c676028c30	configuration/documentation / inventory; review scope described in report
+backend/.env.example	20	5814a07091f1235017b3548c9d621b9156c618bbe351c5de5d1d122d6005530f	configuration/documentation / inventory; review scope described in report
+backend/.gitignore	6	3d6b99b2a35edbf71de03c1d9802ef1d68c5106b8f1318a1df3f163d99bfc765	configuration/documentation / inventory; review scope described in report
+backend/AGENTS.md	11	6d15743e3075c5dffaefc4f653a482230871e2c4fb59674c612bda014bd023c6	configuration/documentation / inventory; review scope described in report
+backend/ASSISTANT.md	65	37003588cbee77c836d0375a7482b851d2ceca7c5ee1af577f6e905c1a157bbe	configuration/documentation / inventory; review scope described in report
+backend/Dockerfile	12	157ef842cbceb3a2a7e5c3d53da8cad19260c16b9c1a0fce7580e390a90e6d4e	configuration/documentation / inventory; review scope described in report
+backend/HANDOFF.md	9	097a2bcb0eefb4ed8814825222a50c48a1db15bdbafddc5324560466107c5716	configuration/documentation / inventory; review scope described in report
+backend/PAYABLES.md	89	8bdc360b06700cd6be78b87918d9488d6e9414c6d7dc50a01d2684cded2d6da3	configuration/documentation / inventory; review scope described in report
+backend/README.md	49	e04e9f6b17268eec5eb4c6eee40d0405981bef02648adb220979049754cd480b	configuration/documentation / inventory; review scope described in report
+backend/RECEIVABLES.md	61	a929c3fa2aeeb38c95624fe8a9092eb23da8b868d0175311bdea2ff5e6464ad0	configuration/documentation / inventory; review scope described in report
+backend/RELEASE.md	61	9cdd76c6f327d49b745e2b9f4bea15f739f52094ee6bd06a1d2b919299411bae	configuration/documentation / inventory; review scope described in report
+backend/WORKSPACE.md	58	6d5a0298189cf2258cb666dfad41bc5bde1d47bfbea372936a643f30f4e8f230	configuration/documentation / inventory; review scope described in report
+backend/compose.production.yaml	51	1c6924aaffd698937f88d97bc71a2ff2f5f5fa43d89d1a483d8ccf2ccd3a1b11	configuration/documentation / inventory; review scope described in report
+backend/compose.yaml	18	406a5458e44b5a9db4c666b0b1f958223940ebd5d9f3cd743573be8cbc829f2e	configuration/documentation / inventory; review scope described in report
+backend/eslint.config.mjs	8	be1e09c7e182baa4f8a742d39139dbd0691580cb36e571b94f8009565eae0e06	configuration/documentation / inventory; review scope described in report
+backend/package-lock.json	3900	0fffb48155ede79d478c94d1e06f33012914a7b02050480ca0b10169b262aa75	dependencies / frozen install and audit
+backend/package.json	58	a71906ecc92b3cd70c230947be522606e387c012fc27cbf8807171c5e39714db	dependencies / frozen install and audit
+backend/prisma/migrations/202610190001_checklist/migration.sql	38	29301fbdcb68fe1cc5913ad0888bb4abc7e0c1d18606922c91cdadf7674323d7	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202610210001_sessions/migration.sql	5	d22686f484cec2ac7bfa1efe078646aa1fd0f760c2d7c18deaeff46e0e0cf9bf	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202610220001_subscription_renewals/migration.sql	16	672b81deb424973629eded98ddf8ebf00cd56c85ae130d2fc30ded1d71423ac2	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202610240001_receivable_snapshots/migration.sql	21	d095bceafa0ba9c03fd5ab21818cfe021fb92dddda85158a31523fff60a7df12	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202610240002_workspace_operations/migration.sql	18	2181fc57dbb0b0be1603bbe425b026e7ffb3995480700bd227870df1a25b8899	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202610250001_assistant/migration.sql	25	0045491900b2ec6bdb578d060d34503fa3597203ed6109f8ab322d863bd8f792	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202610250002_assistant_deletion_receipts/migration.sql	5	8d8c8207d901d9816fe459d8f3dea428f1d32ed9f72b5f0e5c94cecfd341be70	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/202611030001_payables/migration.sql	46	768093cbd65f1168bed801a11585cd921840f4e8adcd52e8bc2e4c02d8846914	database migrations / fresh apply, repeat apply and restore
+backend/prisma/migrations/migration_lock.toml	1	1db17a8d051aa136110736752c5e1f8b7ed92b6ea8e803112fbbe2497047c210	database migrations / fresh apply, repeat apply and restore
+backend/prisma/schema.prisma	413	a81453a0044788734826c29ab3e310d6142f656c6c956b7f63d5cc7bde13fb9c	configuration/documentation / inventory; review scope described in report
+backend/prisma/seed.ts	69	e3ec8279beeb448caeaa50d19109929cada4c2a639e0f67dc1f242a2ceeede44	configuration/documentation / inventory; review scope described in report
+backend/scripts/accounts.mts	90	0d2032e697d6f4b18d4550e23be9926eef23fe4220dd56ea8c7ed85e8f485121	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/build-local-prisma.sh	48	c0b7d538ae9528a1561ca4296f35e504c0ec5d829e9ee61a0f03c5a102809f20	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/cleanup.mts	137	ff1058483770cb4e21ea54041bc00139a24b192431df8121826a7d2764b915cf	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/evaluate-assistant.mts	130	7a33ca2bf954d65e8d738e739c23f0658d49d0d7f1afa2b86c09f7b614356187	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/import-ledger.mts	61	0b1daacf383c298742f72131061e41780b71ebe0aed250f68b6fd6458421b417	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/import-receivables.mts	69	0bb888359b9633a559352eb2bac28f9664f7fea423029ae272dde6ce5984561e	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/init-local.mjs	13	2358d289ba4028622e250ab9afe8e2921f56a0d8d41aeb979e8179f8bd63db8d	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/payables-storage-check.sh	53	a4f31658661f9178294d05eb54facf00f35f03dbaf1003019c92cd45e2df1a1e	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/restore-rehearsal.sh	97	81943541861ef14810244fee4717dc6c0c52e3dbc90d0c28ae519c9ac350df25	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/scripts/workspace-admin.mts	79	c638a5eda2d8ce95c357aca40ee375060d7e07e125eb857bb393823fb8a4b9f0	tooling / inspected or invoked where listed in review; not all operator paths executed
+backend/src/app.ts	545	7392d54b024a7d3973527edc81754e7ef5924320df5f526ee74d3e81d945ffe2	backend runtime / typecheck, integration suite, measured coverage
+backend/src/assistant/controller.ts	185	4b1e0799b79555fe27d4bd76751ad9a02c161838856c1c706dc4e2e3eee9001e	backend runtime / typecheck, integration suite, measured coverage
+backend/src/assistant/facts.ts	615	5abe1af5635cbd65f1fcc172f6985b4065474e87db461624902beb95d11885fc	backend runtime / typecheck, integration suite, measured coverage
+backend/src/assistant/provider.ts	316	d5641899a82acce030de356b1fc9bd020aba95afa6fc200dd407f2008b89c898	backend runtime / typecheck, integration suite, measured coverage
+backend/src/assistant/service.ts	914	772c253a49c2bf01f7f02475c26d796cf2c54f0504b6de3dd138de742cf5a12f	backend runtime / typecheck, integration suite, measured coverage
+backend/src/assistant/validation.ts	132	f5ae9d12133578f6061875cfc8332fb794fa70824f75ef2118b3d9232b1fb9b9	backend runtime / typecheck, integration suite, measured coverage
+backend/src/audit.ts	51	427e94eb370be3a940eb685b60bb2063acc96b2abcde181f89bd58b483241074	backend runtime / typecheck, integration suite, measured coverage
+backend/src/auth.ts	152	cd23e82b3dda660f4e7072329dc3d27caa34b1ad3912e4d40e1021a74ceb290a	backend runtime / typecheck, integration suite, measured coverage
+backend/src/checklist.repository.ts	244	8bb558f38f556382b9db658eabbc0562703567053c87ca78ed48766da684d6fb	backend runtime / typecheck, integration suite, measured coverage
+backend/src/checklist.service.ts	51	3369a1159bbf9b453e9398d250aa323f4d7795b07480aeabcec12a7626e3f5e6	backend runtime / typecheck, integration suite, measured coverage
+backend/src/config.ts	86	3143106cf0b7c7e3f5d7357e94827059c893c8f75fc8e221e16b5b2fd40d1294	backend runtime / typecheck, integration suite, measured coverage
+backend/src/database.ts	8	bcf6d995b48cbc6f2eca629ba3d6235f5ec642371fe63803ec27116e273247a6	backend runtime / typecheck, integration suite, measured coverage
+backend/src/errors.ts	86	a245a6daa279e34245d2cec6d731e6da0d737a1ff3b70ce95d9ce4cdc894ceec	backend runtime / typecheck, integration suite, measured coverage
+backend/src/ledger/source.ts	427	444b422d365cc85c19bf27fcce8ec1a9cbb3bf470f1654ac0ceb38c91d212c3f	backend runtime / typecheck, integration suite, measured coverage
+backend/src/main.ts	7	391424b3823e4d8fab4d73af0cb48ae3c42dc2033fad053bc1031ff66f23836b	backend runtime / typecheck, integration suite, measured coverage
+backend/src/payables/assistant.ts	45	58aa797ec03f50f134ec1919b37152c10aaa02e24ebd1f5695a42a36065ba267	backend runtime / typecheck, integration suite, measured coverage
+backend/src/payables/controller.ts	332	d0e3a8fb4ab712d5f1eaa3b50d923840c3632fa25ec5cb4c44b48514aa512df5	backend runtime / typecheck, integration suite, measured coverage
+backend/src/payables/domain.ts	266	e452d1cf8cca8ffe253dfcbc4a3f05a3bd5d9291cc7963dc6d8fbedd0c7a1e14	backend runtime / typecheck, integration suite, measured coverage
+backend/src/payables/scanner.ts	103	2a58d740f2ee148c305e02203374a3c21c039d0e9bdfd3078273356f04fb2904	backend runtime / typecheck, integration suite, measured coverage
+backend/src/payables/service.ts	982	844ce846cda0db42c5ddbd3b3ada4113784a5a9e95b7200dac163dce567d2858	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/changes.repository.ts	167	d0511da113e903dc2b6abf4f34188668d4e841c18cbbb716820ca8ddb138e057	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/controller.ts	18	a1955a86dc62bf8af85b7fcbd120dbcd54049f602750009d71af0335667e9cd2	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/detail.controller.ts	41	4e4d5993e138d461aeacceb2f98652746727e2baf59b7daf786bc4cd90d426d4	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/detail.repository.ts	208	b0fc4f61bce6b96bbe2667faafde713a67e886538db99b3b6f1db06baed6a936	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/detail.service.ts	32	acd38a9fad46abf71b80efc752c67c9e9005c44c5f36cc7088b4e786c9bb99a0	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/detail.validation.ts	36	eaa90b56b0c980481abcc6df1bc3997bc10b6f74b4d255a238e083652fb774a2	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/import.controller.ts	89	a686bf869cb8ec693410609e7f4da983e0016bdf855e838c84a6cecdeaf3a04e	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/import.service.ts	222	41e6a5004ffaf777378d4f3c7aa5e5ef202446eceb01f1715d18c871554e600a	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/repository.ts	187	5902ff50282bb05775a3d7d4ef46ea27ec2a19181867a6abf595a6a09eda635e	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/service.ts	13	b728e46ddcd2fc9f2e4f1539715585b5b579c85e87d1ae20802293c02f50ea7e	backend runtime / typecheck, integration suite, measured coverage
+backend/src/receivables/validation.ts	165	11cb289834c725c51aca3ab516a335d6fed65bf22c836be7448d57f5973d2697	backend runtime / typecheck, integration suite, measured coverage
+backend/src/subscription.controller.ts	73	33b102662d7e477b993e86ae3fa362728d3d9e44db98834f5d9e69f59419fa59	backend runtime / typecheck, integration suite, measured coverage
+backend/src/subscription.repository.ts	183	e3997fb9102b1e37d5465b65feec39a62a16007162ef4886095feaad2ceb1e41	backend runtime / typecheck, integration suite, measured coverage
+backend/src/subscription.service.ts	138	e0fae736c0cc50032a4941ab6163cc4221dab259f98ff9bba32981205716ffa9	backend runtime / typecheck, integration suite, measured coverage
+backend/src/subscription.validation.ts	79	4aa5fb4e7906125c776d200d379ec08a9f563e0a05aa7b3bae08a69e2f674cf2	backend runtime / typecheck, integration suite, measured coverage
+backend/src/validation.ts	68	a57c794aa44eb7ed9d841a0932da9b27b23d715bfb69548b4ace234a20e3d0ed	backend runtime / typecheck, integration suite, measured coverage
+backend/src/workspace/controller.ts	115	c363a880bcf531163e6a843cd0561d02ea1ffbc76ae8729c201c85a54ffa83ad	backend runtime / typecheck, integration suite, measured coverage
+backend/src/workspace/permissions.ts	32	e9fea6f7ed20e79048bf835a05910351416cc39936fad9f8041b82f3ef328388	backend runtime / typecheck, integration suite, measured coverage
+backend/src/workspace/service.ts	355	c8851b082ec92c15ef32e74d4bad78b1fdf3da02cc3d8c2e97843080e4184c07	backend runtime / typecheck, integration suite, measured coverage
+backend/test/assistant.test.ts	1516	4b28cc8576483d762ade64bd8255c8988cfd3d8ec43eef90ce1d9bb4fd77cb70	test source / selected full release suite and lint
+backend/test/checklist.test.ts	1345	d0f3899320372596c770845720555789f177e18cb9cd050bdd4af1cb7a9ad23d	test source / selected full release suite and lint
+backend/test/config.test.ts	28	a2df7e86a730b3ae8504fa7145326a7c150b8288cb05a2c52d19848be4dea35d	test source / selected full release suite and lint
+backend/test/invoice-assistant.test.ts	716	7b0849f7a5bf2fb226995f19185c7bb0f0f422fd7784f2ac72b7a0e44258ac0e	test source / selected full release suite and lint
+backend/test/payables-domain.test.ts	133	844ff60ef9569f04e9b067127e02fcfd2aa8615c630b2e2a45e3b7c6afcef0ec	test source / selected full release suite and lint
+backend/test/payables-scanner.test.ts	127	5f8435a509c42f1dda11986b708419aa0e472a0a4686864287fcf4a4683831d2	test source / selected full release suite and lint
+backend/test/payables.test.ts	576	056584e269054769c2c581bf38c1d175e02b6c65daf1ef7caf30e16c33184fda	test source / selected full release suite and lint
+backend/test/receivables-changes.test.ts	455	546d8c201aa41c150ca080fd5c7353d77b16c63da42f478662e46ccf23023d1f	test source / selected full release suite and lint
+backend/test/receivables.test.ts	1206	0f864cad1439ec26d10208b32f36c8b580d8d6cb492a6e656c741e377fa08ab2	test source / selected full release suite and lint
+backend/tsconfig.json	17	538632e51b94c0beb4b327a337f6c20a05f0d83ea0c9f0c474a3ae8842bc84cd	configuration/documentation / inventory; review scope described in report
+contracts/README.md	83	b8dc9d126af221b38f61d52ec1788d8956f56777cfbe02bd26f36169c5cbfa2d	contracts / schema validators and OpenAPI lint
+contracts/assistant.md	29	a26debfba2c00d7b1c2440f246f24f948737688d2285a0ffa6dac22f6f0532cd	contracts / schema validators and OpenAPI lint
+contracts/assistant.openapi.yaml	1638	1ab69e247a11ba24ce9116c75ea0ca6b395694bf8f7b378405be7a744916660d	contracts / schema validators and OpenAPI lint
+contracts/assistant.schema.json	1132	dfb81078d5d98eec5971e6e2646048511d3a39e48cca2331e8509df84df30478	contracts / schema validators and OpenAPI lint
+contracts/examples/assistant-ledger.synthetic.json	113	a0ae22aa47bef058789e83231a74563dafeaadab382e7a3f759c44a026e2bf0a	contracts / schema validators and OpenAPI lint
+contracts/generate-payables.mts	278	096dba429a306f99eca27672bebd3e4c7ea49e4fc45035e10ecb392d800632c4	contracts / schema validators and OpenAPI lint
+contracts/invoice-assistant.md	11	0433505821c9f48371169d1db48d333daa93f86d1d44f65c9f4637c2fc0a617a	contracts / schema validators and OpenAPI lint
+contracts/invoice-assistant.schema.json	117	089404c5a61e5f5e864b1fdb169e2843c94f5b10a75a52fa5c24698644aaab68	contracts / schema validators and OpenAPI lint
+contracts/ledger.md	11	8c4e6ef03e6c21088f5e8a3c1e7e631dc2b37fdd5a2e59f231abe63adee8a67b	contracts / schema validators and OpenAPI lint
+contracts/ledger.schema.json	184	41f8de4502feec98cee7e3913e84e8d79f408e33b37c3fc7252f8a54d6604bef	contracts / schema validators and OpenAPI lint
+contracts/openapi.yaml	846	150cfa67adcec1cf2cc221bc3cf8b21aeb495d1c7c484450f3558aa43691efa0	contracts / schema validators and OpenAPI lint
+contracts/payables-examples/bill.json	1	c87f029174c27dfc7c36958388a1b7b1f9abc10f56b2b1b45511adfd3705f6e1	contracts / schema validators and OpenAPI lint
+contracts/payables.md	35	668306139f930933b9c74f178d29d9328cdfb32526cfa60c5a4744e37b8c86d6	contracts / schema validators and OpenAPI lint
+contracts/payables.openapi.json	3175	908a9732c694ca63a8c1f6e90b6b8a677067c4f8097d2b6a4006da6d5b3070c3	contracts / schema validators and OpenAPI lint
+contracts/public-chat.md	13	c4341e8e2b331924c423ac9affa3043d8b3b4f600db8b8a0723049e4e820ca99	contracts / schema validators and OpenAPI lint
+contracts/public-chat.schema.json	37	917ee8d47e84ee228404303398a2cda653ed706198e493a5dc37c11a27834e90	contracts / schema validators and OpenAPI lint
+contracts/receivables-detail.openapi.yaml	1170	ca45cadc3adb82732f02cf12907a50b91bad8a0cd927f83626cc3ffd40281406	contracts / schema validators and OpenAPI lint
+contracts/receivables-examples/changes-basic.json	66	e4c6ff1b9ba94adfd2a63f9d3d4831658594830386127e48e8095b1afe278a6b	contracts / schema validators and OpenAPI lint
+contracts/receivables-examples/import-v1.json	18	e852ee512eda7a42cae8d7ef272ad2c28f66eb13b1a09038e89b84610759ddf8	contracts / schema validators and OpenAPI lint
+contracts/receivables.openapi.yaml	394	a2f42e542df4fd7a20ec414057eb724d23b48658e38071a57051629643a2580b	contracts / schema validators and OpenAPI lint
+contracts/reporting-source-proposal.md	9	182bd21905c96289a26bfd93fec020cb729a2cdbabe4f851d1ba43c4bffa6085	contracts / schema validators and OpenAPI lint
+contracts/requirements.txt	2	0b0709dc3105d98b29f4fc6a870c15c0cf42191498384ef8a2a32d3fcf5f34ed	contracts / schema validators and OpenAPI lint
+contracts/subscriptions.openapi.yaml	362	cc72a3db56d61ca65a7c9152450105775fad6560e6dd08e257a55bdf51168c3b	contracts / schema validators and OpenAPI lint
+contracts/validate_assistant.mjs	10	f1de817048fc993671fe5607e2e02a7170cfff054b4036dc426f138163f36baf	contracts / schema validators and OpenAPI lint
+contracts/validate_examples.py	34	7ec0a35fb57cab6ec9190b0339d7f8f8a94142f117179dafa491ca0f3737edda	contracts / schema validators and OpenAPI lint
+contracts/validate_payables.mjs	30	324f8ba06216c5d28487fab092da3ba92f1759a7b88deed0ba97f9765a36eafe	contracts / schema validators and OpenAPI lint
+contracts/validate_public_chat.mjs	19	18e67c72886bdac4439670b75fb03cde8564d93b1dc2f94cf48864795943dab9	contracts / schema validators and OpenAPI lint
+contracts/validate_receivables.py	26	2057edb2c240665e6f6a95eb8b1640cd2b1d1ca25957aee027024f09323d40dc	contracts / schema validators and OpenAPI lint
+contracts/validate_receivables_detail.py	19	1f56e47377ea09461acaae7127802ed04e9f01780acb963660975627112ab17e	contracts / schema validators and OpenAPI lint
+contracts/validate_subscriptions.py	22	425608ed6ca7d8b0b1e4f943208aa2b4d66c7bd7de103799887256b249d89640	contracts / schema validators and OpenAPI lint
+contracts/workspace.openapi.yaml	768	0c1f69425ce7cb5721517c3d2991c351c7ed421a77d56a7899a6b48163bcdaf1	contracts / schema validators and OpenAPI lint
+frontend/.gitattributes	2	9618185d97a7b73972851bc179ac276080c298f79adbc1847951e647f4254c27	configuration/documentation / inventory; review scope described in report
+frontend/.gitignore	10	450ff1206b5551296ec726aa916713ad4d9c2b0b0743611f166a0e3b91260151	configuration/documentation / inventory; review scope described in report
+frontend/AGENTS.md	9	7a277498aca6508e86bfba3d8c9b6635f03a5924c2ec1521351b6b7a5340d8e2	configuration/documentation / inventory; review scope described in report
+frontend/README.md	100	65a25c6a0bdfce2a601a99a12e97527eeee356d3e450550152a1955916b7cc1b	configuration/documentation / inventory; review scope described in report
+frontend/api/proxy.ts	197	45084b38729279f491738ad260291b1a36757b7713fe61fe1acbf153ccedafb7	configuration/documentation / inventory; review scope described in report
+frontend/docs/assistant-production.md	30	027823b237a0c60d21a3f7608a10cd75cefe28ce6d32127a5fdc731e938b0cde	configuration/documentation / inventory; review scope described in report
+frontend/docs/assistant.md	17	5544da89b45ae6a1be2a984c36cb48c48ef7a8e6fc73d0895ce709e2c25cab22	configuration/documentation / inventory; review scope described in report
+frontend/docs/checklist.md	61	cb04e6a61df7e929ca951e5134873d4177c39cb7268700908125ef7fa62727f0	configuration/documentation / inventory; review scope described in report
+frontend/docs/content-ui-review.md	38	5610d4560a3167482fc931f6f9a987e837c261bd433fc281d56549f17170f440	configuration/documentation / inventory; review scope described in report
+frontend/docs/content-ui-validation.json	199	77134941b98352bf197d004280cc343d580b52491c9ff7e1f8b34e68a3848cb5	configuration/documentation / inventory; review scope described in report
+frontend/docs/homepage-validation.json	304	91cd2507e328d5bc2fab2b5c4a5e784a6cb879c9c430561255b75af9ec78b41d	configuration/documentation / inventory; review scope described in report
+frontend/docs/implementation-plan.md	9	4be9e0c86f02d3358110181660b37707c05773f548b903b28259b6f7243f99cf	configuration/documentation / inventory; review scope described in report
+frontend/docs/outstanding-customers.md	140	5e0634595507814e4619e77667b28e02e35bfc7516348a1a874c08125bb54b59	configuration/documentation / inventory; review scope described in report
+frontend/docs/production-validation.json	24	5adcca9a937f87cf2dc3d6828edcdb695431abd6216183f0839e1da6d613db7d	configuration/documentation / inventory; review scope described in report
+frontend/docs/production-workspace.md	11	f2ec08691c399557403b44ac2d84b6331b9042599394ef2aa5a911fe7b2fab24	configuration/documentation / inventory; review scope described in report
+frontend/docs/progress.md	56	a23c509a386d8f26373cab6011b105bc4881b933143cc6beed72dab34f205e5a	configuration/documentation / inventory; review scope described in report
+frontend/docs/rea-section-comparison.json	1199	61aec90045f00146b516ce05ae2d49d935c681a48afefa47a642b04901ccf486	configuration/documentation / inventory; review scope described in report
+frontend/docs/rea-validation.json	269	0b3dabd2679f98d8084f8adb24be6e02b7f421b2cd275c45d07c89bac29a6d2e	configuration/documentation / inventory; review scope described in report
+frontend/docs/rea-workflow.md	124	9750658e828cd922ea7a6f142213dbcc1091ca4546b12711d0091260cd9f1b39	configuration/documentation / inventory; review scope described in report
+frontend/docs/receivables-changes.md	13	7d164154f88138c4456cc1d7e470fdd84009001647b0ab3e476469081587cbaa	configuration/documentation / inventory; review scope described in report
+frontend/docs/reference-assets.md	13	3964ce9078b398ff0d40c00cc5234a1d1c3cc1bdcf4a62fcc1533f6b4103e66e	configuration/documentation / inventory; review scope described in report
+frontend/docs/reference-map.md	51	27c19ffb9064940a4253894bd8c462510da1102b85fd7981c6c326d4a41330e4	configuration/documentation / inventory; review scope described in report
+frontend/docs/reference/capture-metadata.json	12	11c0bdeaaf8e2cb8d9ecd4c7d09c2ab1c2c2fa97487569a10ac8c64e3dd03fdc	configuration/documentation / inventory; review scope described in report
+frontend/docs/reference/computed-home-1440.json	240	e5700d93153f703bf6cf2420b0e22b57fd7fcb431cb8016215833780bce14df0	configuration/documentation / inventory; review scope described in report
+frontend/docs/reference/rillet-home-1440-top.png	3559	8648193f52e3a731b27a49d16ec8d2f57dcaec99a6a5297f3271c674b79600c8	configuration/documentation / inventory; review scope described in report
+frontend/docs/reference/rillet-home-390-top.png	660	2d0a8f7d46058a2186925ce16b572e7ab34e49d540d752c0e946b3ae9e971774	configuration/documentation / inventory; review scope described in report
+frontend/docs/route-matrix.md	79	9ab0c9034e7b2d4e521e29e654213b909437098e2a72260461faa98a02b285c0	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/accounting-journals-J-INV-1001-1440.png	446	39d519d52f25fec24620b4ce200276c5dc8a0ccfb441f23a08c27074abec8616	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/accounting-ledger-1440.png	914	ded6a883b72259ee55e72f50229ddf9cda0b0a2c19eb7c7267b7385835034b65	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/content-review-desktop.png	1913	8c487331e2c37e8593fd8b07f06f22d966617ed4121ef09ee994696c68012b0a	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/content-review-mobile.png	600	6c232adbd64ab3753e4631fa0dfac765e726b94bc373a2f1fded29b696e7ff3c	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-1024-top.png	2529	9ae008fdee73966d340826e37ea9e0a480ad62eb7da0112dc0fcc62e7784311c	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-1024.png	8563	f44017a8694aca1b422b502ba2100678be3a8154b9a05304410585baca1e7038	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-1280-top.png	3389	825c0091daa5168c4346b65448f825264728f270db4a1370211cb472129cd09c	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-1280.png	11105	07b89279a155bfda8cb40e9be3dcbf6c7d531fb785809af96aab6f6295f46ca7	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-1440-top.png	3076	8874ae771ee3265b34f5a1e60f5434b45e6c3b231ffe8b8298e6e124e04c76a9	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-1440.png	14735	54bdf8ad2ae194e47f89e6e8dee3d2d3b144d73832b256f09cdce21d6dd43c8e	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-390-top.png	661	d42f9788ce6838666c1f4510ec9953e89760cafc724370aa6fe7e4c742bed160	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/homepage-390.png	5327	4517d8b8406b11f8dd8501efa50f91955e78bc8042b9a15415473a98f0f0affd	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/journal-editor-390.png	607	69245090ee1903fd757679cbd0d6798d1e989b57753ef4dd3c495260fcc23c95	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/overview-1024.png	730	357304ae014824cafef55f44c0ac493cfec52696a863fb6bd06cdeedd6cdbbec	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/overview-1280.png	716	e0b687617122bc63796ce80cdd783150770bea1ab9839999748c162c9c1bf665	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/overview-1440.png	872	99f935b96edd3b03533ec5c37314244a0df23827b174222a4ba91399d7fa58fb	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/overview-390.png	667	b7e8ff771eac97e6282a1233b8286b23d5548d09055ce21b50dfb17d3b25b3fc	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/print-balance-sheet.png	536	fc846accbc59c54b2a5087b68219213de6ea12a2cefa3f23e0ebf9d534960ac3	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/product-ledger-1440.png	5153	86396e6e7c69d1fe760f8ce917098484e1937f0ba0970de9a21aa4ad8139a41e	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/product-ledger-390.png	3349	c64ffcb48b67e2cfb2bbb20850e61fc7c003b008b853dd3f4ccc29c2e934eae3	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/receivables-invoices-INV-1001-1440.png	528	6cd0d6dfd862c2b93c823b22e1fa0bc0318df5772e15c29bd7f50e1d38ebcb96	configuration/documentation / inventory; review scope described in report
+frontend/docs/screenshots/reports-balance-sheet-1440.png	835	db73a1dfbce0e77fbf3e8ec72702cf097adef15d3d57999460794c0214fb8f78	configuration/documentation / inventory; review scope described in report
+frontend/docs/subscriptions.md	9	e26a8c1601c2c6aed1a7161ad6cca36254b39cc9aba2abf0b3252507a4eef0ab	configuration/documentation / inventory; review scope described in report
+frontend/docs/vercel.md	70	120d025d7a9fca0b06bfd7e01d2916164fbb0a45e09041fdd4a0094957973b5f	configuration/documentation / inventory; review scope described in report
+frontend/eslint.config.js	29	c980ed038556f002969c636e0941a2ab3d9c2f951c6d1390ade4efd526cf4192	configuration/documentation / inventory; review scope described in report
+frontend/index.html	18	c9fcb57a095f8b5ccdc61130908d4bc9f68c664bf4f5c0b4ac04201d8ed1a2e8	configuration/documentation / inventory; review scope described in report
+frontend/package-lock.json	5634	efbe70f9232e3822fa095941a50efe158de8bb567597b17e2c0c762c14ef8808	dependencies / frozen install and audit
+frontend/package.json	75	2a30f63ee00fd26c70046ab6cbe9d4c19b2b8c9d5024c480d38b89afe74cd98c	dependencies / frozen install and audit
+frontend/playwright.assistant-production.config.ts	7	5f064120a9610fbb9d1367828a3178b0c6d0e8eaee4afde771d227d7aa0c7be6	configuration/documentation / inventory; review scope described in report
+frontend/playwright.assistant.config.ts	3	7f4b2be5f524d298fd9c6fc3a9d89ed4a0d9f94c5e632de0b2cd5302523ab67e	configuration/documentation / inventory; review scope described in report
+frontend/playwright.checklist.config.ts	16	727013637b0a0c3d2729b79ba03085b0f1bec8e615048ec9b4eaf487d9ad46c3	configuration/documentation / inventory; review scope described in report
+frontend/playwright.config.ts	29	ae5f95b3e5ae9ded3b688fd8fc706432d44ea538e0d863c5a7d8978406b49e75	configuration/documentation / inventory; review scope described in report
+frontend/playwright.invoice-demo.config.ts	15	c9462a8246ebef85e0ef43ebb19c8c599a084ba982d8073395057cae61a556ca	configuration/documentation / inventory; review scope described in report
+frontend/playwright.payables-integration.config.ts	12	1a501eed6fffff409e870fce6de9d7e2542dd455ed80b0deae28e8fd80f533ec	configuration/documentation / inventory; review scope described in report
+frontend/playwright.payables.config.ts	6	74cdd5fdef46c9efddd2d7d05682fd88b1894567b4776a83cca37413b22d45a3	configuration/documentation / inventory; review scope described in report
+frontend/playwright.public-chat.config.ts	7	5e1f2e2d9c52a4d1c1fbcfb994bdad048b3d044db2b24ead724794bbcd529cc6	configuration/documentation / inventory; review scope described in report
+frontend/playwright.receivables-production.config.ts	6	de1b5d02f414c9ed6170d22742ade86ad5581c3b057eb9a40f5fe9ed59d66cfa	configuration/documentation / inventory; review scope described in report
+frontend/playwright.receivables.config.ts	15	62d267e9b2ae63d006d040a71ff40f65d8796ec061de37447d99dbe509a6268a	configuration/documentation / inventory; review scope described in report
+frontend/playwright.session.config.ts	12	453c325a9175d7f382aef0aab468521afaca06aeece86e0283c57a37ada4b7b1	configuration/documentation / inventory; review scope described in report
+frontend/playwright.subscriptions.config.ts	15	236355625b3f59bba831f89c3d628b1924a1c3cce245799e9532272262d3db4c	configuration/documentation / inventory; review scope described in report
+frontend/playwright.vercel.config.ts	9	f8f5d4616ddecafd1f179d1c590e016475688d7dbc6578044cbb1a6e2566f0f9	configuration/documentation / inventory; review scope described in report
+frontend/playwright.workspace-production.config.ts	6	deaf7a7ee39238386913057d54f15cfb954715c7a9c8cd1ad092d0a00c7f9111	configuration/documentation / inventory; review scope described in report
+frontend/playwright.workspace.config.ts	15	9227c0ab7fd1524d1881da7862b21d7382af630b5239c90651e9ca3ea54da015	configuration/documentation / inventory; review scope described in report
+frontend/public/favicon.svg	1	b52641838c49683db232d6ed87a53df63eb13e461102d8a9c62dde9a0c1c0ede	public assets / build and asset check
+frontend/public/visuals/finai-city.svg	33	78b23e9b764a2fda3f1c48196d13c005618b8478d29aedf79a8198dae4b1d2c4	public assets / build and asset check
+frontend/scripts/assistant-provider-fixture.ts	82	d7f20816b91d989ff6c95994aec6d4aef05b82cf0ab044874e7a34189697e3aa	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/build-invoice-demo.mjs	65	741b344aa84f842c8096c191bd9b227f7ba418cf5c813cdaaa38d74c60042182	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/capture-rillet-reference.py	279	b47e41ee03bd7c92267479f8c29476b7677ada0c98fa9bb4f9b61401ec462c18	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/check-assets.ts	58	63a5db891bb9a4856b05778fb63a7654ffe9d7f5d360672d2d87d353a2aaf4ec	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/payables-fixture.ts	274	b93157a725ed2e008c5987519a16d8641bc6fa8f6f007bd3dc1b4e8610a845a4	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/payables-pdf.ts	30	39195ac2b907dbbbbd6f9d7f1bd2d7550f1aecda087c546ac2a52718d7f87d6e	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/payables-transport.test.ts	422	e7c58994583b2a44d5d30cdb65eefc298f183d8bd0f5621f28d3c39e30d1195c	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/rea-ui-audit.mjs	365	9c92a7d342eb06f67f7585ee8709813eba02f6893562ee45b0a9bb68a9e50fda	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/serve-invoice-demo.mjs	71	34603704fe40119cc719674db78582d31f1ae8c30f50725ea624b71c65b7f656	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/session-fixture.ts	360	a5766c418c93a9a08de28447759b6f24ae2f500a99e394608127f3601f37d31c	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/subscriptions-fixture.ts	54	a17137bd0136fdd0e92aaeeb264640cdbf56ad9ff08f813276d5e0548504abfb	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/scripts/vercel-build.mjs	76	e346b14288d1ae42339ebb2e982ad98e7cf2eeb79b8107325d400f36527c724c	tooling / inspected or invoked where listed in review; not all operator paths executed
+frontend/server/embedded.ts	181	9a1d086a92316db8b5a15e2b9381a7758bed1acf358cfe37beb40ac617b0be50	configuration/documentation / inventory; review scope described in report
+frontend/server/public-chat.ts	556	d38b40a37099d167d2a588537c77f1a81d02b0b20686ba6ded18ffa3e63e83bc	configuration/documentation / inventory; review scope described in report
+frontend/server/request-body.ts	96	90c3058144513d9a9e6974ff399f102cc5de471d00d4ae5f03be66cd2a6b7506	server/runtime / private ingress deadlines; transport tests and packaged integrations
+frontend/src/app/Shell.tsx	323	55e2cb695959fc6c650fd4533830e4f228176bb8ba340cdfc0e44e545f1c7771	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/app/navigation.ts	131	ed366a922b402d6ef6df568c2a2f70a8aac56e154b3598bfa320831b566bc93d	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/app/router.tsx	419	f62c7bfc4952cb5bf745f9bdb90a5584ca5a6374e38e08ce36a853fa33bae7aa	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/SessionGate.tsx	199	ca0b81916a8cc8f97a399818b209b3a3be664bb5e1a39e76aeae0511b9c44c16	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/shared/BrandMark.tsx	13	f5d567f014f3a5c25832798edf78746b9028af5bb6465e6c45be7cb542514d08	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/shared/Common.tsx	236	bf359d482aeb5202148eceeb19bb47237aea674d4ff6b2ff2ceebff8cfe0ec67	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/shared/FinanceSnapshot.tsx	311	9149324a3d7bfd47c821cb721163840004a0ec07b2e00ef0ee3578433c6b164f	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/shared/Table.tsx	255	e1c93b59d2e6b17ff3e7dfcec72276fa9ecf6bb89aa5079554c837a7f136f4a1	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/shared/useUnsaved.tsx	46	b05e34de4b6f81792d2a30b0a261f7c40f3605e8f1d820e1659078c60fedd5ac	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/components/ui/index.tsx	226	2e3e1b4ece915bc287ee7b82bfead30772b95c8afa06df84545378cec4a1f932	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/demo/seed.ts	370	12fc54594ebf547bf5dae8c3005706b243fdc0da57bf2d8a5fb770cced998ae3	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/demo/selectors.ts	93	22ef3f16b38e0aa068d6a34baac38a50133526997a91b393333cc2b47c7ae25a	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Accounting.tsx	890	0b80adc7e43be9709024fba3e09628d1f877d34e4674f04adeeeb9a50c8575d4	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Administration.tsx	781	d08e6cb5f5f3a336317e29c9a20d09e25e4671835d7a280287bb67af30c05c5e	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Assistant.tsx	18	a8163cfd3d28eb1f355ac52d683e52f1c3bdb71ff431a1911f3bd656a803eeee	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Close.tsx	200	34aa6cc509afd675315c438094ea3e8bbb17523e319e4f95853dedec36a6f065	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/LegacyAssistant.tsx	222	2ebca3a60a713bad5430c40c78ef12ad6fba9fe5f497bce780d04e7d4a3b3278	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Operations.tsx	1242	0992a020dc51c5a15cbfaad7c7182e54cf5c4fd01448c75ca9c6deb2b53a7f97	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Overview.tsx	46	ab7d2a8b639bbc855fa97622988e78391cfb957e991e71e72c9675d0619cd40f	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/Reports.tsx	530	3e34d535cfc3dc9ccb00dcf9d8fdf4b7073c343ea15e505ceae11a0162e9746b	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/assistant/Assistant.tsx	850	ee67b2919396d76cdfa3730f38d66539696fa103955984f18b03bae076711fc4	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/assistant/InvoiceAction.tsx	195	ab658a1eda2282cc184bd626786a008635aedab1038db8374ecf9c0914e6f2c8	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/assistant/LedgerSource.tsx	302	db6a7837aa6d1c51f96ebd8b1b8c325dfcc6dcf2c09ada307599accdc2d765cb	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/assistant/OperationalSource.tsx	154	8226ac9bd0607051e6721311886384d294ed5ca0d408f9e92827a1f408fda6b7	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/assistant/api.ts	288	80f3e9f0b31cbe4475b2db6e4a3be72564ab080275a81ad4afb5b801c05a8e72	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/assistant/assistant.css	175	2de85b3d1f5824a2b0a7352558e42d330c17629555f07ffdc390dccf16ba3ad9	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/checklist/MonthlyChecklist.tsx	471	67879f7946cc67f0f74456e3ecab1d9bfcf7b1a8f9b0d7eb8b6a7f7979e8980d	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/checklist/api.ts	409	ece6c7779e9b58661750846428c1776a54bd56aa395907eaacf386eaabd212a1	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/checklist/checklist.css	77	c274c4af1386d0143bd629f47e452e65f8cf87721e514fe4384222d5af2a8b80	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/marketing/Marketing.tsx	686	8b48ef69738591fc5bccd686ee842c06c2f698ed3f08ef728872bf95bd6fd470	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/marketing/ProductDetails.tsx	376	2590ef58c3bdc888f34cc749afbf06c201a576b1f49ced1a83d9a89b9cf09c19	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/marketing/ProductPreview.tsx	354	5a2f303e800898f52ca847e57af26ece12a04d15d092f840461952f5fe99a7ee	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/marketing/ReferenceHome.tsx	982	e8a3d936f92b932ef14a790508fa8b608e4ea634658af600525d2ef453296120	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/marketing/content.ts	330	0667f2ad63e8d0d6a41090730671a4b8209e08c12c89456eb7d9070d4e9bcbb3	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/DevelopmentPayables.tsx	114	ba5b158b4449e2a052356379b25287a7ce166b82891c83d382700b846cc485c1	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/Payables.tsx	1967	db6918636da0d17e1ff28e5730523848539ac8e744e2da2f5129046e002285c7	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/PdfPreview.tsx	162	6cdbc1d99f642b4567530ed939959aef84c7a6ececafe4757f4059150fc159e9	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/api.ts	144	c8fd56ca02bfe6d2e0516b1dcaa855a3a038e09b55e10284433399e649af4022	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/development-store.ts	927	06c06c5617f3096cdacdef950d9dcf3432273a3f44361a85b7b7f724ae386c90	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/payables.css	538	b18199b6a9746e28aec80a342381741027e56f3cee89556de234cfeec0e82bd3	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/payables/schemas.ts	145	e576fce2ba2fd526d807a50f715d9e27f85d5d83ea3c1bc7896539d3c8036626	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/public-chat/PublicChat.tsx	453	ae534a65ed84ac1927800a1511b6c5b82a4e9d5e629dd4800c8dbe17e8b0f1f1	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/public-chat/public-chat.css	95	6a0cb661e2f5cb0d78fc56b11714cb793e8f92eb1e1ed4c07152369dfe47d06c	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/ImportedOutstandingCustomers.tsx	283	309af38066c7edbcfe49cf8e8d8a73b9f7ac5dac2561a0a1edb90309053813d2	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/OutstandingCustomers.tsx	111	77917de93ea9ebaf781562e0564a60031e82893f21109378a5d5cd8a72121893	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/api.ts	124	77034314b25779f76e3c1056415f03bdae0538d4e0380cd43a285f925798c16e	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/changes-api.ts	34	b5e49ae2510d38cd851df34090d57e3c61f380761aa884a43a8c808fa8916540	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/changes.ts	178	ff9ebf08aba8438e752242341f69c772f44653244333d94d9e43ca7d368aafd5	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/detail-api.ts	225	294fb04724bc84a2b1ec6dd1eaeaefbf850dab522f9b71ca6b23dcb03985b405	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/format.ts	98	75d67d8f7f5074100ccd50c0b3ae8aa7b231e669871e5468b5d2cc7d1237171f	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/outstanding-customers.css	116	3c971c6dd799156243a83c14971c09efed814a3fb96861369f412f4bd05792ad	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/outstandingCustomers.ts	93	abe4831d9e1bf4c044422fa8246f6fc2ff31203a41d277eb2e63ecb6268b5f82	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/receivables/source-schema.ts	10	2b58070095bc924aa5cde15f0489065b2f18501128a5678e8717ef991a58da5a	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/subscriptions/SubscriptionRenewals.tsx	523	a5d412707cdca2540055b6bed4b9e3d7235d9e483919863504005d5d9038e88e	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/subscriptions/api.ts	102	4eab935f4ab480eb245a9476a8ecc9d689908cd8360f817b635fd2a47cea13c6	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/subscriptions/subscriptions.css	80	7fc74239e9cc1bc2e918b5bcf911271626494aecb96b9da64929c64d51679dac	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/Administration.tsx	304	7bf6e87bd958f041e4340114b1e87cea4d5f274e77b9c94c56907a3d976cb2c0	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/ImportChanges.tsx	483	b376190a4463dae6e659c5217891d5fdc0873fd591f568165382fbc893b9f553	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/Imports.tsx	288	3d9c056d19d6fd5cebb8aa2b0350844bc3642d4531ee784afc5bfe492b11af75	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/ReceivablesRegister.tsx	504	b21f29eb74529070ea7bd8455fe276cad774a30b2c52fea1262074611c286fe8	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/Workspace.tsx	113	306abefc110937739857b063533510c662a4fb416be271462621adf83012aec8	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/context.tsx	81	3dd5208b5fcad2b4d9baae6afc4f2fae5060ef086568efad688c87c9e9a3740e	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/features/workspace/workspace.css	174	e6b8af8c076700d3afbeb037f11466508dc7a1a6d06a91e40d19d4506a8c705b	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/lib/api.ts	103	29fb4b4c50999e50c78f2a5ef694cee56341aceab5580a8bca33065f6f9c56fd	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/lib/session.ts	88	f9a89b93644a3fc025ad5501771b1dd80c90d4f5dce2c62a82bab177bd6fd519	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/main.tsx	17	6a7345bfa4a3de858255ab59c6f6a1dc7a2579344b6a4ee78a71f12972dfbc86	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/store/index.ts	612	45b43cfe40ab503eba9b5a50a88b9f4f490b3192eb50be62d44e11242da03e7e	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/styles/global.css	2735	96a3b3fa0ec4ba234bb5f56d1c6a537e9ad93e0d22fbad0f0acbe3ae98d69e7b	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/styles/marketing.css	1661	de4273cc7fb9a43ac8f80224d1e207e6854237bef203d2419257152bbfc53929	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/styles/product-reference.css	835	e8f7fd0028c42c7daeeecef238034a4c0cd442feebf661aece35bbebfbf16956	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/styles/reference-home.css	2733	0e1160733e25ba0e9832c394832288266fd4977e57bc41c081dbe295b9774f72	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/styles/workspace-reference.css	480	edeb6452319a2e475eebdcc89866f137599add35efa6a9f20a87257e699ab88b	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/src/types/domain.ts	141	bbd1494b56b22811a6ba9f511388672271c54214ecce0d962fb448348394f893	browser runtime / typecheck, build, browser suite; critical paths manually inspected
+frontend/tests/assistant-production.spec.ts	259	7b0eb10b5ab336cfec28b91415816ca2b6aeb86e9c5c17041861106b0b18fd72	test source / selected full release suite and lint
+frontend/tests/assistant.spec.ts	807	dd73557ab58154a6708c859cf8f8b7b8b753800313f039c2394bafa3137cc38f	test source / selected full release suite and lint
+frontend/tests/checklist.spec.ts	600	cb6e1fa88fa38de7665428fbb4f34acc35c74abd4814702702b4526542e859b5	test source / selected full release suite and lint
+frontend/tests/copy-demo.spec.ts	31	dc0222615681f6bfa20de79355845f56d0a962d38960e44df212f334d4424cc4	test source / selected full release suite and lint
+frontend/tests/fixtures/close-evidence.pdf	32	a09ab056393d19a255b2aa126b8717e38ab8a6003c1c1ee1bd6ee83edcb73fa3	test source / selected full release suite and lint
+frontend/tests/marketing.spec.ts	460	914e9c332e600b466a75b7c7404e21f23624c9fc44cb9d92ad548ed2827d134b	test source / selected full release suite and lint
+frontend/tests/outstanding-customers.spec.ts	512	508ed737fe5af76c399a8bd5c7f7b598b98fca1066eb4fa12a09ba2adc22fb60	test source / selected full release suite and lint
+frontend/tests/payables-development.spec.ts	430	c9bdcb6c4a847331903875704c15a34b54f32ac5b56c1ed1970ab73e230dab71	test source / selected full release suite and lint
+frontend/tests/payables-integration.spec.ts	789	ceaee9c612868edfb989325f99df369d8588d76cf1248400ff464267817bca97	test source / selected full release suite and lint
+frontend/tests/payables-ui.spec.ts	331	7851c80c5e1f22d18b11854977a6c7f1e1713ed7da347e9c36df373943b29e31	test source / selected full release suite and lint
+frontend/tests/public-chat.spec.ts	826	ac129fe74093664e5db7e16b1d555fe64cb087399b5871ba43592807dfff44f7	test source / selected full release suite and lint
+frontend/tests/receivables-api.spec.ts	227	fba5448cbc821bf4889c6ed17aee8e9ed2c9db1bf85cde9adcfcec23b9f9a322	test source / selected full release suite and lint
+frontend/tests/receivables-configuration.spec.ts	59	58ee289d1d731e9961ac70a6167184f508c0db6587db48d7296d6a32210c35fb	test source / selected full release suite and lint
+frontend/tests/receivables-production.spec.ts	140	9a8df8f152ca99e0327e1b6a868174cac4fafb244a187c9607c1bd4174d667b4	test source / selected full release suite and lint
+frontend/tests/session-production.spec.ts	141	af4bcf18832285558718eed293281743260dd323e17246be53a6095f1def298e	test source / selected full release suite and lint
+frontend/tests/subscriptions.spec.ts	269	3a8d2edf7b3a3c40f8a0e97c431a79f3ff96fd78626b2f2c32629d088b80443a	test source / selected full release suite and lint
+frontend/tests/vercel-backend.spec.ts	351	26b3b636338353ea265c8a8ced1d3a13e44868c0a7b657498664a493311f7b83	test source / selected full release suite and lint
+frontend/tests/workflows.spec.ts	517	446e5ca95a28f098fbfa841defba9167dcc21900a018d808b582b8dcfb05c679	test source / selected full release suite and lint
+frontend/tests/workspace-changes-production.spec.ts	175	ce15dd885c08f916c7e15087052e3afd76b95e788c014485a201afc7c47f2895	test source / selected full release suite and lint
+frontend/tests/workspace-changes.spec.ts	357	9a181551a156cfcca53343372bffd05e458c8fa3b944d61fd0238502946c4dc4	test source / selected full release suite and lint
+frontend/tests/workspace-detail.spec.ts	166	632bc934b916fdce1a256ca7ed598ad61bec29c597dc39ad7f77d13290d0f2cb	test source / selected full release suite and lint
+frontend/tests/workspace-production.spec.ts	272	d3e374121aba8ef7478e9d61fdc167ad1663ec1d60bc0d63375c41123ab8096b	test source / selected full release suite and lint
+frontend/tests/workspace.spec.ts	350	0fdba1851a84023bdab2e8a7682a4a1e6d8bfb76ad8392117ad02e73b08edb7a	test source / selected full release suite and lint
+frontend/tsconfig.json	37	34a4856487b1bf9bb41b910a5912ada58b61af9fe2c9afb4494d887e8f5067a2	configuration/documentation / inventory; review scope described in report
+frontend/tsconfig.server.json	9	333be6d5a12a6cbad3fad496f455d22fa4fc3f2af8a8f16f726526e3f5c3397a	configuration/documentation / inventory; review scope described in report
+frontend/vercel.json	29	a7d5e21bff4c1803be880b7887015f7442feeab89aafe204faf1181e3eb57d30	configuration/documentation / inventory; review scope described in report
+frontend/vite.config.ts	24	56e47ffa7cdf75b5e0a54b58a87b7b68a804551dbe95df58abddb3e3ded9e516	configuration/documentation / inventory; review scope described in report

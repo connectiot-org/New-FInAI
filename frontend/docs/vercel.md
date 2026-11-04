@@ -57,6 +57,8 @@ Provision the real organisation/entity through the approved bootstrap process de
 
 The function initializes Nest without binding a TCP listener. It validates the host, rebuilds a bounded request and replaces identity/proxy headers with a server-owned per-instance proof; existing session, CSRF, membership, entity, version and rate limits still run. Ordinary 16 KiB and dedicated raw preview 1 MiB limits apply to both raw and pre-parsed Vercel request bodies. Missing DATABASE_URL produces a safe DEPLOYMENT_NOT_CONFIGURED 503 that the sign-in gate displays; no demo answer is substituted.
 
+Both embedded and remote private adapters enforce an absolute input deadline: 5 seconds for ordinary bodies, 15 seconds for dedicated raw uploads. An unfinished body receives a no-store HTTP 408 `REQUEST_TIMEOUT` response and connection closure, before backend initialization or forwarding. Disconnects and oversize inputs release the reader's timers/listeners. Financial mutations still require explicit user retry with their existing stable operation ID/version; a transport failure does not authorize an automatic repeat.
+
 Assistant work is registered with waitUntil before 202 is sent. The function duration is 60 seconds; the existing 40-second durable lease and conditional completion/cancellation rules remain. A killed/timed-out invocation expires safely instead of automatically repeating model spend. This is not an unlimited job queue. PostgreSQL sessions and turns survive warm-instance replacement; no private browser cache is introduced.
 
 ## Verification and remaining release work

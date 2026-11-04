@@ -78,11 +78,17 @@ export class ClamAvScanner implements DocumentScanner {
       const finish = (error?: Error) => {
         if (settled) return;
         settled = true;
+        clearTimeout(deadline);
         socket.destroy();
         if (error) reject(error);
         else resolve(reply.toString("utf8").replace(/\0.*$/s, "").trim());
       };
-      socket.setTimeout(10000, () => finish(new Error("Scanner timeout")));
+      // Bound the whole command; partial replies must not extend a scan slot.
+      const deadline = setTimeout(
+        () => finish(new Error("Scanner timeout")),
+        10000,
+      );
+      deadline.unref();
       socket.on("error", (error) => finish(error));
       socket.on("connect", () => socket.write(bytes));
       socket.on("data", (chunk) => {
