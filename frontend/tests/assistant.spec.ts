@@ -3,6 +3,172 @@ const entityId = "22222222-2222-4222-8222-222222222222",
   conversationId = "33333333-3333-4333-8333-333333333333",
   turnId = "44444444-4444-4444-8444-444444444444",
   date = "2026-10-25T00:00:00.000Z";
+
+for (const adapter of ["shared", "checklist"] as const) {
+  test(`${adapter} transport handles an interrupted unauthorized response without an unhandled rejection`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(e.message));
+    const status = await page.evaluate(async (adapter) => {
+      const savedFetch = window.fetch;
+      window.fetch = async (input, init) =>
+        String(input).includes("/api/v1/")
+          ? new Response(
+              new ReadableStream({
+                start(controller) {
+                  controller.error(new Error("Disconnected error body"));
+                },
+              }),
+              { status: 401 },
+            )
+          : savedFetch(input, init);
+      try {
+        if (adapter === "shared") {
+          const path = "/src/features/assistant/api.ts";
+          const { assistantApi } = await import(path);
+          await assistantApi.capabilities(new AbortController().signal);
+        } else {
+          const path = "/src/features/checklist/api.ts";
+          const { checklistClient } = await import(path);
+          await checklistClient.entities();
+        }
+        return 200;
+      } catch (e) {
+        return (e as { status: number }).status;
+      } finally {
+        window.fetch = savedFetch;
+      }
+    }, adapter);
+    expect(status).toBe(401);
+    await page.evaluate(async () => {
+      await new Promise(requestAnimationFrame);
+      await new Promise(requestAnimationFrame);
+    });
+    expect(errors).toEqual([]);
+  });
+  test(`${adapter} transport blocks a pending write after the account changes`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    let release!: () => void,
+      checking = false,
+      writes = 0;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/auth/session", async (route) => {
+      checking = true;
+      await gate;
+      await route.fulfill({ json: { csrfToken: "a".repeat(64) } });
+    });
+    await page.route("**/api/v1/**", (route) => {
+      writes++;
+      return route.fulfill({
+        json:
+          adapter === "shared"
+            ? { id: turnId, version: 1 }
+            : {
+                id: turnId,
+                entityId,
+                month: "2026-09",
+                title: "Before account change",
+                completed: false,
+                version: 1,
+                createdAt: date,
+                updatedAt: date,
+              },
+      });
+    });
+    const result = page.evaluate(
+      async ({ adapter, entityId, turnId }) => {
+        try {
+          if (adapter === "shared") {
+            const path = "/src/features/assistant/api.ts";
+            const { assistantApi } = await import(path);
+            await assistantApi.save(
+              turnId,
+              {
+                entityId,
+                detail: "concise",
+                note: "Before account change",
+                expectedVersion: 0,
+              },
+              new AbortController().signal,
+            );
+          } else {
+            const path = "/src/features/checklist/api.ts";
+            const { checklistClient } = await import(path);
+            await checklistClient.create({
+              id: turnId,
+              entityId,
+              month: "2026-09",
+              title: "Before account change",
+            });
+          }
+          return "write completed";
+        } catch (e) {
+          return (e as Error).message;
+        }
+      },
+      { adapter, entityId, turnId },
+    );
+    await expect.poll(() => checking).toBe(true);
+    await page.evaluate(async () => {
+      const path = "/src/lib/session.ts";
+      const { authenticateSession } = await import(path);
+      authenticateSession();
+    });
+    release();
+    expect(await result).toContain("Identity changed");
+    expect(writes).toBe(0);
+  });
+  test(`${adapter} transport discards a response from the previous account`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    let release!: () => void,
+      reading = false;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route("**/api/v1/**", async (route) => {
+      reading = true;
+      await gate;
+      await route.fulfill({
+        json:
+          adapter === "shared"
+            ? caps()
+            : { items: [{ id: entityId, name: "Previous account company" }] },
+      });
+    });
+    const result = page.evaluate(async (adapter) => {
+      try {
+        if (adapter === "shared") {
+          const path = "/src/features/assistant/api.ts";
+          const { assistantApi } = await import(path);
+          await assistantApi.capabilities(new AbortController().signal);
+        } else {
+          const path = "/src/features/checklist/api.ts";
+          const { checklistClient } = await import(path);
+          await checklistClient.entities();
+        }
+        return "previous account response accepted";
+      } catch (e) {
+        return (e as Error).message;
+      }
+    }, adapter);
+    await expect.poll(() => reading).toBe(true);
+    await page.evaluate(async () => {
+      const path = "/src/lib/session.ts";
+      const { authenticateSession } = await import(path);
+      authenticateSession();
+    });
+    release();
+    expect(await result).toContain("Identity changed");
+  });
+}
 const conversation = {
   id: conversationId,
   entityId,
@@ -77,6 +243,71 @@ const completed = {
 };
 const path = `/workspace/assistant/records?unused=1`,
   chatPath = `/workspace/assistant/records?entityId=${entityId}&month=2026-09&currency=USD&conversationId=${conversationId}`;
+
+test("account changes in another tab clear private answers in this tab", async ({
+  page,
+  context,
+}) => {
+  await routes(page);
+  await page.route(`**/api/v1/assistant/conversations/${conversationId}`, (r) =>
+    r.fulfill({ json: { ...response, total: 1, turns: [completed] } }),
+  );
+  await page.goto(chatPath);
+  await expect(page.locator(".assistant-turn dd")).toHaveText("USD 750.00");
+  const other = await context.newPage();
+  await other.goto("/");
+  await other.evaluate(async () => {
+    const path = "/src/lib/session.ts";
+    const { authenticateSession } = await import(path);
+    authenticateSession();
+  });
+  await expect(
+    page.getByRole("button", { name: "Sign in", exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".assistant-turn")).toHaveCount(0);
+  await other.close();
+});
+
+test("a shared session check cannot return a token from the previous identity", async ({
+  page,
+}) => {
+  await page.goto("/");
+  let release!: () => void,
+    checking = false,
+    checks = 0;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/auth/session", async (r) => {
+    checks++;
+    checking = true;
+    await gate;
+    await r.fulfill({ json: { csrfToken: "a".repeat(64) } });
+  });
+  const result = page.evaluate(async () => {
+    const path = "/src/lib/session.ts";
+    const { readSession } = await import(path);
+    return Promise.all(
+      [readSession(), readSession()].map((p) =>
+        p.then(
+          () => "stale token accepted",
+          (e: Error) => e.message,
+        ),
+      ),
+    );
+  });
+  await expect.poll(() => checking).toBe(true);
+  await page.evaluate(async () => {
+    const path = "/src/lib/session.ts";
+    const { authenticateSession } = await import(path);
+    authenticateSession();
+  });
+  release();
+  expect(checks).toBe(1);
+  expect((await result).every((s) => s.includes("Identity changed"))).toBe(
+    true,
+  );
+});
 async function routes(p: Page, configured = true) {
   await p.route("**/auth/session", (r) =>
     r.fulfill({ json: { csrfToken: "a".repeat(64) } }),

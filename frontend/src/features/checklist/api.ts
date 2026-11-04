@@ -98,6 +98,14 @@ class ApiClient implements ChecklistClient {
     headers: Record<string, string> = {},
   ): Promise<unknown> {
     const epoch = sessionEpoch();
+    const assertIdentity = () => {
+      if (epoch !== sessionEpoch())
+        throw new ChecklistError(
+          "Identity changed. Reload records.",
+          0,
+          "IDENTITY_CHANGED",
+        );
+    };
     if (checklistMode !== "api")
       throw new ChecklistError("Checklist mode is not configured correctly.");
     const base =
@@ -125,6 +133,7 @@ class ApiClient implements ChecklistClient {
         credentials: "same-origin",
         signal: AbortSignal.timeout(10000),
       });
+      assertIdentity();
       if (session.status === 401) expireSession(epoch);
       if (!session.ok)
         throw new ChecklistError(
@@ -137,6 +146,7 @@ class ApiClient implements ChecklistClient {
         .parse(await session.json());
       headers = { ...headers, "X-CSRF-Token": body.csrfToken };
     }
+    assertIdentity();
     let response: Response;
     try {
       response = await fetch(url, {
@@ -157,8 +167,16 @@ class ApiClient implements ChecklistClient {
         "Cannot reach the checklist backend. Check the connection and try again.",
       );
     }
-    if (response.status === 401 && sessionEnabled && !signal?.aborted)
+    assertIdentity();
+    if (response.status === 401 && sessionEnabled && !signal?.aborted) {
       expireSession(epoch);
+      void response.body?.cancel().catch(() => {});
+      throw new ChecklistError(
+        "Your session expired. Sign in again.",
+        401,
+        "UNAUTHENTICATED",
+      );
+    }
     if (response.status === 204 && method === "DELETE") return;
     let data: unknown;
     try {
@@ -170,6 +188,7 @@ class ApiClient implements ChecklistClient {
         "INVALID_RESPONSE",
       );
     }
+    assertIdentity();
     if (!response.ok) {
       const error = errorSchema.safeParse(data);
       throw new ChecklistError(

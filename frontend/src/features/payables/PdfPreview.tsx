@@ -31,8 +31,10 @@ export function PdfPreview({ blob }: { blob: Blob }) {
         const pdf = await import("pdfjs-dist");
         if (!live) return;
         pdf.GlobalWorkerOptions.workerSrc = workerUrl;
+        const data = new Uint8Array(await blob.arrayBuffer());
+        if (!live) return;
         const task = pdf.getDocument({
-          data: new Uint8Array(await blob.arrayBuffer()),
+          data,
           enableXfa: false,
           useSystemFonts: true,
           maxImageSize: 4000000,
@@ -43,12 +45,14 @@ export function PdfPreview({ blob }: { blob: Blob }) {
           verbosity: 0,
         });
         dispose = () => {
-          void task.destroy();
+          void task.destroy().catch(() => {});
         };
         const loaded = await task.promise;
         if (loaded.numPages > 100) throw new Error("Too many preview pages");
         if (live) setDocument(loaded);
+        else dispose();
       } catch {
+        dispose?.();
         if (live)
           setError(
             "This PDF cannot be previewed safely. Download the original to review it.",
