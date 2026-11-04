@@ -26,7 +26,7 @@ Keep the browser, Node adapters, authoritative backend, shared contracts, operat
 
 ## Frontend files
 
-This guide explains all **187 tracked files under `frontend/`** in the reviewed source inventory. Paths are grouped by responsibility, without moving files or breaking imports, routes, test commands, Vercel configuration or screenshot provenance. It includes the tracked npm lockfile, binary test fixture and historical evidence. It excludes ignored `node_modules/`, `dist/`, `artifacts/`, `.finai-server/`, `.vercel/`, browser reports, local settings and TypeScript build caches.
+This guide explains every tracked file under `frontend/`; `npm --prefix frontend run check:repository` verifies the current inventory. Paths are grouped by responsibility, without moving files or breaking imports, routes, test commands, Vercel configuration or screenshot provenance. It includes the tracked npm lockfile, binary test fixture and historical evidence. It excludes ignored `node_modules/`, `dist/`, `artifacts/`, `.finai-server/`, `.vercel/`, browser reports, local settings and TypeScript build caches.
 
 The application has three distinct data boundaries:
 
@@ -47,11 +47,11 @@ Each row below describes one exact file. Test source describes intended verifica
 | `frontend/.gitignore` | Excludes installed dependencies, build outputs, private packaged server, private environment/local settings and temporary browser evidence; safe environment examples stay reviewable. |
 | `frontend/AGENTS.md` | Defines frontend ownership, supported tooling, separate application boundaries and contributor checks; keeps the default and dedicated test suites distinct. |
 | `frontend/README.md` | Explains current runtime boundaries, local setup, package commands, source layout, private features and operating guides. |
-| `frontend/package.json` | Declares frontend dependencies, Node version and the separate build, browser-test, invoice-demo and Vercel packaging commands. |
+| `frontend/package.json` | Declares frontend dependencies, Node version and separate repository-guard, browser-test, invoice-demo and Vercel packaging commands. |
 | `frontend/package-lock.json` | Pins the complete npm dependency graph and integrity hashes for reproducible installs; regenerate with npm rather than hand editing. |
 | `frontend/index.html` | Provides Vite’s HTML document, metadata and React root element; application routes render inside that root. |
 | `frontend/eslint.config.js` | Sets TypeScript, React hook and browser/Node lint rules and excludes generated outputs from source linting. |
-| `frontend/tsconfig.json` | Enables strict shared TypeScript checks for browser code, tests, selected tooling and API entrypoints without emitting JavaScript. |
+| `frontend/tsconfig.json` | Enables strict TypeScript checks for browser code, tests, Vite, every Playwright configuration and API entrypoints without emitting JavaScript. |
 | `frontend/tsconfig.server.json` | Adds NodeNext module-resolution checks for API/server code so production server imports retain valid runtime extensions. |
 | `frontend/vite.config.ts` | Registers React/Tailwind plugins and defines development hosting plus stable vendor bundle groups for browser builds. |
 | `frontend/vercel.json` | Routes API/auth requests to the Node function, preserves the SPA fallback and includes the private backend package in deployment. |
@@ -92,6 +92,8 @@ Each row below describes one exact file. Test source describes intended verifica
 | `frontend/scripts/assistant-provider-fixture.ts` | Returns controlled model plans/composition for full-path tests; never supplies a production model or provider fallback. |
 | `frontend/scripts/build-invoice-demo.mjs` | Builds the independent no-login invoice demo and writes its public assets, tiny server, usage README and build metadata under ignored artifacts. |
 | `frontend/scripts/capture-rillet-reference.py` | Downloads an isolated static visual reference with normal TLS verification and rewrites supporting assets for reproducible comparison. |
+| `frontend/scripts/check-repository.mjs` | Checks the complete file-purpose catalog, ignored-output/environment boundaries and application literal imports using the installed TypeScript parser; local and CI development tooling. |
+| `frontend/scripts/check-repository.test.mjs` | Tests valid extension layouts and rejects catalog drift, private/generated files, browser server dependencies and cross-runtime/computed imports in disposable synthetic fixtures. |
 | `frontend/scripts/check-assets.ts` | Scans built public browser assets for available injected credential values and rejects localhost API fallbacks in session-enabled builds. |
 | `frontend/scripts/payables-fixture.ts` | Creates and cleans isolated synthetic invoice accounts/database state and serves real remote, embedded or packaged HTTPS integration runtimes. |
 | `frontend/scripts/payables-pdf.ts` | Constructs the valid synthetic PDF shared by invoice transport and browser integration tests. |
@@ -356,7 +358,7 @@ JSON configuration/lockfiles, PNG/PDF evidence and original SVG artwork do not n
 
 ## Backend files
 
-This section covers all 87 tracked backend files, all 31 shared contract files and both GitHub Actions workflow files (120 entries). Paths are relative to the repository root. Generated dependencies, build output, private environment files and local artifacts are intentionally excluded. A file map explains responsibility; it does not certify hosted operation.
+This section covers all tracked backend files, shared contract files and both GitHub Actions workflows. Paths are relative to the repository root. Generated dependencies, build output, private environment files and local artifacts are intentionally excluded. A file map explains responsibility; it does not certify hosted operation.
 
 ### How the backend is connected
 
@@ -375,7 +377,7 @@ Prisma applies the eight committed migration folders in chronological order: che
 | `backend/.dockerignore` | Excludes dependencies, builds, private environment files and artifacts from the container build context; retains the safe environment example. |
 | `backend/.env.example` | Lists local API, optional private scanner and disabled-by-default Assistant setting names without real database passwords or provider keys. |
 | `backend/.gitignore` | Keeps dependencies, compiled output, private environment files and generated artifacts out of Git. |
-| `backend/AGENTS.md` | Defines backend ownership, read-before-edit rules, tenant isolation and safe database/deployment boundaries; historical implementation notes need context. |
+| `backend/AGENTS.md` | Defines current backend domain/composition responsibilities, tenant/session/financial invariants, scoped tests and safe migration/deployment boundaries. |
 | `backend/ASSISTANT.md` | Operator runbook for private model/privacy/budget settings, immutable ledger mappings, retention, evaluations and confirmed invoice actions. |
 | `backend/Dockerfile` | Builds the Node 24 API and Prisma client, optionally trusts the managed build CA and runs the compiled server as a non-root user. |
 | `backend/HANDOFF.md` | Historical Gate B checklist delivery evidence and API handoff; use newer release documents for current production requirements. |
@@ -565,6 +567,7 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | File | Purpose | How to use it |
 | --- | --- | --- |
 | [README.md](../README.md) | Repository landing page: product scope, directory map, local entry points, verification and deployment links. | Start here; detailed application commands belong in the application runbooks. |
+| `.editorconfig` | Provides UTF-8/LF/final-newline defaults, two-space indentation with a Python four-space exception, and preserved Markdown hard breaks. | Editors apply it to future edits; no bulk source formatting is required. |
 | [AGENTS.md](../AGENTS.md) | Repository ownership, edit boundaries, contract-first changes, preservation and secret-handling instructions. | Read before implementation, together with the instruction file in the target application. Dated milestones inside it describe earlier work, not a complete current feature inventory. |
 
 ### Context navigation and workflow
@@ -616,10 +619,11 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | [context/production-verification.md](../context/production-verification.md) | Prior review from merged main `73f76dd`: independent findings, coordinated corrections, checks and release disposition. | Full-codebase review record for `fix/production-verification`. Read its measured results and deployment gates alongside the newer invoice UI report; do not infer production readiness from the filename. |
 | [context/invoice-workspace-refresh.md](../context/invoice-workspace-refresh.md) | Invoice workspace layout/filtering refresh and appended final full-matrix review from merged main `43b0481`, fixes, regression checks and delivery limits. | Latest verification and UI delivery record; the referenced Moss page and hosted origin were inaccessible, so no exact visual copy or hosted production success is claimed. |
 
-### This navigation document
+### Architecture and navigation documents
 
 | File | Purpose |
 | --- | --- |
+| `docs/architecture.md` | Explains current runtime/data boundaries, a concrete new-product workflow, independent-project decisions, naming/comments and executable maintenance checks. |
 | `docs/repository-guide.md` | Complete grouped file/folder purpose catalog, generated/private boundaries and verification command map. |
 
 ## Verification
@@ -628,6 +632,7 @@ Use Node 24/npm 11, separate locked installs, local PostgreSQL and the configure
 
 | Scope | Commands and purpose |
 | --- | --- |
+| Repository structure | `npm --prefix frontend run test:repository`; `npm --prefix frontend run check:repository` from root: catalog/private-output/source-import guardrails. |
 | Both applications | `npm ci`, `npm run typecheck`, `npm run lint`, `npm run build`, `npm audit` in each package. |
 | Backend/database | `npm test` in `backend/`: isolated synthetic schemas, actual HTTP, auth/tenant/financial/Assistant/scanner/concurrency/persistence regressions. |
 | Default browser and standalone invoices | `npm test`; `npm run test:invoice-demo`. |

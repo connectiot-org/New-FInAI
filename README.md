@@ -2,7 +2,7 @@
 
 FinAI combines a public sample finance workspace with separate authenticated company workflows: supplier invoice review/approval/export, checklist tasks, subscription records, imported receivables and a grounded FinAI Assistant. The web app uses React 19/Vite; the API uses NestJS 11, Prisma and PostgreSQL. Each application has its own manifest and lockfile.
 
-Start with the [repository and file guide](docs/repository-guide.md) for every folder/file's purpose. The [latest verification](context/invoice-workspace-refresh.md#final-developertester-verification--4-november-2026) records the final full test matrix, fixes and outstanding hosting gates. The same report also describes the invoice workspace refresh; the [prior broad review](context/production-verification.md) retains its dated evidence. Historical reports describe the version they tested; they are not live deployment status.
+Start with the [repository and file guide](docs/repository-guide.md) for every folder/file's purpose and the [architecture and new-product guide](docs/architecture.md) for future development. The [latest verification](context/invoice-workspace-refresh.md#final-developertester-verification--4-november-2026) records the final full test matrix, fixes and outstanding hosting gates. The same report also describes the invoice workspace refresh; the [prior broad review](context/production-verification.md) retains its dated evidence. Historical reports describe the version they tested; they are not live deployment status.
 
 ## Choose the right entry
 
@@ -68,6 +68,6 @@ Generated dependencies/builds, private `.env` files and browser artifacts stay o
 
 ## Validate changes
 
-Run `npm run typecheck`, `npm run lint`, `npm run build` and `npm test` separately in each application. Frontend `npm test` is the default sample suite; the additional `test:*` scripts cover private modules, built runtimes and invoice transports. See the [complete verification command map](docs/repository-guide.md#verification) and the current report for actual outcomes. Install the configured Chromium browser before browser tests.
+From the root, run `npm --prefix frontend run test:repository` and `npm --prefix frontend run check:repository` for file-purpose and runtime-import guardrails. Run `npm run typecheck`, `npm run lint`, `npm run build` and `npm test` separately in each application. Frontend `npm test` is the default sample suite; the additional `test:*` scripts cover private modules, built runtimes and invoice transports. See the [complete verification command map](docs/repository-guide.md#verification) and the current report for actual outcomes. Install the configured Chromium browser before browser tests.
 
 Operational guides: [invoices/scanner](backend/PAYABLES.md), [identity/deployment](backend/RELEASE.md), [workspace administration/imports](backend/WORKSPACE.md), [private FinAI](backend/ASSISTANT.md), [Vercel runtime](frontend/docs/vercel.md), and [shared contracts](contracts/README.md).

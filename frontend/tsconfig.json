@@ -27,11 +27,8 @@
   "include": [
     "src",
     "vite.config.ts",
-    "playwright.config.ts",
-    "playwright.checklist.config.ts",
     "tests",
     "api",
-    "playwright.session.config.ts",
-    "playwright.subscriptions.config.ts"
+    "playwright*.config.ts"
   ]
 }

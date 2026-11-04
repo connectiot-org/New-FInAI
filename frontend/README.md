@@ -1,5 +1,7 @@
 # FinAI frontend
 
+For architecture, module boundaries and future products, see [the development guide](../docs/architecture.md).
+
 React 19, TypeScript and Vite browser application with a separate Node/Vercel API adapter. Start at the [repository guide](../docs/repository-guide.md) for each file's purpose and the [root README](../README.md) for end-to-end setup. There is no root npm workspace: install and run commands in this directory.
 
 ## Runtime boundaries
@@ -21,6 +23,8 @@ Use Node 24/npm 11:
 ```sh
 npm ci
 npm run dev -- --host 127.0.0.1 --port 5173
+npm run check:repository
+npm run test:repository
 npm run typecheck
 npm run lint
 npm run build

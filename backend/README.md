@@ -1,5 +1,7 @@
 # FinAI backend
 
+For architecture, module boundaries and future products, see [the development guide](../docs/architecture.md).
+
 NestJS 11, TypeScript, Prisma 6.19.3 and PostgreSQL. The API implements shared identity/session controls, monthly checklist tasks, subscription records, immutable receivables/ledger imports, workspace administration, grounded FinAI conversations and supplier-invoice approval/export. The original frontend Northstar accounting/banking sample remains separate.
 
 Read the [repository guide](../docs/repository-guide.md#backend-files) for each source/configuration/test file and the [root README](../README.md) for the application boundaries. Install dependencies independently from the frontend.
