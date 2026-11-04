@@ -1,6 +1,6 @@
 # Project context
 
-Current entry points: [repository setup](../README.md), [complete file/folder guide](../docs/repository-guide.md), and [latest production verification](production-verification.md). Older inventories/designs below are dated history; current source, contracts and runbooks remain authoritative.
+Current entry points: [repository setup](../README.md), [complete file/folder guide](../docs/repository-guide.md), [architecture and product extension](../docs/architecture.md), and [latest full verification](invoice-workspace-refresh.md#final-developertester-verification--4-november-2026). Older inventories/designs below are dated history; current source, contracts and runbooks remain authoritative.
 
 Read in order: root `AGENTS.md` → `project-state.md` → `progress.md` → `review.md` → `backend-design.md` → `agent-boundaries.md` → `roadmap.md` → `../contracts/README.md` and schema. Then read directory instructions and source for the task.
 

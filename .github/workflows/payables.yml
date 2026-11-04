@@ -39,6 +39,10 @@ jobs:
         run: |
           npm ci --prefix backend --no-audit --no-fund
           npm ci --prefix frontend --no-audit --no-fund
+      - name: Repository layout and import boundaries
+        run: |
+          npm --prefix frontend run test:repository
+          npm --prefix frontend run check:repository
       - name: Compile and validate backend
         working-directory: backend
         run: |
