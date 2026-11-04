@@ -16,6 +16,8 @@ One entity/month has at most 200 active tasks, enforced transactionally with con
 
 All responses carry server-generated X-Request-Id; errors use `{code,message,requestId,fieldErrors?}`. 400 malformed JSON; 401 missing/invalid identity; 403 forbidden action/untrusted origin; 404 absent/inaccessible record; 409 version/create/capacity conflict; 422 invalid input; 500 safe internal failure; 503 unavailable dependency. No traces/SQL/secrets. All mutations require JSON Content-Type (including DELETE) and reject untrusted Origin/forwarding/identity override headers in local mode. Exact local frontend origins are configured server-side; curl with no Origin is local-only and cannot select identity. OPTIONS preflights advertise only allowed methods/headers. CORS is not authentication. Production mode requires database sessions, exact configured hosts/origin and the authenticated same-origin proxy; public deployment remains unauthorized until the release gates are completed.
 
+The same-origin Vercel ingress additionally returns the existing safe error envelope with HTTP 408 / `REQUEST_TIMEOUT` if a private request body does not finish within an absolute 5 seconds (ordinary requests) or 15 seconds (dedicated raw uploads). Incomplete bytes are never forwarded to the backend or used to initialize it. Existing 16 KiB / 1 MiB byte limits, operation schemas, sessions and mutation retry rules remain unchanged; clients must not automatically retry a financial mutation after a transport failure. This is compatible transport hardening, with no endpoint/schema/migration change.
+
 ## Local examples
 
 These commands require the seeded local API. No credentials are needed for local identity; never expose it publicly.

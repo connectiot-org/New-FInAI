@@ -60,6 +60,8 @@ Missing/unreachable/stale/inconclusive scanners quarantine files. Infected files
 
 PDFs are limited to1MiB and retained as private PostgreSQL bytea, never public URLs or browser storage. PDF.js renders content in a dedicated worker with XFA/actions disabled, bounded page/image geometry, page navigation and zoom; the app never executes PDF actions or JavaScript. Originals download with generated safe names, no-store and nosniff. The narrowly scoped raw/binary exceptions work through both runtime adapters; ordinary JSON stays16KiB.
 
+Each private ClamAV command has an absolute 10-second deadline, including connection and response bytes. Partial replies cannot extend it. Missing, stale, failed or timed-out scans remain quarantined, release their socket/scan slot and never satisfy the cleared-document requirement. This requires a reachable, maintained private scanner on the target hosting network; local protocol tests do not prove that connectivity.
+
 ## Financial and workflow rules
 
 GBP only. Quantity has up to4 decimal places, money uses canonical integer minor-unit strings, and BigInt half-up rounding runs per line. Declared gross is retained separately. Positive bills are capped at GBP10m,50 lines and the ordinary JSON size limit. One explicitly confirmed tax treatment per invoice (NONE or STANDARD20%); mixed/unsupported cases remain blocked. Production use needs jurisdiction-specific, effective-dated tax/recoverability rules and finance-approved account mappings. Test fixtures do not establish those approvals.

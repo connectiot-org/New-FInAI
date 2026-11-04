@@ -8,6 +8,7 @@ import {
 import { request } from "node:https";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
+import { readRequestBody, RequestBodyError } from "../server/request-body.js";
 export const config = { maxDuration: 60 };
 const require = createRequire(import.meta.url);
 const publicChat = createPublicChatHandler();
@@ -32,6 +33,7 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     res.writeHead(status, {
       "Content-Type": "application/json",
       "Cache-Control": "no-store",
+      ...(status === 408 || status === 422 ? { Connection: "close" } : {}),
     });
     res.end(
       JSON.stringify({
@@ -42,9 +44,11 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
               ? "FORBIDDEN"
               : status === 400
                 ? "BAD_REQUEST"
-                : status === 422
-                  ? "VALIDATION_FAILED"
-                  : "UNAVAILABLE",
+                : status === 408
+                  ? "REQUEST_TIMEOUT"
+                  : status === 422
+                    ? "VALIDATION_FAILED"
+                    : "UNAVAILABLE",
         message,
         requestId: randomUUID(),
       }),
@@ -102,26 +106,10 @@ export default async function proxy(req: ProxyRequest, res: ServerResponse) {
     return fail(403, "Uncompressed raw upload required.");
   let body: Buffer;
   try {
-    if (upload && req.body !== undefined && !Buffer.isBuffer(req.body))
-      return fail(400, "Raw upload bytes required.");
-    if (Buffer.isBuffer(req.body)) body = req.body;
-    else if (req.body !== undefined)
-      body = Buffer.from(
-        typeof req.body === "string" ? req.body : JSON.stringify(req.body),
-      );
-    else {
-      const chunks: Buffer[] = [];
-      let size = 0;
-      for await (const chunk of req) {
-        const b = Buffer.from(chunk);
-        size += b.length;
-        if (size > maxBytes) return fail(422, "Request too large.");
-        chunks.push(b);
-      }
-      body = Buffer.concat(chunks);
-    }
-    if (body.length > maxBytes) return fail(422, "Request too large.");
-  } catch {
+    body = await readRequestBody(req, maxBytes, upload);
+  } catch (error) {
+    if (error instanceof RequestBodyError)
+      return fail(error.status, error.message);
     return fail(400, "Invalid request.");
   }
   const headers: Record<string, string> = {
