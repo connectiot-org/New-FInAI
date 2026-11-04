@@ -1,5 +1,18 @@
+/** Public invoice sample shell. Its local roles and client never authorize company API access. */
 import { useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import {
+  ArrowUpLeft,
+  BookOpen,
+  Building2,
+  ChevronRight,
+  Download,
+  FileText,
+  RotateCcw,
+  ShieldCheck,
+  SlidersHorizontal,
+  Users,
+} from "lucide-react";
 import { BrandMark } from "../../components/shared/BrandMark";
 import { WorkspaceViewContext } from "../workspace/context";
 import { PayablesClientContext } from "./api";
@@ -10,7 +23,7 @@ import {
   developmentCompany,
   resetDevelopment,
 } from "./development-store";
-import "../workspace/workspace.css";
+
 export function DevelopmentPayables() {
   const navigate = useNavigate();
   const [actor, setActor] = useState(0),
@@ -22,7 +35,7 @@ export function DevelopmentPayables() {
     () => ({
       userId: developmentActors[actor].id,
       organisationId: developmentCompany,
-      organisationName: "Development preview",
+      organisationName: "Sample workspace",
       administrator: false,
       revision: (actor + 1).toString().repeat(64),
       entities: [
@@ -37,27 +50,93 @@ export function DevelopmentPayables() {
     [actor],
   );
   return (
-    <div className="app production-workspace">
-      <header>
-        <Link className="brand" to="/">
+    <div className="invoice-workspace">
+      <aside className="invoice-sidebar" aria-label="Invoice workspace sidebar">
+        <Link className="brand invoice-brand" to="/">
           <BrandMark />
           FinAI
         </Link>
-        <span>Supplier invoices</span>
-        <Link to="/">Back to FinAI</Link>
-      </header>
-      <main>
-        <section className="ap-development" aria-label="Development preview">
+        <div className="invoice-organization">
+          <Building2 size={19} aria-hidden="true" />
           <div>
-            <strong>Development preview</strong>
-            <p>
-              Try supplier invoices without signing in. Sample data and changes
-              stay in this browser. Use sample PDFs only.
-            </p>
+            <strong>Sample company</strong>
+            <span>Finance workspace</span>
+          </div>
+        </div>
+        <span className="invoice-nav-label">WORKSPACE</span>
+        <nav aria-label="Invoice workspace">
+          {[
+            { path: "/invoices", label: "Invoices", Icon: FileText },
+            { path: "/suppliers", label: "Suppliers", Icon: Users },
+            { path: "/export", label: "Accounting export", Icon: Download },
+            {
+              path: "/settings/approvals",
+              label: "Approval settings",
+              Icon: SlidersHorizontal,
+            },
+          ].map(({ path, label, Icon }) => (
+            <NavLink key={path} to={"/demo/payables" + path}>
+              <Icon size={18} aria-hidden="true" />
+              <span>{label}</span>
+              <ChevronRight
+                size={14}
+                className="invoice-nav-arrow"
+                aria-hidden="true"
+              />
+            </NavLink>
+          ))}
+        </nav>
+        <div className="invoice-sidebar-footer">
+          <details className="invoice-guide">
+            <summary>
+              <BookOpen size={17} aria-hidden="true" />
+              Invoice guide
+            </summary>
+            <ol>
+              <li>Add a supplier and invoice details.</li>
+              <li>Attach the original supplier PDF.</li>
+              <li>Review, verify and approve with the assigned roles.</li>
+              <li>Prepare the accounting export.</li>
+            </ol>
+          </details>
+          <div className="invoice-storage-note">
+            <ShieldCheck size={17} aria-hidden="true" />
+            <span>
+              Sample data stays in this browser.
+              <br />
+              Use sample documents only.
+            </span>
+          </div>
+        </div>
+      </aside>
+      <header className="invoice-workspace-header">
+        <div className="invoice-breadcrumb">
+          <Link className="brand invoice-mobile-brand" to="/">
+            <BrandMark />
+            FinAI
+          </Link>
+          <span>Payables</span>
+          <ChevronRight size={14} aria-hidden="true" />
+          <strong>Supplier invoices</strong>
+        </div>
+        <Link to="/" className="invoice-back-home">
+          <ArrowUpLeft size={15} aria-hidden="true" />
+          Back to FinAI
+        </Link>
+      </header>
+      <main className="invoice-workspace-main" id="invoice-workspace-content">
+        <section className="ap-development" aria-label="Development preview">
+          <div className="invoice-sample-copy">
+            <span className="invoice-environment">
+              <span />
+              Sample workspace
+            </span>
+            <p>Changes are saved in this browser. Use sample PDFs only.</p>
           </div>
           <label>
-            Development role
+            View as
             <select
+              aria-label="Development role"
               value={actor}
               disabled={busy}
               onChange={(e) => {
@@ -77,11 +156,13 @@ export function DevelopmentPayables() {
             </select>
           </label>
           <button
+            aria-label="Reset preview"
+            title="Reset sample data"
             disabled={busy}
             onClick={async () => {
               if (
                 !confirm(
-                  "Reset the development invoices, suppliers, documents and policies saved in this browser?",
+                  "Reset the sample invoices, suppliers, documents and policies saved in this browser?",
                 )
               )
                 return;
@@ -93,13 +174,14 @@ export function DevelopmentPayables() {
                 setGeneration((g) => g + 1);
                 navigate("/demo/payables/invoices");
               } catch {
-                setError("Could not reset this browser’s development data.");
+                setError("Could not reset this browser’s sample data.");
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Reset preview
+            <RotateCcw size={15} aria-hidden="true" />
+            <span>Reset sample</span>
           </button>
           {error && <p role="alert">{error}</p>}
         </section>

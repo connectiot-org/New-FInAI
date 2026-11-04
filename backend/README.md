@@ -1,11 +1,15 @@
-# FinAI local checklist API
+# FinAI backend
 
-NestJS 11 / TypeScript / Prisma 6.19.3 / PostgreSQL 17.6. Persistent monthly checklist with previous-month title copying; existing frontend financial workflows remain simulations. Local identity requires explicit development/test configuration and loopback binding. Administratively provisioned session authentication and production proxy configuration are documented in [RELEASE.md](RELEASE.md); public deployment remains gated. No paid authentication provider or third-party key is required.
+NestJS 11, TypeScript, Prisma 6.19.3 and PostgreSQL. The API implements shared identity/session controls, monthly checklist tasks, subscription records, immutable receivables/ledger imports, workspace administration, grounded FinAI conversations and supplier-invoice approval/export. The original frontend Northstar accounting/banking sample remains separate.
 
-From `backend/`, with Node 24/npm 11 and Docker Compose:
+Read the [repository guide](../docs/repository-guide.md#backend-files) for each source/configuration/test file and the [root README](../README.md) for the application boundaries. Install dependencies independently from the frontend.
+
+## Local setup
+
+Use Node 24/npm 11 and a running Docker Compose daemon. From this directory:
 
 ```sh
-npm ci --cache /workspace/.npm-cache --no-audit --no-fund
+npm ci --no-audit --no-fund
 npm run db:init
 npm run db:up
 npm run generate
@@ -15,35 +19,41 @@ npm run build
 npm start
 ```
 
-`db:init` creates an ignored mode-0600 `.env` with randomly generated local database authentication and explicit local configuration; existing files are preserved. Never copy its values into context, chat or frontend settings. PostgreSQL is bound to 127.0.0.1:55432; data lives in Docker named volume `backend_checklist_pgdata`. `docker compose stop db` stops it without deletion; `npm run db:up` restarts. Do not use `down -v` if tasks should survive. The image is pinned by digest. Prisma migrations are additive/versioned, run explicitly; no reset or automatic seed on startup. `db:seed` only upserts synthetic identity/entities and preserves tasks; refuses non-local/production configurations.
+`db:init` creates an ignored mode-0600 local `.env` with random database authentication and preserves existing configuration. PostgreSQL binds to loopback port 55432 and uses a persistent Docker volume. `db:seed` creates local synthetic identity/entities and refuses production/unknown targets. Never seed/reset a company database or use `down -v` to stop a database containing wanted data. `docker compose stop db` stops without deleting its volume.
 
-API: 127.0.0.1:3000. `GET /health/ready` checks database/schema and active seeded membership (not just port/PID). The fixed server user has two authorized entities returned by `GET /api/v1/entities`. No browser demo identity or arbitrary headers can authorize requests. Trusted local frontend origins default to http://127.0.0.1:5173 and http://localhost:5173. Mutations require JSON, including DELETE. No Origin is allowed for local CLI tools; browser requests must use an exact configured origin. Cross-origin credentials/cookies are not used. Forwarding headers, identity overrides, untrusted Host/Origin and caller Authorization are rejected in this local-only implementation.
+Local API: `http://127.0.0.1:3000`; readiness: `/health/ready`. Explicit development/test identity is server-owned and loopback-only. Production uses administratively provisioned accounts, opaque database sessions, exact trusted hosts/origin, CSRF and scoped membership/permissions. Demo roles and caller identity headers grant no company authority.
 
-See `../contracts/openapi.yaml` (1.0.0) and `../contracts/README.md` for exact routes, examples and error semantics. Unknown input fields are rejected. Task creations retain a digest of canonical original payload for safe UUID retries. Transaction-scoped PostgreSQL advisory locks serialize ID claims and per-month capacity; at most 200 tasks per entity/month. Completion and deletion use optimistic version checks. The single feature table is ChecklistTask; shared identity/membership tables supply authorization. No workflow/event/financial tables were added.
+Eight ordered additive migrations live under `prisma/migrations/`. Apply them explicitly to a reviewed target; builds/startup do not migrate or seed it. Existing company data and approval history must survive upgrades. [RELEASE.md](RELEASE.md) describes account provisioning, production environment, migration, TLS/ingress and deployment gates.
 
-Checks from this directory:
+## Module boundaries
+
+| Source folder | Responsibility |
+| --- | --- |
+| `src/` shared files | Application composition, database lifecycle, configuration, identity/ACL, checklist/subscriptions and safe errors/audit |
+| `src/receivables/` | Validate/import complete snapshots; authorized summaries, details, exports and exact snapshot comparisons |
+| `src/ledger/` | Validate immutable owner-approved ledger sources and finance-approved derived calculations |
+| `src/workspace/` | Membership/admin/permissions, audit reads and staged reviewed imports |
+| `src/payables/` | Exact GBP rules, supplier/policy/invoice transitions, private document scans and immutable exports |
+| `src/assistant/` | Read-only source grounding, bounded model/provider policy, durable private turns and confirmed proposal provenance |
+
+FinAI proposes invoice actions; the ordinary transactional service rechecks authority, version, assignment and business rules after explicit user confirmation. It cannot automatically pay invoices or post to an external ledger. Original PDFs require a reachable private scanner with fresh signatures; missing/failed scanners quarantine documents.
+
+## Checks and recovery
 
 ```sh
 npm run typecheck
 npm run lint
 npm run build
 npm test
+npm audit
 ```
 
-Tests create a unique `test_<UUID>` PostgreSQL schema, apply real Prisma migrations twice, seed isolated synthetic tenants, start actual HTTP services, then remove only that test schema. They do not reset the application schema. DATABASE_URL must point to local PostgreSQL. Real tests cover CRUD, summaries, restart persistence, schema conformance, input constraints, entity/organisation permissions, forged identities/origins, safe retries, concurrent CAS/deletion, concurrent cap enforcement and production fail-closed configuration. See context/progress.md for actual run outcomes; do not equate written tests with passed tests.
+Tests require local PostgreSQL and create/drop only isolated synthetic schemas. They cover real API/database persistence, isolation, validation, concurrency, sessions/CSRF, financial transitions, grounding and scanner protocol. Shared schemas/examples under `../contracts/` have their own validators; browser/built-runtime suites run from `../frontend/`. See the [complete command map](../docs/repository-guide.md#verification).
 
-If Prisma engine downloads fail, allow `binaries.prisma.sh` in environment network settings, retain TLS/checksum verification and retry `npm run generate`. Never set checksum-ignore or TLS-disable variables. No seed/development identity may run publicly. Production requires separately implemented verified identity, membership lifecycle, security review, private database/deployment/migration/backup/restore gates and explicit deployment authorization.
+From the repository root, `bash backend/scripts/restore-rehearsal.sh` verifies a disposable synthetic full-application backup/restore; `bash backend/scripts/payables-storage-check.sh` verifies AP byte storage/history/tenant foreign keys. These do not establish the actual hosted backup RPO/RTO. Real release needs target restore/monitoring/finance approval and deployed smoke checks.
 
-Dependency review: NestJS 11.2.7 and Prisma 6.19.3 are pinned. A scoped npm override pins @prisma/config → deepmerge-ts 8.0.2 to resolve its recursive-merge advisory; generation, migration deployment and full PostgreSQL tests validate this toolchain combination. No dependency advisories (including development tools) were reported by npm audit after the update.
+## Operational guides
 
-Copy/session verification and exact next commands: [current handover](../context/copy-release.md). The new additive migration creates only shared Account/Session/RateLimit tables. Production releases must use session identity and the exact configured backend/frontend hosts; local identity remains prohibited in production.
+[RELEASE.md](RELEASE.md): sessions/deployment. [WORKSPACE.md](WORKSPACE.md): member/grant administration and reviewed imports. [RECEIVABLES.md](RECEIVABLES.md): source semantics/imports. [ASSISTANT.md](ASSISTANT.md): provider/privacy/budgets. [PAYABLES.md](PAYABLES.md): invoice/scanner/storage/approval/export setup. Shared payload authority: [contracts/README.md](../contracts/README.md). Current evidence: [production verification](../context/production-verification.md).
 
-## Subscription renewals
-
-Manual subscription records use the existing session/local identity, entity permissions, CSRF and safe errors. From backend/: `npm run generate && npm run db:migrate && npm run build`, then `npm start`. Migration `202610220001_subscription_renewals` adds only SubscriptionRenewal and its constraints/index; no reset or reseed is needed for existing installations. GET/POST `/api/v1/subscription-renewals`, PATCH `/:id` (details/expectedVersion), PATCH `/:id/archive` (archived/expectedVersion). Lists accept entityId, search, status=active|archived|all, offset, limit (default20, max50). Create uses client UUIDs for safe identical retries; IDs cannot move entities. Pagination is ordered renewalDate/id, and concurrent updates may change ordering between pages.
-
-Configure organisation dates through non-secret server variable `ORGANISATION_TIMEZONES`, e.g. `{"11111111-1111-4111-8111-111111111111":"Asia/Dhaka"}`. Missing entries use UTC. Invalid UUID/zone configuration refuses startup. This map is administrator-owned; browser requests cannot override it. Today is derived in that zone at request time; date-only values use Gregorian calendar days without timezone shifting. Active renewal dates before today indicate "Renewal date passed."; today..30 days inclusive "Renewing soon.". Cancellation dates before today indicate "Cancellation deadline passed."; today..7 days inclusive "Cancellation deadline approaching.". Indicators are independent, archived records have neither, and none assert renewal/cancellation/payment occurred. No reminders or automatic date changes are performed.
-
-## Supplier invoice approvals
-
-The authenticated supplier-invoice product is documented in [PAYABLES.md](PAYABLES.md), including the additive migration, explicit AP grants, private scanner/storage setup, local tests and deployment boundaries. The existing checklist and demo workflows remain independent. Restricted development environments can use `bash scripts/build-local-prisma.sh` and source `/workspace/.finai-tools/prisma-env.sh` to build/use the exact pinned Prisma engines with verification preserved.
+If Prisma vendor downloads are restricted, preserve TLS/checksum verification. The documented optional `scripts/build-local-prisma.sh` builds the exact pinned official native engine commit; source its emitted environment file before local commands. This native development fallback does not prove the production RHEL runtime. Never disable checksums/TLS or commit private environment/credential values.

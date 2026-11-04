@@ -1,3 +1,4 @@
+/** Authenticated financial conversations and explicitly confirmed proposals; distinct from public chat. */
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useWorkspace } from "../workspace/context";

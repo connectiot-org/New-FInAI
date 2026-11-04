@@ -10,9 +10,16 @@ export async function request<T>(
 ) {
   const epoch = sessionEpoch(),
     method = options.method || "GET";
+  // Two bounded scanner commands can take 20 seconds before the DB result.
+  // Ordinary requests retain their shorter deadline.
+  const timeout =
+    method === "POST" &&
+    /^\/invoices\/[a-f0-9-]{36}\/documents\/[a-f0-9-]{36}\/scan$/.test(path)
+      ? 35000
+      : 10000;
   const signal = options.signal
-    ? AbortSignal.any([options.signal, AbortSignal.timeout(10000)])
-    : AbortSignal.timeout(10000);
+    ? AbortSignal.any([options.signal, AbortSignal.timeout(timeout)])
+    : AbortSignal.timeout(timeout);
   const headers: Record<string, string> = {};
   try {
     if (method !== "GET") {
@@ -65,7 +72,7 @@ export async function request<T>(
 export async function binary(path: string, file?: File, preview = false) {
   const epoch = sessionEpoch(),
     controller = new AbortController(),
-    timer = setTimeout(() => controller.abort(), 15000);
+    timer = setTimeout(() => controller.abort(), file ? 45000 : 15000);
   try {
     const headers: Record<string, string> = {};
     if (file) {

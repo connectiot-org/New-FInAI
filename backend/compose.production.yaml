@@ -30,6 +30,8 @@ services:
       ORGANISATION_TIMEZONES: ${ORGANISATION_TIMEZONES:-}
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Exact frontend HTTPS origin required}
       API_PROXY_TOKEN: ${API_PROXY_TOKEN:?Secure proxy credential required}
+      AP_CLAMD_HOST: ${AP_CLAMD_HOST:-}
+      AP_CLAMD_PORT: ${AP_CLAMD_PORT:-3310}
       ASSISTANT_ENABLED: ${ASSISTANT_ENABLED:-false}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       Openrouter: ${Openrouter:-}

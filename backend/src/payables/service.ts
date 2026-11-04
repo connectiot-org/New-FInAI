@@ -1,3 +1,4 @@
+/** Authoritative invoice transactions: recheck grants/versions and commit decisions with their audit history. */
 import { Injectable, Inject } from "@nestjs/common";
 import type { Prisma } from "@prisma/client";
 import { randomUUID, createHash } from "node:crypto";
@@ -901,7 +902,7 @@ export class PayablesService {
           if (n.version !== b.expectedVersion || n.state === "rejected")
             throw conflict();
           await tx.$executeRaw`UPDATE "ApDocument" SET scan_state=${scan.status},scan_result=${JSON.stringify(scan)}::jsonb WHERE id=${documentId}::uuid AND invoice_id=${id}::uuid`;
-          await tx.$executeRaw`UPDATE "ApInvoice" SET version=version+1,revision=revision+1,state='review',route=NULL WHERE id=${id}::uuid`;
+          await tx.$executeRaw`UPDATE "ApInvoice" SET version=version+1,revision=revision+1,state='review',route=NULL,updated_at=now() WHERE id=${id}::uuid`;
           n.version++;
           n.revision++;
           n.route = null;

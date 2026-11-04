@@ -1,5 +1,7 @@
 # Route and interaction matrix
 
+Historical prototype record: the observations below describe the original sample app. For current public/private routes, setup and verification, use the [repository guide](../../docs/repository-guide.md) and [current production review](../../context/production-verification.md).
+
 The public homepage now follows observed Rillet HTML/CSS, fonts and static browser captures. The workspace palette, compact navigation rail and snapshot composition follow visible public product previews. Private application screens are not verified copies. Browser smoke coverage loads 37 concrete shell URLs directly; `/welcome` is exercised by every workflow. Unknown and missing-record routes are explicitly covered. See `reference-map.md` for visual evidence and limits.
 
 | Route                          | Implemented behavior                                                                                                  | Verification                                                    |

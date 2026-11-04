@@ -1,12 +1,17 @@
 .ap-root {
-  --ap-border: #e6e7ec;
-  color: #292532;
+  --ap-border: #e2e6df;
+  --ap-ink: #202c24;
+  color: var(--ap-ink);
+  min-width: 0;
   max-width: 1440px;
   margin: auto;
   padding: 24px 4px 60px;
+  font-family: "DM Sans Variable", "DM Sans", sans-serif;
 }
 .ap-root h1 {
   font-size: 32px;
+  font-family: inherit;
+  font-weight: 650;
   letter-spacing: -1px;
   margin: 6px 0;
 }
@@ -17,7 +22,7 @@
   font-size: 16px;
 }
 .ap-root p {
-  color: #777080;
+  color: #64715f;
   line-height: 1.6;
 }
 .ap-eyebrow {
@@ -51,7 +56,7 @@
   font-size: 13px;
 }
 .ap-root :focus-visible {
-  outline: 2px solid #9280cf;
+  outline: 2px solid #728b5b;
   outline-offset: 2px;
 }
 .ap-root button,
@@ -69,9 +74,9 @@
   gap: 7px;
 }
 .ap-root button.primary {
-  background: #655098;
+  background: #263c2e;
   color: white;
-  border-color: #655098;
+  border-color: #263c2e;
 }
 .ap-root button:disabled {
   opacity: 0.5;
@@ -105,8 +110,8 @@
   background: none;
 }
 .ap-root .ap-tabs button[aria-selected="true"] {
-  border-color: #655098;
-  color: #655098;
+  border-color: #334c3c;
+  color: #263c2e;
 }
 .ap-tabs span {
   background: #efedf4;
@@ -153,7 +158,7 @@
 }
 .ap-root small {
   display: block;
-  color: #85808f;
+  color: #6e7466;
   font-size: 11px;
   margin-top: 5px;
 }
@@ -196,7 +201,7 @@
   gap: 10px;
   margin: 20px 0;
   font-size: 12px;
-  color: #777080;
+  color: #64715f;
 }
 .ap-pagination span {
   margin-right: auto;
@@ -215,7 +220,7 @@
   align-items: center;
   font-size: 12px;
   text-decoration: none;
-  color: #756784;
+  color: #65725c;
   margin-bottom: 20px;
 }
 .ap-total {
@@ -223,7 +228,7 @@
 }
 .ap-muted {
   font-size: 12px;
-  color: #898390;
+  color: #6e7466;
 }
 .ap-split {
   display: grid;
@@ -232,7 +237,7 @@
   margin: 24px 0;
 }
 .ap-document {
-  background: #f5f5f8;
+  background: #f0f2eb;
   border: 1px solid var(--ap-border);
   border-radius: 10px;
   padding: 22px;
@@ -389,7 +394,7 @@
 }
 .ap-preview {
   padding: 20px;
-  background: #f7f5fa;
+  background: #f1f5eb;
   border-radius: 8px;
   margin-top: 28px;
 }
@@ -505,34 +510,814 @@
   max-width: none;
 }
 
+/* Invoice register: queue counts are server/store results, never invented totals. */
+.ap-company {
+  width: 190px;
+  flex-shrink: 0;
+}
+.ap-company > span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.ap-root .ap-nav a {
+  padding: 8px 2px;
+  border-bottom: 2px solid transparent;
+}
+.ap-root .ap-nav a[aria-current="page"] {
+  color: #263c2e;
+  border-bottom-color: #263c2e;
+  font-weight: 650;
+}
+.ap-top {
+  margin-bottom: 28px;
+}
+.ap-top p {
+  margin: 7px 0 0;
+  font-size: 13px;
+}
+.ap-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.ap-root .ap-metric {
+  background: #fff;
+  border: 1px solid var(--ap-border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  min-width: 0;
+  transition:
+    border-color 120ms,
+    background 120ms;
+}
+.ap-root .ap-metric:hover {
+  background: #f9fbf6;
+  border-color: #a7b99d;
+}
+.ap-root .ap-metric.is-selected {
+  border-color: #b5c5a8;
+  background: #f4f8ef;
+}
+.ap-metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  font-size: 12px;
+  color: #667364;
+  font-weight: 500;
+}
+.ap-metric-top svg {
+  flex-shrink: 0;
+}
+.ap-metric strong {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  line-height: 1.3;
+  color: #243126;
+  margin-top: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.ap-metric-hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6b7564;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.ap-register {
+  border: 1px solid var(--ap-border);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+  min-width: 0;
+}
+.ap-register-heading {
+  padding: 22px 24px 16px;
+}
+.ap-register-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.35px;
+}
+.ap-register-heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+}
+.ap-register-actions {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  flex-shrink: 0;
+}
+.ap-root .ap-month-field {
+  font-size: 10px;
+  gap: 5px;
+}
+.ap-root .ap-month-field input {
+  width: 160px;
+  height: 37px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+.ap-register-actions .primary {
+  height: 37px;
+  white-space: nowrap;
+}
+.ap-root .ap-register .ap-tabs {
+  margin: 0 24px;
+  gap: 12px;
+}
+.ap-root .ap-register .ap-tabs button {
+  padding: 15px 7px 13px;
+  color: #64715f;
+  font-size: 12px;
+  font-weight: 500;
+}
+.ap-root .ap-register .ap-tabs button[aria-selected="true"] {
+  color: #243b2c;
+  font-weight: 650;
+}
+.ap-tabs span {
+  background: #f0f2ec;
+  color: #64715f;
+  font-size: 10px;
+  min-width: 20px;
+  text-align: center;
+  padding: 2px 5px;
+}
+.ap-root .ap-tabs button[aria-selected="true"] span {
+  background: #e6eddd;
+  color: #39502e;
+}
+.ap-register .ap-filters {
+  display: grid;
+  grid-template-columns:
+    minmax(160px, 1fr) minmax(120px, 160px) minmax(135px, 160px)
+    minmax(125px, 160px);
+  gap: 12px;
+  margin: 0;
+  padding: 20px 24px;
+}
+.ap-register .ap-filters label {
+  font-size: 10px;
+  gap: 6px;
+  color: #687260;
+}
+.ap-register .ap-filters input,
+.ap-register .ap-filters select {
+  height: 38px;
+  font-size: 12px;
+  border-color: #e1e5dc;
+}
+.ap-search-input {
+  position: relative;
+}
+.ap-search-input > svg {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b9486;
+  pointer-events: none;
+}
+.ap-root .ap-search-input input {
+  padding-left: 35px;
+}
+.ap-root input::placeholder {
+  color: #64715b;
+}
+.ap-filter-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px 16px;
+  color: #64715f;
+  font-size: 11px;
+}
+.ap-root .ap-filter-summary button {
+  border: 0;
+  background: #f2f5ed;
+  font-size: 11px;
+  padding: 5px 8px;
+  color: #38512c;
+}
+.ap-register > .ap-table-wrap {
+  border: 0;
+  border-top: 1px solid var(--ap-border);
+  border-radius: 0;
+  max-width: 100%;
+}
+.ap-register table {
+  min-width: 820px;
+}
+.ap-register th {
+  background: #f9faf7;
+  font-size: 10px;
+  color: #65715f;
+  padding: 13px 20px;
+  font-weight: 500;
+}
+.ap-register td {
+  padding: 17px 20px;
+  font-size: 12px;
+  border-color: #edf0e8;
+}
+.ap-register tbody tr:hover {
+  background: #fafcf7;
+}
+.ap-register td:first-child {
+  min-width: 230px;
+}
+.ap-supplier-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ap-supplier-link > span:last-child {
+  min-width: 0;
+}
+.ap-supplier-link strong {
+  display: block;
+  max-width: 225px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.ap-supplier-link small {
+  margin-top: 4px;
+  color: #64715b;
+  font-size: 10px;
+}
+.ap-supplier-avatar {
+  flex: 0 0 34px;
+  height: 34px;
+  background: #e9eee3;
+  border: 1px solid #e0e7d8;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #56674d;
+  font-size: 10px;
+  font-weight: 650;
+}
+.ap-register tr:nth-child(3n + 2) .ap-supplier-avatar {
+  background: #edf0f6;
+  border-color: #e5e9f3;
+  color: #596882;
+}
+.ap-register tr:nth-child(3n + 3) .ap-supplier-avatar {
+  background: #f6eee4;
+  border-color: #efe5d7;
+  color: #856b47;
+}
+.ap-root .ap-amount-column {
+  text-align: right;
+}
+.ap-register .ap-money {
+  font-size: 13px;
+}
+.ap-register .ap-money small {
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+.ap-status {
+  border: 0;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  font-size: 10px;
+  font-weight: 500;
+}
+.ap-status::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.ap-status.review {
+  background: #fbf3df;
+  color: #82651b;
+}
+.ap-status.verify {
+  background: #ecf1fa;
+  color: #4d6798;
+}
+.ap-status.approve {
+  background: #f0ebf9;
+  color: #715291;
+}
+.ap-status.approved {
+  background: #eaf3e5;
+  color: #496b36;
+  border: 0;
+}
+.ap-status.rejected {
+  background: #f6ece9;
+  color: #8f5d52;
+}
+.ap-root .ap-warning {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  color: #a38a40;
+  font-size: 9px;
+  margin-top: 6px;
+}
+.ap-owner {
+  color: #6a7563;
+  font-size: 11px;
+}
+.ap-root button.ap-open-invoice {
+  padding: 4px;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #8d9685 !important;
+}
+.ap-open-invoice:hover {
+  background: #eef3e7;
+  border-color: #e0e7d8;
+  color: #38512c !important;
+}
+.ap-register .ap-pagination {
+  padding: 16px 24px;
+  margin: 0;
+  border-top: 1px solid var(--ap-border);
+  font-size: 11px;
+}
+.ap-root .ap-register .ap-pagination button {
+  font-size: 11px;
+  padding: 7px 10px;
+}
+.ap-register > .ap-error {
+  margin: 12px 24px;
+}
+.ap-register-loading {
+  margin: 0;
+  padding: 36px 24px;
+  font-size: 12px;
+}
+.ap-root .ap-export-notice {
+  display: flex;
+  align-items: start;
+  gap: 8px;
+  margin: 0;
+  padding: 0 24px 16px;
+  font-size: 11px;
+}
+.ap-export-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Public sample shell uses its own layout; company identity stays in Workspace. */
+.invoice-workspace {
+  display: grid;
+  grid-template-columns: 224px minmax(0, 1fr);
+  grid-template-rows: 72px minmax(0, 1fr);
+  min-height: 100vh;
+  background: #f5f6f2;
+  color: #283328;
+  font-family: "DM Sans Variable", "DM Sans", sans-serif;
+}
+.invoice-sidebar {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  background: #fcfdfb;
+  border-right: 1px solid #e1e5dc;
+  padding: 27px 17px 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.invoice-workspace .invoice-brand {
+  font-size: 24px;
+  letter-spacing: -0.9px;
+  margin: 0 12px 32px;
+  color: #243126;
+  text-decoration: none;
+}
+.invoice-brand svg {
+  width: 28px;
+  height: 28px;
+}
+.invoice-organization {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e7ebe2;
+  border-radius: 8px;
+  background: #f6f8f2;
+  margin-bottom: 32px;
+}
+.invoice-organization > svg {
+  color: #7d8b70;
+  flex-shrink: 0;
+}
+.invoice-organization strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.invoice-organization span {
+  display: block;
+  font-size: 10px;
+  color: #64715b;
+  margin-top: 4px;
+}
+.invoice-nav-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: #64715b;
+  margin: 0 12px 12px;
+}
+.invoice-sidebar nav {
+  display: grid;
+  gap: 5px;
+}
+.invoice-sidebar nav a {
+  color: #65725c;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 12px;
+  text-decoration: none;
+  border-radius: 7px;
+  padding: 12px;
+}
+.invoice-sidebar nav a.active {
+  background: #eaf0e1;
+  color: #304725;
+  font-weight: 600;
+}
+.invoice-sidebar nav a:hover {
+  background: #f0f4e9;
+}
+.invoice-nav-arrow {
+  margin-left: auto;
+  opacity: 0.5;
+}
+.invoice-sidebar-footer {
+  margin-top: auto;
+  padding-top: 40px;
+}
+.invoice-guide {
+  border-top: 1px solid #e7ebe2;
+  padding: 17px 10px;
+}
+.invoice-guide summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  color: #65725c;
+  font-size: 11px;
+  list-style: none;
+}
+.invoice-guide ol {
+  margin: 15px 0 0;
+  padding-left: 18px;
+  color: #65725c;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.invoice-storage-note {
+  border-top: 1px solid #e7ebe2;
+  padding: 19px 10px 0;
+  display: flex;
+  gap: 8px;
+  color: #64715b;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.invoice-storage-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.invoice-workspace-header {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 36px;
+  background: #fff;
+  border-bottom: 1px solid #e1e5dc;
+}
+.invoice-breadcrumb {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 11px;
+  color: #64715b;
+  min-width: 0;
+}
+.invoice-breadcrumb strong {
+  color: #63705b;
+  font-weight: 500;
+}
+.invoice-back-home {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  color: #65725c;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.invoice-mobile-brand {
+  display: none !important;
+}
+.invoice-workspace-main {
+  grid-column: 2;
+  min-width: 0;
+  width: 100%;
+  padding: 20px 36px 48px;
+}
+.invoice-workspace .ap-root {
+  max-width: none;
+  padding: 28px 0 0;
+}
+.invoice-workspace .ap-root > .ap-nav {
+  display: none;
+}
 .ap-development {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
   align-items: center;
-  border: 1px solid #e6def6;
-  border-radius: 10px;
-  padding: 18px;
-  background: #f7f4fd;
-  margin: 12px 0;
+  gap: 12px;
+  padding: 0 0 17px;
+  border-bottom: 1px solid #e2e6dc;
+  color: #65725c;
+  font-size: 11px;
 }
-.ap-development > div {
-  flex: 1 1 260px;
+.invoice-sample-copy {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
-.ap-development p {
-  margin: 6px 0;
-  font-size: 13px;
+.invoice-sample-copy p {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #66745d;
+  margin: 0;
+}
+.invoice-environment {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  background: #eaf0e1;
+  border: 1px solid #dfe8d3;
+  border-radius: 5px;
+  color: #566e3f;
+  padding: 4px 7px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.invoice-environment > span {
+  width: 4px;
+  height: 4px;
+  background: #91a776;
+  border-radius: 50%;
 }
 .ap-development label {
-  display: grid;
-  gap: 6px;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
 }
 .ap-development select,
 .ap-development button {
-  padding: 9px 12px;
-  border: 1px solid #dcd8e8;
-  border-radius: 7px;
-  background: white;
-  font: inherit;
+  font-family: inherit;
+  font-size: 10px;
+  color: #5f7051;
+  background: #fff;
+  border: 1px solid #e0e5d8;
+  border-radius: 6px;
+  padding: 7px 9px;
+}
+.ap-development button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  cursor: pointer;
+}
+.ap-development button:disabled,
+.ap-development select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.invoice-workspace :focus-visible {
+  outline: 2px solid #6d8158;
+  outline-offset: 3px;
+}
+@media (max-width: 1200px) {
+  .invoice-workspace {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  .invoice-workspace-main {
+    padding: 20px 24px 40px;
+  }
+  .invoice-workspace-header {
+    padding: 0 24px;
+  }
+  .ap-register .ap-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .ap-register .ap-filters label:first-child {
+    grid-column: auto;
+  }
+  .ap-register-heading {
+    align-items: start;
+  }
+  .ap-register-actions {
+    flex-wrap: wrap;
+    justify-content: end;
+  }
+  .invoice-sample-copy {
+    display: block;
+  }
+  .invoice-sample-copy p {
+    margin-top: 5px;
+  }
+}
+@media (max-width: 900px) {
+  .invoice-workspace {
+    display: block;
+  }
+  .invoice-sidebar {
+    display: none;
+  }
+  .invoice-workspace-header {
+    min-height: 64px;
+    padding: 16px 24px;
+  }
+  .invoice-mobile-brand {
+    display: inline-flex !important;
+    margin-right: 8px;
+    font-size: 19px;
+    text-decoration: none;
+    color: #2d382b;
+  }
+  .invoice-mobile-brand svg {
+    width: 25px;
+    height: 25px;
+  }
+  .invoice-breadcrumb > span,
+  .invoice-breadcrumb > svg {
+    display: none;
+  }
+  .invoice-workspace .ap-root > .ap-nav {
+    display: flex;
+    padding-bottom: 8px;
+    gap: 20px;
+    margin-top: 22px;
+  }
+  .ap-metrics {
+    gap: 10px;
+  }
+  .ap-root .ap-metric {
+    padding: 15px;
+  }
+}
+@media (max-width: 600px) {
+  .invoice-workspace-main {
+    padding: 16px 14px 28px;
+  }
+  .invoice-workspace-header {
+    padding: 14px;
+  }
+  .invoice-breadcrumb {
+    gap: 4px;
+  }
+  .invoice-breadcrumb strong {
+    display: none;
+  }
+  .invoice-back-home {
+    font-size: 10px;
+  }
+  .invoice-sample-copy {
+    flex: 1 1 100%;
+  }
+  .invoice-sample-copy p {
+    display: inline;
+    margin-left: 8px;
+  }
+  .ap-development {
+    gap: 8px;
+  }
+  .ap-development label {
+    margin-left: auto;
+  }
+  .invoice-workspace .ap-top {
+    flex-direction: row;
+    align-items: start;
+    gap: 14px;
+  }
+  .ap-top .ap-company {
+    width: 125px;
+    font-size: 10px;
+  }
+  .ap-company select {
+    font-size: 11px;
+    padding: 8px;
+  }
+  .ap-top p {
+    font-size: 11px;
+    max-width: 200px;
+  }
+  .ap-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 20px;
+  }
+  .ap-metric strong {
+    font-size: 28px;
+  }
+  .ap-metric-top {
+    font-size: 11px;
+  }
+  .ap-metric-hint {
+    font-size: 10px;
+  }
+  .ap-register-heading {
+    padding: 18px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .ap-register-actions {
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .ap-root .ap-month-field input {
+    width: 145px;
+  }
+  .ap-root .ap-register .ap-tabs {
+    margin: 0 16px;
+    gap: 6px;
+  }
+  .ap-register .ap-filters {
+    padding: 16px;
+    gap: 10px;
+  }
+  .ap-register .ap-filters label:first-child {
+    grid-column: 1 / -1;
+  }
+  .ap-register .ap-filters label:last-child {
+    grid-column: 1 / -1;
+  }
+  .ap-register .ap-pagination {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+  }
+  .ap-register .ap-pagination span {
+    flex: 1 1 100%;
+    margin-bottom: 3px;
+  }
+  .ap-filter-summary {
+    padding: 0 16px 14px;
+  }
+  .ap-root .ap-register .ap-tabs button {
+    padding: 13px 4px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 600px) {
+  .ap-register-actions .ap-month-field {
+    flex: 1;
+    min-width: 0;
+  }
+  .ap-root .ap-register-actions .ap-month-field input {
+    width: 100%;
+    min-width: 0;
+  }
+  .ap-register-actions .primary {
+    flex-shrink: 0;
+  }
 }

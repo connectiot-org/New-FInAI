@@ -1,5 +1,7 @@
 # FinAI implementation checkpoint
 
+Historical prototype record: the observations below describe the original sample app. For current public/private routes, setup and verification, use the [repository guide](../../docs/repository-guide.md) and [current production review](../../context/production-verification.md).
+
 Status: working frontend-only public website and accounting prototype, 2026-10-16. All changes remain in `frontend/`; backend and original root README are unchanged. GitHub publication is authorized by the user. No deployment or backend service has been added.
 
 ## Completed work

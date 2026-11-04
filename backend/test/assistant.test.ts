@@ -1171,7 +1171,7 @@ test("entity access lost during planning blocks source disclosure/composition an
   }
 });
 
-test("production compose forwards secure Assistant settings and defaults to disabled", () => {
+test("production compose forwards secure Assistant/scanner settings and defaults to disabled", () => {
   const settings = {
     ASSISTANT_ENABLED: "true",
     OPENROUTER_API_KEY: "synthetic-not-a-real-key",
@@ -1182,6 +1182,8 @@ test("production compose forwards secure Assistant settings and defaults to disa
     ASSISTANT_MAX_OUTPUT_PRICE: "0",
     ASSISTANT_LEDGER_MAPPING_IDS: "synthetic@fingerprint",
     Openrouter: "synthetic-alias-key",
+    AP_CLAMD_HOST: "scanner.internal",
+    AP_CLAMD_PORT: "43310",
   };
   const composeEnvironment = (composeEnv: NodeJS.ProcessEnv) => {
     const interpolate = (value: string) =>
@@ -1260,6 +1262,8 @@ test("production compose forwards secure Assistant settings and defaults to disa
   const disabled = render(false);
   assert.equal(disabled.ASSISTANT_ENABLED, "false");
   assert.equal(disabled.OPENROUTER_API_KEY, "");
+  assert.equal(disabled.AP_CLAMD_HOST, "");
+  assert.equal(disabled.AP_CLAMD_PORT, "3310");
   assert.equal(new OpenRouterProvider(disabled).configured, false);
 });
 

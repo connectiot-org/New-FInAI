@@ -168,12 +168,15 @@ for (const [mode, rawUpload] of [
               assert.equal(res.headers.connection, "close");
               let data = "";
               res.on("data", (b) => (data += b));
-              res.on("end", () =>
+              res.on("end", () => {
+                const envelope = JSON.parse(data);
+                assert.equal(res.headers["x-request-id"], envelope.requestId);
+                assert.match(envelope.requestId, /^[a-f0-9-]{36}$/);
                 resolve({
                   status: res.statusCode!,
-                  code: JSON.parse(data).code,
-                }),
-              );
+                  code: envelope.code,
+                });
+              });
             },
           );
           client.on("error", () => {});
@@ -420,3 +423,240 @@ test("controlled embedded adapter: exact raw upload route and ordinary request l
     await embedded.close();
   }
 });
+
+// Append to scripts/payables-transport.test.ts. Uses its existing imports/helpers.
+async function withinDeadline<T>(
+  work: Promise<T>,
+  milliseconds: number,
+  message: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), milliseconds);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function withDripBackend(
+  run: (port: number, upstreamClosed: Promise<void>) => Promise<void>,
+) {
+  const dir = mkdtempSync(join(tmpdir(), "ap-proxy-lifetime-"));
+  const cert = join(dir, "cert.pem"),
+    key = join(dir, "key.pem");
+  const oldCA = globalAgent.options.ca;
+  const names = [
+    "FINAI_API_MODE",
+    "FINAI_BACKEND_ORIGIN",
+    "FINAI_PUBLIC_ORIGIN",
+    "FINAI_PROXY_TOKEN",
+  ];
+  const oldEnv = Object.fromEntries(
+    names.map((name) => [name, process.env[name]]),
+  );
+  const sockets = new Set<Socket>();
+  const intervals = new Set<ReturnType<typeof setInterval>>();
+  const track = (socket: Socket) => {
+    sockets.add(socket);
+    socket.on("error", () => {});
+    socket.once("close", () => sockets.delete(socket));
+  };
+  let upstream: ReturnType<typeof tlsServer> | undefined;
+  let server: Server | undefined;
+  try {
+    assert.equal(
+      spawnSync(
+        "openssl",
+        [
+          "req",
+          "-x509",
+          "-newkey",
+          "rsa:2048",
+          "-nodes",
+          "-keyout",
+          key,
+          "-out",
+          cert,
+          "-days",
+          "1",
+          "-subj",
+          "/CN=127.0.0.1",
+          "-addext",
+          "subjectAltName=IP:127.0.0.1",
+        ],
+        { stdio: "ignore" },
+      ).status,
+      0,
+    );
+    let resolveClosed!: () => void;
+    const upstreamClosed = new Promise<void>((resolve) => {
+      resolveClosed = resolve;
+    });
+    upstream = tlsServer(
+      { cert: readFileSync(cert), key: readFileSync(key) },
+      (_req, res) => {
+        res.on("error", () => {});
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.write("{");
+        // Activity arrives much more often than the proxy's 25-second idle limit.
+        const interval = setInterval(() => res.write(" "), 50);
+        intervals.add(interval);
+        res.once("close", () => {
+          clearInterval(interval);
+          intervals.delete(interval);
+          resolveClosed();
+        });
+      },
+    );
+    upstream.on("connection", track);
+    const upstreamPort = await listen(upstream);
+    globalAgent.options.ca = readFileSync(cert);
+    Object.assign(process.env, {
+      FINAI_API_MODE: "remote",
+      FINAI_BACKEND_ORIGIN: `https://127.0.0.1:${upstreamPort}`,
+      FINAI_PUBLIC_ORIGIN: "https://ap.example",
+      FINAI_PROXY_TOKEN: "p".repeat(64),
+    });
+    server = createServer((req, res) => void proxy(req, res));
+    server.on("connection", track);
+    const port = await listen(server);
+    await run(port, upstreamClosed);
+  } finally {
+    for (const interval of intervals) clearInterval(interval);
+    for (const socket of sockets) socket.destroy();
+    if (server) server.closeAllConnections();
+    if (upstream) upstream.closeAllConnections();
+    await Promise.all([
+      ...(server ? [close(server)] : []),
+      ...(upstream ? [close(upstream)] : []),
+    ]);
+    globalAgent.options.ca = oldCA;
+    for (const name of names) {
+      if (oldEnv[name] === undefined) delete process.env[name];
+      else process.env[name] = oldEnv[name];
+    }
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+test(
+  "remote proxy promptly closes its upstream when the client disconnects",
+  { timeout: 10000 },
+  async () => {
+    await withDripBackend(async (port, upstreamClosed) => {
+      let client: ReturnType<typeof httpRequest> | undefined;
+      try {
+        const firstChunk = new Promise<void>((resolve, reject) => {
+          client = httpRequest(
+            {
+              host: "127.0.0.1",
+              port,
+              path: "/?route=api/v1/entities",
+              headers: { Host: "ap.example" },
+            },
+            (res) => {
+              res.on("error", () => {});
+              res.once("data", () => {
+                res.destroy();
+                client?.destroy();
+                resolve();
+              });
+            },
+          );
+          client.on("error", reject);
+          client.end();
+        });
+        await withinDeadline(
+          firstChunk,
+          3000,
+          "Controlled upstream did not send its first chunk",
+        );
+        await withinDeadline(
+          upstreamClosed,
+          1500,
+          "Upstream survived the downstream disconnect",
+        );
+      } finally {
+        client?.destroy();
+      }
+    });
+  },
+);
+
+test(
+  "remote proxy enforces its absolute 30-second deadline despite active response bytes",
+  { timeout: 40000 },
+  async () => {
+    await withDripBackend(async (port, upstreamClosed) => {
+      let client: ReturnType<typeof httpRequest> | undefined;
+      const startedAt = Date.now();
+      try {
+        const closed = new Promise<{
+          complete: boolean;
+          bytes: number;
+          elapsed: number;
+        }>((resolve, reject) => {
+          client = httpRequest(
+            {
+              host: "127.0.0.1",
+              port,
+              path: "/?route=api/v1/entities",
+              headers: { Host: "ap.example" },
+            },
+            (res) => {
+              let bytes = 0;
+              res.on("data", (chunk: Buffer) => {
+                bytes += chunk.length;
+              });
+              // Aborting a partial JSON stream is the only safe response after headers.
+              res.on("error", () => {});
+              res.once("close", () =>
+                resolve({
+                  complete: res.complete,
+                  bytes,
+                  elapsed: Date.now() - startedAt,
+                }),
+              );
+            },
+          );
+          client.on("error", reject);
+          client.end();
+        });
+        const outcome = await withinDeadline(
+          closed,
+          32500,
+          "Drip-fed response outlived the absolute deadline",
+        );
+        assert.ok(
+          outcome.bytes > 1,
+          "The upstream must have streamed active bytes",
+        );
+        assert.equal(
+          outcome.complete,
+          false,
+          "A truncated JSON body must not finish as a complete response",
+        );
+        assert.ok(
+          outcome.elapsed >= 29000,
+          `Response ended before the absolute deadline: ${outcome.elapsed}ms`,
+        );
+        assert.ok(
+          outcome.elapsed <= 32500,
+          `Response exceeded the absolute deadline: ${outcome.elapsed}ms`,
+        );
+        await withinDeadline(
+          upstreamClosed,
+          1500,
+          "Deadline left the upstream connection open",
+        );
+      } finally {
+        client?.destroy();
+      }
+    });
+  },
+);
