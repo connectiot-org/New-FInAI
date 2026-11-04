@@ -205,3 +205,10 @@ Final local checks: backend86, PostgreSQL18 focused22, public/demo59, controlled
 No production database, accounts, scanner, model or deployment was configured/tested. No callable Vercel/Neon tools or private runtime bindings exist; direct hosted access is blocked. GitHub API GET/GraphQL returns Forbidden; normal Git transport works. Delivery is the feature branch and reviewable handoff; hosted activation remains an operator step. Do not represent local controlled-provider tests as proof that the hosted company product or real external model is ready.
 
 Final review refinement: supplier invoice/document/policy facts now share one repeatable-read database snapshot. The9 focused backend checks and3 freshly rebuilt remote/embedded/packaged Assistant journeys passed after this change.
+
+
+## 2026-11-04 — remove sign-in from the public invoice entry
+
+Latest user instruction removes the sign-in selection. Sequential coordinator/frontend/reviewer scope: public invoice navigation, legacy demo redirects, existing browser assertions and routing documentation. Acceptance: homepage/mobile/welcome/demo navigation and `/development/payables/invoices` open the labelled sample invoice interface directly without auth/API calls; existing real company routes/API authorization remain protected. No private data is exposed or converted to public demo data. Base `5f8228d`, initially clean checkout. No API/schema/dependency changes. Verification results follow after implementation.
+
+Verification: frontend typecheck/lint pass;4 targeted browser cases under session/API configuration pass (public desktop/mobile/welcome/sidebar links, no private/auth requests or credential fields, sample PDF/approval/export flow and separate private gate);7 built standalone demo cases and8 controlled private invoice UI cases pass. Updated real-company integration tests to use their explicit private routes. No production deployment or data change performed.

@@ -298,7 +298,7 @@ export function MarketingLayout() {
           />
         </nav>
         <div className="marketing-header-actions">
-          <Link className="marketing-login" to="/workspace/payables/invoices">
+          <Link className="marketing-login" to="/demo/payables/invoices">
             Supplier invoices
           </Link>
           <Link className="marketing-button dark small" to="/welcome">
@@ -382,7 +382,7 @@ export function MarketingLayout() {
           className="marketing-mobile-nav"
           aria-label="Mobile public navigation"
         >
-          <Link to="/workspace/payables/invoices">
+          <Link to="/demo/payables/invoices">
             Supplier invoices
             <ArrowRight size={15} />
           </Link>

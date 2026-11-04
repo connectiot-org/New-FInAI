@@ -74,7 +74,7 @@ for (const mode of ["remote", "embedded", "packaged"])
         child.send({ command, userId });
       });
     const login = async (page: Page, actor: number) => {
-      await page.goto(info.origin + "/development/payables/invoices");
+      await page.goto(info.origin + "/workspace/payables/invoices");
       await page.getByLabel("Account name").fill(info.actors[actor].username);
       await page.getByLabel("Organisation ID").fill(info.organisationId);
       await page
@@ -385,7 +385,7 @@ for (const mode of ["remote", "embedded", "packaged"])
         ).status,
       ).toBe(201);
       await page.goto(
-        `${info.origin}/development/payables/invoices/${invoiceId}?entityId=${info.secondEntityId}`,
+        `${info.origin}/workspace/payables/invoices/${invoiceId}?entityId=${info.secondEntityId}`,
       );
       await expect(
         page.getByRole("combobox", { name: "Company", exact: true }),

@@ -327,29 +327,37 @@ test("new stage samples are added without overwriting an older browser's invoice
   await expect(page.getByRole("link", { name: /DEV-1002/ })).toBeVisible();
 });
 
-test("legacy invoice routes open the authenticated workspace and retain invoice/company scope", async ({
+test("legacy invoice routes open samples directly without sign-in or private company identity", async ({
   page,
 }) => {
+  const requests: string[] = [];
+  page.on("request", (r) => {
+    if (/^\/(api|auth)\//.test(new URL(r.url()).pathname))
+      requests.push(r.url());
+  });
   for (const alias of [
     "/development/payables/invoices",
     "/invoices",
     "/invoice-approvals",
   ]) {
     await page.goto(alias);
-    await expect(page).toHaveURL("/workspace/payables/invoices");
-    await expect(
-      page.getByRole("heading", {
-        name: /Sign in to your finance workspace|Workspace configuration required/,
-      }),
-    ).toBeVisible();
+    await expect(page).toHaveURL("/demo/payables/invoices");
     await expect(
       page.getByRole("region", { name: "Development preview" }),
-    ).toHaveCount(0);
+    ).toBeVisible();
+    await expect(page.getByLabel("Account name")).toHaveCount(0);
+    await expect(page.getByLabel("Organisation ID")).toHaveCount(0);
+    await expect(page.getByLabel("Password", { exact: true })).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: /Sample Studio Supplier DEV-1001/ }),
+    ).toBeVisible();
   }
-  const id = "11111111-1111-4111-8111-111111111111",
-    company = "22222222-2222-4222-8222-222222222222";
-  await page.goto(`/development/payables/invoices/${id}?entityId=${company}`);
-  await expect(page).toHaveURL(
-    `/workspace/payables/invoices/${id}?entityId=${company}`,
+  await page.goto(
+    "/development/payables/invoices?entityId=22222222-2222-4222-8222-222222222222",
   );
+  await expect(page).toHaveURL("/demo/payables/invoices");
+  await expect(
+    page.getByRole("link", { name: /Sample Studio Supplier DEV-1001/ }),
+  ).toBeVisible();
+  expect(requests).toEqual([]);
 });

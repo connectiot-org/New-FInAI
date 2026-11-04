@@ -1,5 +1,7 @@
 # Invoice Assistant and authenticated routing handoff
 
+Routing update,4 November2026: the latest user instruction restores direct no-login public invoice entry. See `progress.md`; public links and development aliases now open the labelled samples. The private company routes and confirmed Assistant controls below retain authentication. Earlier routing observations describe the original delivery.
+
 Base: `47b833d` on main; implementation branch `feat/invoice-assistant-controls`. User selected real company invoices behind sign-in, with Assistant facts and proposed actions requiring explicit confirmation. User subsequently selected finishing the tested branch and deployment handoff because hosted access is unavailable.
 
 ## Ownership and scope

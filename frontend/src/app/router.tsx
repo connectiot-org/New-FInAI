@@ -149,7 +149,7 @@ function Welcome() {
           <Link to="/workspace">Sign in to your finance workspace</Link>
         </p>
         <p>
-          <Link to="/workspace/payables/invoices">Open supplier invoices</Link>
+          <Link to="/demo/payables/invoices">Open supplier invoices</Link>
         </p>
         <div className="welcome-note">
           <ShieldCheck size={20} />
@@ -201,15 +201,19 @@ const LegacyAssistant = lazy(() =>
 );
 function LegacyPayablesRedirect() {
   const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  // A real company UUID cannot select a browser-only sample company.
+  params.delete("entityId");
+  const query = params.toString();
   return (
     <Navigate
       replace
       to={
         location.pathname.replace(
           /^\/development\/payables/,
-          "/workspace/payables",
+          "/demo/payables",
         ) +
-        location.search +
+        (query ? "?" + query : "") +
         location.hash
       }
     />
@@ -230,7 +234,7 @@ const router = createBrowserRouter([
   { path: "/welcome", element: <Welcome /> },
   ...["/invoices", "/invoice-approvals"].map((path) => ({
     path,
-    element: <Navigate to="/workspace/payables/invoices" replace />,
+    element: <Navigate to="/demo/payables/invoices" replace />,
   })),
   { path: "/development/payables/*", element: <LegacyPayablesRedirect /> },
   {
