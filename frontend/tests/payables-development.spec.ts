@@ -361,3 +361,70 @@ test("legacy invoice routes open samples directly without sign-in or private com
   ).toBeVisible();
   expect(requests).toEqual([]);
 });
+
+test("leaving a PDF while its bytes load does not start an orphan preview worker", async ({
+  page,
+}) => {
+  await open(page);
+  await page.evaluate(() => {
+    const probe = {
+      pending: false,
+      finished: false,
+      workers: 0,
+      release: () => {},
+    };
+    Object.assign(window, { finaiPdfProbe: probe });
+    const buffer = Blob.prototype.arrayBuffer;
+    Blob.prototype.arrayBuffer = async function () {
+      if (this.type === "application/pdf" && !probe.pending) {
+        probe.pending = true;
+        await new Promise<void>((resolve) => {
+          probe.release = resolve;
+        });
+      }
+      const value = await buffer.call(this);
+      probe.finished = true;
+      return value;
+    };
+    const NativeWorker = window.Worker;
+    window.Worker = new Proxy(NativeWorker, {
+      construct(target, args) {
+        if (String(args[0]).includes("pdf.worker")) probe.workers++;
+        return Reflect.construct(target, args);
+      },
+    });
+  });
+  await page
+    .getByRole("link", { name: /Sample Studio Supplier DEV-1001/ })
+    .click();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (window as unknown as { finaiPdfProbe: { pending: boolean } })
+            .finaiPdfProbe.pending,
+      ),
+    )
+    .toBe(true);
+  await page.getByRole("link", { name: "All invoices", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Supplier invoices", exact: true }),
+  ).toBeVisible();
+  const workers = await page.evaluate(async () => {
+    const p = (
+      window as unknown as {
+        finaiPdfProbe: {
+          release: () => void;
+          finished: boolean;
+          workers: number;
+        };
+      }
+    ).finaiPdfProbe;
+    p.release();
+    while (!p.finished) await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+    return p.workers;
+  });
+  expect(workers).toBe(0);
+});

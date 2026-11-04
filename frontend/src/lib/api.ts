@@ -15,6 +15,10 @@ export async function apiRequest<T>(
   options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
 ): Promise<T> {
   const epoch = sessionEpoch();
+  const assertIdentity = () => {
+    if (epoch !== sessionEpoch())
+      throw new ApiError("Identity changed. Reload records.");
+  };
   const method = options.method || "GET",
     base =
       import.meta.env.VITE_API_BASE_URL ||
@@ -38,6 +42,7 @@ export async function apiRequest<T>(
         credentials: "same-origin",
         signal,
       });
+      assertIdentity();
       if (r.status === 401 && !options.signal?.aborted) expireSession(epoch);
       if (!r.ok)
         throw new ApiError(
@@ -49,6 +54,7 @@ export async function apiRequest<T>(
         .parse(await r.json());
       headers["X-CSRF-Token"] = session.csrfToken;
     }
+    assertIdentity();
     const r = await fetch(url, {
       method,
       credentials: sessionEnabled ? "same-origin" : "omit",
@@ -58,8 +64,12 @@ export async function apiRequest<T>(
         ? { body: JSON.stringify(options.body) }
         : {}),
     });
-    if (r.status === 401 && sessionEnabled && !options.signal?.aborted)
+    assertIdentity();
+    if (r.status === 401 && sessionEnabled && !options.signal?.aborted) {
       expireSession(epoch);
+      void r.body?.cancel().catch(() => {});
+      throw new ApiError("Session expired. Sign in again.", 401);
+    }
     let data: unknown;
     try {
       data = await r.json();
@@ -69,6 +79,7 @@ export async function apiRequest<T>(
         r.status,
       );
     }
+    assertIdentity();
     if (!r.ok) {
       const error = z.object({ message: z.string() }).safeParse(data);
       throw new ApiError(

@@ -4,14 +4,34 @@ export const sessionSchema = z.strictObject({
 });
 export const logoutSchema = z.strictObject({ status: z.literal("signed-out") });
 let epoch = 0;
+// Identity changes invalidate private views in other tabs without broadcasting tokens or account data.
+const changes = (() => {
+  try {
+    return typeof window !== "undefined" &&
+      typeof BroadcastChannel !== "undefined"
+      ? new BroadcastChannel("finai-session-changes")
+      : undefined;
+  } catch {
+    return undefined;
+  }
+})();
+const invalidateLocalSession = () => {
+  epoch++;
+  window.dispatchEvent(new Event("finai-session-expired"));
+};
+changes?.addEventListener("message", (event) => {
+  if (event.data === "changed") invalidateLocalSession();
+});
+if (import.meta.hot) import.meta.hot.dispose(() => changes?.close());
 export const sessionEpoch = () => epoch;
 export function authenticateSession() {
   epoch++;
+  changes?.postMessage("changed");
 }
 export function expireSession(requestEpoch = epoch) {
   if (requestEpoch !== epoch) return;
-  epoch++;
-  window.dispatchEvent(new Event("finai-session-expired"));
+  invalidateLocalSession();
+  changes?.postMessage("changed");
 }
 async function fetchSession() {
   const r = await fetch("/auth/session", {
@@ -59,7 +79,10 @@ export async function readSession(signal?: AbortSignal) {
       })
       .catch(() => {});
   }
+  const requestedEpoch = epoch;
   const result = await inFlight.promise;
+  if (requestedEpoch !== epoch)
+    throw new Error("Identity changed. Reload records.");
   if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
   return result;
 }

@@ -91,6 +91,8 @@ export function Imports() {
           "Files must be at most 1 MiB; use the trusted CLI for larger imports.",
         );
       const s = await readSession(c.signal);
+      if (epoch !== sessionEpoch())
+        throw new ApiError("Identity changed. Reload records.");
       const r = await fetch(
         `/api/v1/receivables/imports/preview?${new URLSearchParams({ entityId: scope, expectedVersion: String(history.items[0]?.version || 0) })}`,
         {
@@ -104,8 +106,12 @@ export function Imports() {
           signal: AbortSignal.any([c.signal, AbortSignal.timeout(20000)]),
         },
       );
+      if (epoch !== sessionEpoch())
+        throw new ApiError("Identity changed. Reload records.");
       if (r.status === 401 && !c.signal.aborted) expireSession(epoch);
       const data: unknown = await r.json();
+      if (epoch !== sessionEpoch())
+        throw new ApiError("Identity changed. Reload records.");
       if (!r.ok) {
         const v = z
           .object({
