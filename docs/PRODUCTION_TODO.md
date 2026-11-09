@@ -1,6 +1,8 @@
 # FinAI — Production Readiness TODO (Payables / Invoices)
 
-Derived from `docs/AUDIT.md` (branch `chore/baseline-audit`, 2026-11-09).
+Derived from `docs/AUDIT.md` (branch `chore/baseline-audit`, 2026-11-09) and
+re-verified per capability in `docs/PRODUCTION_GAPS.md`
+(branch `docs/production-gap-map`, 2026-11-09).
 Evidence citations are `file:line` in this repository. Unticked items are gaps
 found by the audit. Items marked *(partial)* have real groundwork already.
 
@@ -9,9 +11,9 @@ found by the audit. Items marked *(partial)* have real groundwork already.
 - [x] 0.1 Repo audit and baseline results documented
   — `docs/AUDIT.md` (this branch)
 - [x] 0.2 CI runs lint, typecheck, test, build on every PR
-  — `.github/workflows/checklist-release.yml:26-57` (backend typecheck/lint/build/test + frontend typecheck/lint/build), `:58-104` (browser suites), `.github/workflows/payables.yml:46-70` (invoice journeys)
+  — `.github/workflows/checklist-release.yml:26-57` (backend typecheck/lint/build/test + frontend typecheck/lint/build), `:58-104` (browser suites), `.github/workflows/payables.yml:46-70` (invoice journeys). Note: `checklist-release.yml` triggers on all pushes/PRs; `payables.yml` is path-filtered. CI passes do not gate merges because no check is required — see 0.3.
 - [ ] 0.3 main branch protected; PR required
-  — not verifiable from the repository; check GitHub → Settings → Branches
+  — **Verified missing (2026-11-09)**: GitHub API `GET /repos/connectiot-org/New-FInAI/branches/main/protection` returns 404 "Branch not protected" and `GET /repos/…/rulesets` returns `[]`; also stated in `AGENTS.md:16` ("no CODEOWNERS or branch protection is configured by these instructions")
 
 ## Phase 1 Foundation
 

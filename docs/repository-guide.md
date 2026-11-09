@@ -630,7 +630,8 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | `docs/feature-map.md` | Cross-stack feature map: one row per product feature linking its frontend folder, backend domain, contract files, database migration, tests and runbook. |
 | `docs/repository-guide.md` | Complete grouped file/folder purpose catalog, generated/private boundaries and verification command map. |
 | `docs/AUDIT.md` | Phase 0 baseline audit of Payables/Invoices from the `chore/baseline-audit` branch: stack summary, architecture sketch, demo-vs-workspace data flow, baseline command results, hygiene/security scans and a findings register (A-01..A-14) with file:line evidence. |
-| `docs/PRODUCTION_TODO.md` | Phased production-readiness checklist for Payables/Invoices; every tick cites file:line evidence and partial markers track unfinished clauses. Companion to `docs/AUDIT.md`. |
+| `docs/PRODUCTION_GAPS.md` | Read-only per-capability production gap map (49 capabilities across identity/security, money, workflow, accounting, ingestion, operations, compliance) verified from code on `docs/production-gap-map`, with status, file:line evidence, notes and S1-S4 risk. |
+| `docs/PRODUCTION_TODO.md` | Phased production-readiness checklist for Payables/Invoices; every tick cites file:line evidence and partial markers track unfinished clauses. Companion to `docs/AUDIT.md` and `docs/PRODUCTION_GAPS.md`. |
 
 ### Structure-refactor working documents
 
