@@ -554,6 +554,7 @@ Prisma applies the eight committed migration folders in chronological order: che
 | --- | --- |
 | `.github/workflows/checklist-release.yml` | Full GitHub Actions release matrix: locked apps, PostgreSQL/backend tests, all contracts, browser suites, audits/assets, container build and synthetic restore. |
 | `.github/workflows/payables.yml` | Invoice-focused GitHub Actions checks, real runtime journeys and storage restore; retains runnable sample builds and failure evidence as short-lived artifacts. |
+| `.github/pull_request_template.md` | Pull request template with Summary/Changes/How to test/Risks/Checklist sections and repository-specific verification prompts (tenant isolation, integer minor units, additive migrations, suite commands). |
 
 
 ## Root and context files
@@ -568,6 +569,8 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | --- | --- | --- |
 | [README.md](../README.md) | Repository landing page: product scope, directory map, local entry points, verification and deployment links. | Start here; detailed application commands belong in the application runbooks. |
 | `.editorconfig` | Provides UTF-8/LF/final-newline defaults, two-space indentation with a Python four-space exception, and preserved Markdown hard breaks. | Editors apply it to future edits; no bulk source formatting is required. |
+| `.gitignore` | Root-level ignore rule for private environment files and their variants while keeping reviewable `.env.example` files; complements the separate frontend/backend ignore files. | Applied by Git automatically; keeps stray root-level local values out of version control. |
+| `.env.example` | Root inventory of environment variable names read across the backend, Vercel functions and Vite builds, with empty values and pointers to the authoritative `backend/.env.example` and hosting runbooks. | Documentation only; nothing loads a root-level `.env` and no secret values belong here. |
 | [AGENTS.md](../AGENTS.md) | Repository ownership, edit boundaries, contract-first changes, preservation and secret-handling instructions. | Read before implementation, together with the instruction file in the target application. Dated milestones inside it describe earlier work, not a complete current feature inventory. |
 
 ### Context navigation and workflow
@@ -626,6 +629,8 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | `docs/architecture.md` | Explains current runtime/data boundaries, a concrete new-product workflow, independent-project decisions, naming/comments and executable maintenance checks. |
 | `docs/feature-map.md` | Cross-stack feature map: one row per product feature linking its frontend folder, backend domain, contract files, database migration, tests and runbook. |
 | `docs/repository-guide.md` | Complete grouped file/folder purpose catalog, generated/private boundaries and verification command map. |
+| `docs/AUDIT.md` | Phase 0 baseline audit of Payables/Invoices from the `chore/baseline-audit` branch: stack summary, architecture sketch, demo-vs-workspace data flow, baseline command results, hygiene/security scans and a findings register (A-01..A-14) with file:line evidence. |
+| `docs/PRODUCTION_TODO.md` | Phased production-readiness checklist for Payables/Invoices; every tick cites file:line evidence and partial markers track unfinished clauses. Companion to `docs/AUDIT.md`. |
 
 ### Structure-refactor working documents
 
