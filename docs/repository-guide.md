@@ -624,7 +624,16 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | File | Purpose |
 | --- | --- |
 | `docs/architecture.md` | Explains current runtime/data boundaries, a concrete new-product workflow, independent-project decisions, naming/comments and executable maintenance checks. |
+| `docs/feature-map.md` | Cross-stack feature map: one row per product feature linking its frontend folder, backend domain, contract files, database migration, tests and runbook. |
 | `docs/repository-guide.md` | Complete grouped file/folder purpose catalog, generated/private boundaries and verification command map. |
+
+### Structure-refactor working documents
+
+| File | Purpose |
+| --- | --- |
+| `docs/refactor/baseline.md` | Measured phase-0 baseline of the structure-only refactor: full verification matrix, environment limits, size inventory and inbound-reference facts that later phases must reproduce. |
+| `docs/refactor/move-map.md` | Approved old-path → new-path plan for every relocation and verbatim top-level extraction in each refactor phase, with per-phase import-update lists and gates. |
+| `docs/refactor/observations.md` | Running log of defects, smells and couplings found during the refactor and intentionally left unchanged, with proposed follow-ups. |
 
 ## Verification
 
