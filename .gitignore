@@ -1,0 +1,6 @@
+# Local environment values stay out of version control.
+# (frontend/ and backend/ already ignore their own .env; this root rule
+# adds the same guarantee for any future root-level tooling.)
+.env
+.env.*
+!.env.example
