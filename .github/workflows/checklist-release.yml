@@ -2,27 +2,41 @@ name: Checklist release checks
 on: [push, pull_request]
 permissions:
   contents: read
+concurrency:
+  group: checklist-release-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
-  verify:
+  guardrails:
+    name: Repository guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend tooling
+        run: npm ci --prefix frontend --no-audit --no-fund
+      - name: Repository layout and import boundaries
+        run: |
+          npm --prefix frontend run test:repository
+          npm --prefix frontend run check:repository
+
+  backend:
+    name: Backend matrix
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
-          cache-dependency-path: |
-            backend/package-lock.json
-            frontend/package-lock.json
-      - name: Install separate application dependencies
-        run: |
-          npm ci --prefix backend --no-audit --no-fund
-          npm ci --prefix frontend --no-audit --no-fund
-      - name: Repository layout and import boundaries
-        run: |
-          npm --prefix frontend run test:repository
-          npm --prefix frontend run check:repository
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
       - name: Local database and backend checks
         working-directory: backend
         run: |
@@ -36,6 +50,24 @@ jobs:
           npm run build
           npm test
           npm audit
+      - name: Stop CI database
+        if: always()
+        working-directory: backend
+        run: docker compose stop db
+
+  contracts:
+    name: Contract validators
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend validator dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
       - name: Contract checks
         run: |
           python3 -m venv /tmp/finai-contracts
@@ -48,19 +80,109 @@ jobs:
           node contracts/validate_public_chat.mjs
           node contracts/validate_payables.mjs
           npm exec --yes --package @redocly/cli@2.8.0 -- redocly lint contracts/openapi.yaml contracts/subscriptions.openapi.yaml contracts/receivables.openapi.yaml contracts/receivables-detail.openapi.yaml contracts/workspace.openapi.yaml contracts/assistant.openapi.yaml contracts/payables.openapi.json --extends minimal
-      - name: Install browser and check frontend
+
+  frontend:
+    name: Frontend static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend --no-audit --no-fund
+      - name: Typecheck, lint and build
         working-directory: frontend
         run: |
-          npx playwright install --with-deps chromium
           npm run typecheck
           npm run lint
           npm run build
+      - name: Frontend asset and dependency audit
+        working-directory: frontend
+        run: |
+          node scripts/check-assets.ts
+          npm audit
+
+  browser-demo:
+    name: Browser suites without database
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend --no-audit --no-fund
+      - name: Install browser
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
       - name: Demo browser tests
         working-directory: frontend
         run: npm run test
       - name: Standalone invoice demo without database or sign-in
         working-directory: frontend
         run: npm run test:invoice-demo
+      - name: Supplier invoice UI tests
+        working-directory: frontend
+        run: npm run test:payables
+      - name: Receivables browser tests
+        working-directory: frontend
+        run: npm run test:receivables
+      - name: Workspace browser tests
+        working-directory: frontend
+        run: npm run test:workspace
+      - name: Assistant browser tests
+        working-directory: frontend
+        run: npm run test:assistant
+      - name: Public free-model chat integration tests
+        working-directory: frontend
+        run: npm run test:public-chat
+      - name: Retain browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-demo-failure-evidence
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  browser-integration:
+    name: Browser suites with database
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Install separate application dependencies
+        run: |
+          npm ci --prefix backend --no-audit --no-fund
+          npm ci --prefix frontend --no-audit --no-fund
+      - name: Local database, migrations, seed and backend build
+        working-directory: backend
+        run: |
+          npm run db:init
+          npm run db:up
+          npm run generate
+          npm run db:migrate
+          npm run db:seed
+          npm run build
+      - name: Install browser
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
       - name: Checklist integration tests
         working-directory: frontend
         run: npm run test:checklist
@@ -70,53 +192,59 @@ jobs:
       - name: Built session integration tests
         working-directory: frontend
         run: npm run test:session
-      - name: Receivables browser tests
-        working-directory: frontend
-        run: npm run test:receivables
       - name: Built receivables integration tests
         working-directory: frontend
         run: npm run test:receivables:production
-      - name: Workspace browser tests
-        working-directory: frontend
-        run: npm run test:workspace
       - name: Built workspace integration tests
         working-directory: frontend
         run: npm run test:workspace:production
-      - name: Assistant browser tests
-        working-directory: frontend
-        run: npm run test:assistant
       - name: Built Assistant integration tests
         working-directory: frontend
         run: npm run test:assistant:production
-      - name: Public free-model chat integration tests
-        working-directory: frontend
-        run: npm run test:public-chat
       - name: Same-project Vercel backend integration tests
         working-directory: frontend
         run: npm run test:vercel
-      - name: Supplier invoice UI and transport tests
+      - name: Supplier invoice transport tests
         working-directory: frontend
-        run: |
-          npm run test:payables
-          npm run test:payables-transport
+        run: npm run test:payables-transport
       - name: Built supplier invoice integration tests
         working-directory: frontend
         run: npm run test:payables:integration
-      - name: Frontend asset and dependency audit
-        working-directory: frontend
-        run: |
-          node scripts/check-assets.ts
-          npm audit
       - name: Retain browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-failure-evidence
+          name: browser-integration-failure-evidence
           path: |
             frontend/test-results/
             frontend/playwright-report/
           if-no-files-found: ignore
           retention-days: 7
+      - name: Stop CI database
+        if: always()
+        working-directory: backend
+        run: docker compose stop db
+
+  container:
+    name: Container build and restore rehearsal
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend dependencies
+        run: npm ci --prefix backend --no-audit --no-fund
+      - name: Local database and generated client for rehearsal
+        working-directory: backend
+        run: |
+          npm run db:init
+          npm run db:up
+          npm run generate
+          npm run build
       - name: Container build and synthetic application restore
         run: |
           docker build -t finai-backend:ci backend
