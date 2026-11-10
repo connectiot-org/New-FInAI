@@ -22,6 +22,9 @@ on:
       ]
 permissions:
   contents: read
+concurrency:
+  group: payables-product-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   invoice-journey:
     runs-on: ubuntu-latest
