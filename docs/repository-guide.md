@@ -100,6 +100,8 @@ Each row below describes one exact file. Test source describes intended verifica
 | `frontend/scripts/payables-transport.test.ts` | Exercises private transport byte limits, exact PDF/CSV handling, allowlists, body deadlines, incomplete clients and cleanup against controlled runtimes. |
 | `frontend/scripts/rea-ui-audit.mjs` | Invokes the pinned external REA CLI for reproducible public-page screenshots/comparisons and records provenance and limitations. |
 | `frontend/scripts/serve-invoice-demo.mjs` | Serves only the standalone demo’s public dist files with SPA fallback; deliberately exposes no financial API or account service. |
+| `frontend/scripts/smoke-hosted.mjs` | Environment-configured hosted deployment smoke checks (read-only by default, one draft invoice with `SMOKE_WRITE=1`); redacts tokens/cookies/credentials from all output and exits non-zero on any failed check. |
+| `frontend/scripts/smoke-hosted.test.mjs` | Tests the smoke script’s pure logic: secret redaction, security-header evaluation, session-cookie parsing, environment validation, exit codes and asset/chunk URL extraction. |
 | `frontend/scripts/session-fixture.ts` | Builds isolated synthetic PostgreSQL/session/HTTPS/proxy test state and controlled model data for built-workspace browser tests. |
 | `frontend/scripts/subscriptions-fixture.ts` | Starts and cleans the dedicated synthetic PostgreSQL schema and local API for subscription browser tests. |
 | `frontend/scripts/vercel-build.mjs` | Installs/builds backend dependencies separately, assembles the ignored private server package and builds session-enabled browser assets within the size budget. |
