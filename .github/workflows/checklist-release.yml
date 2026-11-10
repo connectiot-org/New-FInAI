@@ -106,11 +106,9 @@ jobs:
           npm run typecheck
           npm run lint
           npm run build
-      - name: Frontend asset and dependency audit
+      - name: Frontend dependency audit
         working-directory: frontend
-        run: |
-          node scripts/check-assets.ts
-          npm audit
+        run: npm audit
 
   browser-demo:
     name: Browser suites without database
@@ -146,9 +144,6 @@ jobs:
       - name: Assistant browser tests
         working-directory: frontend
         run: npm run test:assistant
-      - name: Public free-model chat integration tests
-        working-directory: frontend
-        run: npm run test:public-chat
       - name: Retain browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
@@ -207,6 +202,11 @@ jobs:
       - name: Built Assistant integration tests
         working-directory: frontend
         run: npm run test:assistant:production
+      - name: Public free-model chat integration tests
+        # Needs no database, but runs here so the public-chat build output
+        # exists for the asset scan over all seven build roots below.
+        working-directory: frontend
+        run: npm run test:public-chat
       - name: Same-project Vercel backend integration tests
         working-directory: frontend
         run: npm run test:vercel
@@ -216,6 +216,13 @@ jobs:
       - name: Built supplier invoice integration tests
         working-directory: frontend
         run: npm run test:payables:integration
+      - name: Frontend asset scan across all seven builds
+        # Runs in this job because build:vercel rebuilds dist here and the
+        # public-chat/session/receivables/workspace/assistant/payables
+        # builds all exist in this job; the same scan ran at the end of the
+        # monolithic verify job before the split.
+        working-directory: frontend
+        run: node scripts/check-assets.ts
       - name: Retain browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
