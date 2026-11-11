@@ -11,6 +11,9 @@ export default tseslint.config(
       "test-results",
       "artifacts",
       ".finai-server",
+      // Local `vercel build` output; never committed but present after a
+      // local deployment rehearsal.
+      ".vercel",
     ],
   },
   js.configs.recommended,

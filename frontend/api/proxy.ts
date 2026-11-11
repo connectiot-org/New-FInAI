@@ -11,6 +11,24 @@ import { randomUUID } from "node:crypto";
 import { readRequestBody, RequestBodyError } from "../server/request-body.js";
 export const config = { maxDuration: 60 };
 const require = createRequire(import.meta.url);
+// Packaging references for Vercel's build-time file tracing: the private
+// runtime's generated native binaries must land inside the function bundle at
+// their package-relative paths, because Prisma resolves libquery_engine and
+// argon2 loads its prebuilt binding from those directories at runtime. The
+// literal require paths below are resolved during build-time analysis so the
+// engines are bundled; the calls themselves are guarded because these
+// binaries are data libraries for their owning packages, not loadable Node
+// addons, and the vercel.json includeFiles glob stays as documented coverage.
+try {
+  require("../.finai-server/node_modules/.prisma/client/libquery_engine-rhel-openssl-3.0.x.so.node");
+  // Trace the local-verification target as well so bundled runtime layouts
+  // stay identical across development and hosting environments.
+  require("../.finai-server/node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node");
+  require("../.finai-server/node_modules/argon2/prebuilds/linux-x64/argon2.glibc.node");
+} catch {
+  // Reference-only: the engine binaries are opened by Prisma/argon2 at
+  // runtime, never imported as Node addons here.
+}
 const publicChat = createPublicChatHandler();
 const embedded = createEmbeddedHandler({
   loadApplication: () =>

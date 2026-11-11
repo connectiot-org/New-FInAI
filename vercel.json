@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "cd frontend && npm ci --no-audit --no-fund",
+  "buildCommand": "cd frontend && npm run build:vercel",
+  "outputDirectory": "frontend/dist",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/proxy?route=api/$1"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "/api/proxy?route=auth/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/((?!api(?:/|$)|auth(?:/|$)).*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/proxy.ts": {
+      "maxDuration": 60,
+      "includeFiles": "frontend/.finai-server/**"
+    }
+  }
+}
