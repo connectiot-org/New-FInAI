@@ -29,7 +29,9 @@
     "build:invoice-demo": "node scripts/build-invoice-demo.mjs",
     "test:invoice-demo": "npm run build:invoice-demo && playwright test --config playwright.invoice-demo.config.ts",
     "check:repository": "node scripts/check-repository.mjs",
-    "test:repository": "node --test scripts/check-repository.test.mjs"
+    "test:repository": "node --test scripts/check-repository.test.mjs",
+    "test:smoke-hosted": "node --test scripts/smoke-hosted.test.mjs",
+    "smoke:hosted": "node scripts/smoke-hosted.mjs"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

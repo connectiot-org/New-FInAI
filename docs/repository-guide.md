@@ -100,6 +100,8 @@ Each row below describes one exact file. Test source describes intended verifica
 | `frontend/scripts/payables-transport.test.ts` | Exercises private transport byte limits, exact PDF/CSV handling, allowlists, body deadlines, incomplete clients and cleanup against controlled runtimes. |
 | `frontend/scripts/rea-ui-audit.mjs` | Invokes the pinned external REA CLI for reproducible public-page screenshots/comparisons and records provenance and limitations. |
 | `frontend/scripts/serve-invoice-demo.mjs` | Serves only the standalone demo’s public dist files with SPA fallback; deliberately exposes no financial API or account service. |
+| `frontend/scripts/smoke-hosted.mjs` | Environment-configured hosted deployment smoke checks (read-only by default, one draft invoice with `SMOKE_WRITE=1`); redacts tokens/cookies/credentials from all output and exits non-zero on any failed check. |
+| `frontend/scripts/smoke-hosted.test.mjs` | Tests the smoke script’s pure logic: secret redaction, security-header evaluation, session-cookie parsing, environment validation, exit codes and asset/chunk URL extraction. |
 | `frontend/scripts/session-fixture.ts` | Builds isolated synthetic PostgreSQL/session/HTTPS/proxy test state and controlled model data for built-workspace browser tests. |
 | `frontend/scripts/subscriptions-fixture.ts` | Starts and cleans the dedicated synthetic PostgreSQL schema and local API for subscription browser tests. |
 | `frontend/scripts/vercel-build.mjs` | Installs/builds backend dependencies separately, assembles the ignored private server package and builds session-enabled browser assets within the size budget. |
@@ -554,6 +556,7 @@ Prisma applies the eight committed migration folders in chronological order: che
 | --- | --- |
 | `.github/workflows/checklist-release.yml` | Full GitHub Actions release matrix: locked apps, PostgreSQL/backend tests, all contracts, browser suites, audits/assets, container build and synthetic restore. |
 | `.github/workflows/payables.yml` | Invoice-focused GitHub Actions checks, real runtime journeys and storage restore; retains runnable sample builds and failure evidence as short-lived artifacts. |
+| `.github/pull_request_template.md` | Pull request template with Summary/Changes/How to test/Risks/Checklist sections and repository-specific verification prompts (tenant isolation, integer minor units, additive migrations, suite commands). |
 
 
 ## Root and context files
@@ -568,6 +571,8 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | --- | --- | --- |
 | [README.md](../README.md) | Repository landing page: product scope, directory map, local entry points, verification and deployment links. | Start here; detailed application commands belong in the application runbooks. |
 | `.editorconfig` | Provides UTF-8/LF/final-newline defaults, two-space indentation with a Python four-space exception, and preserved Markdown hard breaks. | Editors apply it to future edits; no bulk source formatting is required. |
+| `.gitignore` | Root-level ignore rule for private environment files and their variants while keeping reviewable `.env.example` files; complements the separate frontend/backend ignore files. | Applied by Git automatically; keeps stray root-level local values out of version control. |
+| `.env.example` | Root inventory of environment variable names read across the backend, Vercel functions and Vite builds, with empty values and pointers to the authoritative `backend/.env.example` and hosting runbooks. | Documentation only; nothing loads a root-level `.env` and no secret values belong here. |
 | [AGENTS.md](../AGENTS.md) | Repository ownership, edit boundaries, contract-first changes, preservation and secret-handling instructions. | Read before implementation, together with the instruction file in the target application. Dated milestones inside it describe earlier work, not a complete current feature inventory. |
 
 ### Context navigation and workflow
@@ -626,6 +631,11 @@ Current source, versioned contracts and executable runbooks determine behavior. 
 | `docs/architecture.md` | Explains current runtime/data boundaries, a concrete new-product workflow, independent-project decisions, naming/comments and executable maintenance checks. |
 | `docs/feature-map.md` | Cross-stack feature map: one row per product feature linking its frontend folder, backend domain, contract files, database migration, tests and runbook. |
 | `docs/repository-guide.md` | Complete grouped file/folder purpose catalog, generated/private boundaries and verification command map. |
+| `docs/AUDIT.md` | Phase 0 baseline audit of Payables/Invoices from the `chore/baseline-audit` branch: stack summary, architecture sketch, demo-vs-workspace data flow, baseline command results, hygiene/security scans and a findings register (A-01..A-14) with file:line evidence. |
+| `docs/CI_COVERAGE.md` | CI coverage review comparing both GitHub Actions workflows against the full local verification matrix, recording the pre-split job structure, measured wall-clock, per-check coverage, the parallel job split and the exact required-check job names. |
+| `docs/RELEASE_CHECKLIST.md` | Ordered operator release checklist (preconditions, before-deploy, deploy, post-deploy smoke and manual invoice journey, rollback) linking to the authoritative runbooks and separating agent-verifiable from operator-only steps. |
+| `docs/PRODUCTION_GAPS.md` | Read-only per-capability production gap map (49 capabilities across identity/security, money, workflow, accounting, ingestion, operations, compliance) verified from code on `docs/production-gap-map`, with status, file:line evidence, notes and S1-S4 risk. |
+| `docs/PRODUCTION_TODO.md` | Phased production-readiness checklist for Payables/Invoices; every tick cites file:line evidence and partial markers track unfinished clauses. Companion to `docs/AUDIT.md` and `docs/PRODUCTION_GAPS.md`. |
 
 ### Structure-refactor working documents
 
@@ -653,6 +663,7 @@ Use Node 24/npm 11, separate locked installs, local PostgreSQL and the configure
 | Public asset secret scan | `node scripts/check-assets.ts` in `frontend/` after builds. |
 | Shared contracts | Four `python3 contracts/validate_*.py` validators and `node contracts/validate_assistant.mjs`, `validate_public_chat.mjs`, `validate_payables.mjs` from root, then the CI's pinned Redocly lint over all seven OpenAPI descriptions. Python packages are pinned in `contracts/requirements.txt`. |
 | Synthetic recovery | `bash backend/scripts/restore-rehearsal.sh`; `bash backend/scripts/payables-storage-check.sh` from root with local Docker/database. |
+| Hosted deployment smoke | `npm run smoke:hosted` in `frontend/` against a deployed origin configured only through `SMOKE_*` environment variables; see [docs/RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md). Its pure logic is tested by `npm run test:smoke-hosted`. |
 | Container | `docker build -t finai-backend:<reviewed-sha> backend`; verified TLS/checksum vendor downloads remain required. |
 
 For target hosting, follow the exact Vercel/remote mode and private account/database/scanner/provider setup in the operating runbooks, then test the deployed commit and backups. Local tests/fixtures do not provision or certify that environment.
