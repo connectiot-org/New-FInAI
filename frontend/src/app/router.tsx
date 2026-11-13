@@ -68,6 +68,7 @@ import {
   WorkspaceMissing,
 } from "../features/workspace/Workspace";
 import { ReceivablesRegister } from "../features/workspace/ReceivablesRegister";
+import { DatasetsPage } from "../features/marketing/Datasets";
 function Welcome() {
   useEffect(() => {
     document.title = "Welcome · FinAI";
@@ -230,6 +231,7 @@ const router = createBrowserRouter([
       { path: "resources", element: <ResourcesPage /> },
       { path: "about", element: <AboutPage /> },
       { path: "customers", element: <DemoCustomersPage /> },
+      { path: "datasets", element: <DatasetsPage /> },
     ],
   },
   { path: "/welcome", element: <Welcome /> },
