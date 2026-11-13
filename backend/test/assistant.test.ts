@@ -655,6 +655,15 @@ test("real HTTP session/CSRF/private owner guard and revocation during inference
       });
     assert.equal(
       (
+        await request("/api/v1/public/datasets", undefined, {
+          cookie: "",
+        })
+      ).status,
+      200,
+      "published dataset catalogue must be readable without a login",
+    );
+    assert.equal(
+      (
         await request(
           "/api/v1/assistant/conversations?entityId=" + LOCAL.entityId,
           undefined,
