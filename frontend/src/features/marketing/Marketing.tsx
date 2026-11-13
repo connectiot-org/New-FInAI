@@ -250,6 +250,7 @@ export function MarketingLayout() {
           <PublicMenu label="Product" groups={groups} />
           <PublicMenu label="Solutions" groups={solutionGroups} />
           <Link to="/customers">Customers</Link>
+          <Link to="/datasets">Data library</Link>
           <PublicMenu label="Partners" groups={partnerGroups} />
           <PublicMenu
             label="Resources"
@@ -338,6 +339,7 @@ export function MarketingLayout() {
           <div>
             <h3>RESOURCES</h3>
             <Link to="/resources">Workflow guides</Link>
+            <Link to="/datasets">Free data library</Link>
             <Link to="/resources#interactive-preview">Interactive preview</Link>
             <Link to="/resources#questions">Questions answered</Link>
             <Link to="/welcome">Public demo</Link>
@@ -384,6 +386,10 @@ export function MarketingLayout() {
         >
           <Link to="/demo/payables/invoices">
             Supplier invoices
+            <ArrowRight size={15} />
+          </Link>
+          <Link to="/datasets">
+            Free data library
             <ArrowRight size={15} />
           </Link>
           {groups.map((group) => (
