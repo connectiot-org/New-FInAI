@@ -451,6 +451,35 @@ export async function createApplication(
         res.json({ status: "alive" });
         return;
       }
+      if (
+        req.path === "/api/v1/public/datasets" &&
+        req.method === "GET"
+      ) {
+        const datasets = await db.publicDataset.findMany({
+          where: { published: true },
+          orderBy: [{ category: "asc" }, { title: "asc" }],
+          select: {
+            slug: true,
+            title: true,
+            summary: true,
+            category: true,
+            version: true,
+            format: true,
+            license: true,
+            licenseUrl: true,
+            sourceName: true,
+            sourceUrl: true,
+            recordCount: true,
+            updatedAt: true,
+          },
+        });
+        res.setHeader(
+          "Cache-Control",
+          "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+        );
+        res.json({ datasets });
+        return;
+      }
       if (config.mode === "session") {
         if (req.path === "/health/ready" && req.method === "GET") {
           await db.$queryRaw`SELECT 1 FROM "ApInvoice" LIMIT 1`;
