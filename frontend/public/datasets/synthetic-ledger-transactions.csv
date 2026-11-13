@@ -1,0 +1,21 @@
+transaction_id,line_number,transaction_date,account_code,account_name,description,debit_amount,credit_amount,currency,entity
+TXN-0001,1,2026-01-02,1010,Operating bank account,Founder capital deposited,5000.00,0.00,USD,Northstar Demo Ltd
+TXN-0001,2,2026-01-02,3000,Share capital,Founder capital deposited,0.00,5000.00,USD,Northstar Demo Ltd
+TXN-0002,1,2026-01-04,1100,Accounts receivable,January subscription invoice,1200.00,0.00,USD,Northstar Demo Ltd
+TXN-0002,2,2026-01-04,4000,Subscription revenue,January subscription invoice,0.00,1200.00,USD,Northstar Demo Ltd
+TXN-0003,1,2026-01-08,1010,Operating bank account,Customer payment received,1200.00,0.00,USD,Northstar Demo Ltd
+TXN-0003,2,2026-01-08,1100,Accounts receivable,Customer payment received,0.00,1200.00,USD,Northstar Demo Ltd
+TXN-0004,1,2026-01-10,6100,Software and hosting,Cloud hosting payment,180.00,0.00,USD,Northstar Demo Ltd
+TXN-0004,2,2026-01-10,1010,Operating bank account,Cloud hosting payment,0.00,180.00,USD,Northstar Demo Ltd
+TXN-0005,1,2026-01-12,6000,Salaries and benefits,Monthly payroll accrual,2400.00,0.00,USD,Northstar Demo Ltd
+TXN-0005,2,2026-01-12,2100,Accrued expenses,Monthly payroll accrual,0.00,2400.00,USD,Northstar Demo Ltd
+TXN-0006,1,2026-01-15,1010,Operating bank account,Payment of accrued payroll,2400.00,0.00,USD,Northstar Demo Ltd
+TXN-0006,2,2026-01-15,6000,Salaries and benefits,Payment of accrued payroll,0.00,2400.00,USD,Northstar Demo Ltd
+TXN-0007,1,2026-01-18,1200,Prepaid expenses,Annual software subscription prepaid,600.00,0.00,USD,Northstar Demo Ltd
+TXN-0007,2,2026-01-18,1010,Operating bank account,Annual software subscription prepaid,0.00,600.00,USD,Northstar Demo Ltd
+TXN-0008,1,2026-01-23,5000,Cost of services,External delivery contractor,450.00,0.00,USD,Northstar Demo Ltd
+TXN-0008,2,2026-01-23,2000,Accounts payable,External delivery contractor,0.00,450.00,USD,Northstar Demo Ltd
+TXN-0009,1,2026-01-26,1010,Operating bank account,Payment to external contractor,450.00,0.00,USD,Northstar Demo Ltd
+TXN-0009,2,2026-01-26,2000,Accounts payable,Payment to external contractor,0.00,450.00,USD,Northstar Demo Ltd
+TXN-0010,1,2026-01-30,1100,Accounts receivable,February subscription billed in advance,900.00,0.00,USD,Northstar Demo Ltd
+TXN-0010,2,2026-01-30,2300,Deferred revenue,February subscription billed in advance,0.00,900.00,USD,Northstar Demo Ltd
