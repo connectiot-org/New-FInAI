@@ -411,3 +411,23 @@ model ApExport {
   invoice ApInvoice @relation(fields:[organisationId,entityId,invoiceId],references:[organisationId,entityId,id],onDelete:NoAction,onUpdate:NoAction)
   @@unique([organisationId,entityId,invoiceId,revision])
 }
+
+model PublicDataset {
+  id          String   @id @db.Uuid
+  slug        String   @unique @db.VarChar(100)
+  title       String   @db.VarChar(180)
+  summary     String   @db.VarChar(500)
+  category    String   @db.VarChar(80)
+  version     String   @db.VarChar(40)
+  format      String   @db.VarChar(12)
+  license     String   @db.VarChar(80)
+  licenseUrl  String   @map("license_url") @db.VarChar(500)
+  sourceName  String   @map("source_name") @db.VarChar(180)
+  sourceUrl   String?  @map("source_url") @db.VarChar(500)
+  recordCount Int      @map("record_count")
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([published, category, title], map: "public_dataset_catalog")
+}
