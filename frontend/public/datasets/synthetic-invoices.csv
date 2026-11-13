@@ -1,0 +1,11 @@
+invoice_id,issue_date,due_date,customer_name,currency,subtotal,tax_amount,total_amount,paid_amount,status
+INV-1001,2026-01-04,2026-02-03,Northwind Studio,USD,1200.00,0.00,1200.00,1200.00,Paid
+INV-1002,2026-01-06,2026-02-05,Blue Maple Labs,USD,850.00,0.00,850.00,400.00,Partially paid
+INV-1003,2026-01-08,2026-02-07,Orbit Desk Co,USD,2400.00,0.00,2400.00,0.00,Open
+INV-1004,2026-01-10,2026-02-09,Harbor Analytics,USD,560.00,0.00,560.00,560.00,Paid
+INV-1005,2026-01-12,2026-02-11,Willow Systems,USD,1750.00,0.00,1750.00,0.00,Open
+INV-1006,2026-01-15,2026-02-14,Silverline Works,USD,920.00,0.00,920.00,920.00,Paid
+INV-1007,2026-01-18,2026-02-17,Red Kite Digital,USD,1325.00,0.00,1325.00,500.00,Partially paid
+INV-1008,2026-01-21,2026-02-20,Meadow Tech Ltd,USD,680.00,0.00,680.00,0.00,Overdue
+INV-1009,2026-01-24,2026-02-23,Paper Lantern Group,USD,3100.00,0.00,3100.00,3100.00,Paid
+INV-1010,2026-01-28,2026-02-27,Cedar Peak Software,USD,1450.00,0.00,1450.00,0.00,Open
