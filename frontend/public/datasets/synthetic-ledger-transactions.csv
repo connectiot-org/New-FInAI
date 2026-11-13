@@ -9,8 +9,8 @@ TXN-0004,1,2026-01-10,6100,Software and hosting,Cloud hosting payment,180.00,0.0
 TXN-0004,2,2026-01-10,1010,Operating bank account,Cloud hosting payment,0.00,180.00,USD,Northstar Demo Ltd
 TXN-0005,1,2026-01-12,6000,Salaries and benefits,Monthly payroll accrual,2400.00,0.00,USD,Northstar Demo Ltd
 TXN-0005,2,2026-01-12,2100,Accrued expenses,Monthly payroll accrual,0.00,2400.00,USD,Northstar Demo Ltd
-TXN-0006,1,2026-01-15,1010,Operating bank account,Payment of accrued payroll,2400.00,0.00,USD,Northstar Demo Ltd
-TXN-0006,2,2026-01-15,6000,Salaries and benefits,Payment of accrued payroll,0.00,2400.00,USD,Northstar Demo Ltd
+TXN-0006,1,2026-01-15,2100,Accrued expenses,Payment of accrued payroll,2400.00,0.00,USD,Northstar Demo Ltd
+TXN-0006,2,2026-01-15,1010,Operating bank account,Payment of accrued payroll,0.00,2400.00,USD,Northstar Demo Ltd
 TXN-0007,1,2026-01-18,1200,Prepaid expenses,Annual software subscription prepaid,600.00,0.00,USD,Northstar Demo Ltd
 TXN-0007,2,2026-01-18,1010,Operating bank account,Annual software subscription prepaid,0.00,600.00,USD,Northstar Demo Ltd
 TXN-0008,1,2026-01-23,5000,Cost of services,External delivery contractor,450.00,0.00,USD,Northstar Demo Ltd
